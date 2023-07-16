@@ -2,6 +2,9 @@
 name = "spindle"
 version = "0.1.0"
 edition = "2021"
+license = "Apache-2.0 or MIT"
+description = "A macro crate for ergonomic GPGPU data parallel computing."
+repository = "https://github.com/ariasanovsky/spindle"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
