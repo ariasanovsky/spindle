@@ -2,7 +2,7 @@
 name = "spindle"
 version = "0.1.0"
 edition = "2021"
-license = "Apache-2.0 or MIT"
+license = "Apache-2.0 OR MIT"
 description = "A macro crate for ergonomic GPGPU data parallel computing."
 repository = "https://github.com/ariasanovsky/spindle"
 
