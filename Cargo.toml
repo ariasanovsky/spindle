@@ -10,4 +10,10 @@ repository = "https://github.com/ariasanovsky/spindle"
 
 [dependencies]
 cudarc = "0.9.12"
-spindle_macros = { version = "0.1.2", path = "../spindle_macros" }
+spindle_macros = { workspace = true }
+
+[workspace]
+members = ["spindle_macros"]
+
+[workspace.dependencies]
+spindle_macros = { version = "0.1.2", path = "spindle_macros" }
