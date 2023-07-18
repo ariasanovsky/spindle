@@ -1,0 +1,6 @@
+[build]
+target = "nvptx64-nvidia-cuda"
+rustflags = ["--emit", "asm"]
+
+[term]
+color = "always" # "auto"
