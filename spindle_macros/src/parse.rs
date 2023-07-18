@@ -1,4 +1,7 @@
-use syn::{parse::{Parse, ParseStream}, ItemFn, Result};
+use syn::{
+    parse::{Parse, ParseStream},
+    ItemFn, Result,
+};
 
 use crate::{RangeAttributes, RangeFn};
 
@@ -9,7 +12,8 @@ static NO_WHERE_CLAUSE: &str = "where clauses are not supported";
 static EXACTLY_ONE_INPUT: &str = "range functions have exactly one integer input";
 static ONLY_INTEGERS: &str = "range functions take integer types (isize, usize, i32, u32, etc.)";
 static NO_RETURN: &str = "range functions have a return type";
-static ONLY_PRIMITIVE_RETURNS: &str = "range functions currently return primitive number types (i32, usize, f32, etc.)";
+static ONLY_PRIMITIVE_RETURNS: &str =
+    "range functions currently return primitive number types (i32, usize, f32, etc.)";
 static ONLY_I32: &str = "range functions currently only admit i32";
 
 impl Parse for RangeAttributes {
@@ -31,7 +35,7 @@ impl Parse for RangeFn {
         if !range_fn.sig.generics.params.is_empty() {
             return Err(input.error(NO_GENERICS));
         }
-        if !range_fn.sig.generics.where_clause.is_none() {
+        if range_fn.sig.generics.where_clause.is_some() {
             return Err(input.error(NO_WHERE_CLAUSE));
         }
         if range_fn.sig.inputs.is_empty() {
@@ -40,8 +44,7 @@ impl Parse for RangeFn {
         let mut inputs = range_fn.sig.inputs.iter();
         let arg = inputs.next();
         let arg = match (arg, inputs.next()) {
-            (None, _) | (Some(_), Some(_)) =>
-                return Err(input.error(EXACTLY_ONE_INPUT)),
+            (None, _) | (Some(_), Some(_)) => return Err(input.error(EXACTLY_ONE_INPUT)),
             (Some(arg), None) => arg,
         };
         let arg = match arg {
@@ -66,7 +69,11 @@ impl Parse for RangeFn {
             return Err(input.error(ONLY_INTEGERS));
         }
         let int_type = int_type.ident.to_string();
-        if !["isize", "usize", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64"].contains(&int_type.as_str()) {
+        if ![
+            "isize", "usize", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
+        ]
+        .contains(&int_type.as_str())
+        {
             return Err(input.error(ONLY_INTEGERS));
         }
         if int_type.ne("i32") {
@@ -92,7 +99,11 @@ impl Parse for RangeFn {
             return Err(input.error(ONLY_PRIMITIVE_RETURNS));
         }
         let output_type = output_type.ident.to_string();
-        if !["isize", "usize", "f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64"].contains(&output_type.as_str()) {
+        if ![
+            "isize", "usize", "f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
+        ]
+        .contains(&output_type.as_str())
+        {
             return Err(input.error(ONLY_PRIMITIVE_RETURNS));
         }
 
