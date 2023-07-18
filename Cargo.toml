@@ -9,4 +9,5 @@ repository = "https://github.com/ariasanovsky/spindle"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+cudarc = "0.9.12"
 spindle_macros = "0.1.1"
