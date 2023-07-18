@@ -26,9 +26,8 @@ type TokenResult = Result<TokenStream, TokenStream>;
 
 fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
     match result {
-        Ok(output) => proc_macro::TokenStream::from(output),
-        Err(error) => proc_macro::TokenStream::from(error),
-    }
+        Ok(result) | Err(result) => result,
+    }.into()
 }
 
 #[derive(Clone)]
@@ -222,7 +221,7 @@ impl RangeSpindle {
     }
 }
 
-static KERNELS: &str = "target/kernels/";
+static KERNELS: &str = "target/spindle/";
 // static RANGE_KERNEL: &'static str = include_str!("range/src/lib.rs");
 // static RANGE_CARGO_TOML: &'static str = include_str!("range/Cargo.toml");
 
@@ -298,7 +297,7 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
     );
 
     let range_trait = quote::quote! {
-        trait #trait_name {
+        pub(super) trait #trait_name {
             type Returns;
             unsafe fn #name (&self) -> Result<Self::Returns, spindle::range::Error>;
         }
@@ -306,7 +305,7 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
 
     let ptx_path = syn::LitStr::new(
         &format!(
-            "target/kernels/{}/target/nvptx64-nvidia-cuda/release/kernel.ptx",
+            "target/spindle/{}/target/nvptx64-nvidia-cuda/release/kernel.ptx",
             name
         ),
         name.span(),
@@ -353,17 +352,26 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
         }
     };
     let launcher = quote::quote! {
-        unsafe fn #launch_name <const N: usize>() -> Result<Box<[ #return_type ; N ]>, spindle::range::Error> {
+        pub(super) unsafe fn #launch_name <const N: usize>() -> Result<Box<[ #return_type ; N ]>, spindle::range::Error> {
             #launch_big_n
             out_host_2.try_into().map_err(|_| Error::LengthMismatch)
 
         }
     };
+
+    let mod_name = syn::Ident::new(
+        &format!("__{}", item.name()),
+        item.0.sig.ident.span(),
+    );
+
     Ok(quote::quote! {
         #item
-        #range_trait
-        #int_impl
-        #launcher
+        mod #mod_name {
+            #range_trait
+            #int_impl
+            #launcher
+        }
+        use #mod_name::*;
     })
 }
 

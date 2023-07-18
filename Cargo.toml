@@ -12,8 +12,16 @@ repository = "https://github.com/ariasanovsky/spindle"
 cudarc = "0.9.12"
 spindle_macros = { workspace = true }
 
+[dev-dependencies]
+criterion = "0.5.1"
+rayon = "1.7.0"
+
 [workspace]
 members = ["spindle_macros"]
 
 [workspace.dependencies]
 spindle_macros = { version = "0.1.2", path = "spindle_macros" }
+
+[[bench]]
+name = "filling_boxed_array"
+harness = false
