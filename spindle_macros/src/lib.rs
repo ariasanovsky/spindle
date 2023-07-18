@@ -27,7 +27,8 @@ type TokenResult = Result<TokenStream, TokenStream>;
 fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
     match result {
         Ok(result) | Err(result) => result,
-    }.into()
+    }
+    .into()
 }
 
 #[derive(Clone)]
@@ -67,10 +68,10 @@ impl RangeSpindle {
         let spindle = PathBuf::from(KERNELS).join(name).with_extension("json");
         let new_device = device.clone().into_token_stream().to_string();
         let spindle = if spindle.exists() {
-            let spindle = std::fs::read_to_string(spindle)
-                .map_err(NaivelyTokenize::naively_tokenize)?;
-            let mut spindle: RangeSpindle = serde_json::from_str(&spindle)
-                .map_err(NaivelyTokenize::naively_tokenize)?;
+            let spindle =
+                std::fs::read_to_string(spindle).map_err(NaivelyTokenize::naively_tokenize)?;
+            let mut spindle: RangeSpindle =
+                serde_json::from_str(&spindle).map_err(NaivelyTokenize::naively_tokenize)?;
             spindle.update_device(new_device)?;
             spindle
         } else {
@@ -155,8 +156,8 @@ impl RangeSpindle {
     }
 
     fn write(&self) -> Result<(), TokenStream> {
-        let json = serde_json::to_string_pretty(&self)
-            .map_err(NaivelyTokenize::naively_tokenize)?;
+        let json =
+            serde_json::to_string_pretty(&self).map_err(NaivelyTokenize::naively_tokenize)?;
         let crate_json = PathBuf::from(&self.home)
             .join(&self.name)
             .with_extension("json");
@@ -239,9 +240,7 @@ fn camel_word(s: &str) -> String {
 }
 
 fn snake_to_camel(s: &str) -> String {
-    let s = s.split('_')
-        .map(camel_word)
-        .collect::<Vec<_>>();
+    let s = s.split('_').map(camel_word).collect::<Vec<_>>();
     s.join("")
 }
 
@@ -313,7 +312,29 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
 
     let little_n = quote::quote! { n };
     let big_n = quote::quote! { N };
+
+    let _host_alloc = |n: TokenStream| {
+        quote::quote! {
+            let mut out_host_ptr = std::alloc::alloc(layout.clone());
+            let out_host_vec = if out_host_ptr.is_null() {
+                std::alloc::dealloc(out_host_ptr, layout);
+                return Err(Error::AllocationFailed);
+            } else {
+                Vec::from_raw_parts(out_host_ptr as *mut #return_type, #n, #n)
+            };
+            let mut out_dev = dev.htod_copy(out_host_vec)?;
+        }
+    };
+
+    let dev_alloc = |n: TokenStream| {
+        quote::quote! {
+            let mut out_dev = dev.alloc(#n)?;
+        }
+    };
+
     let launch_kernel = |n: TokenStream| {
+        // let alloc = host_alloc(n.clone());
+        let alloc = dev_alloc(n.clone());
         quote::quote! {
             let layout = core::alloc::Layout::array::<#return_type>(#n)?;
             use spindle::range::Error;
@@ -325,19 +346,15 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
                 &["kernel"]
             )?;
             let f = dev.get_func("kernel", "kernel").ok_or(Error::KernelNotFound)?;
-            let mut out_host_ptr = std::alloc::alloc(layout.clone());
-            let out_host_vec = if out_host_ptr.is_null() {
-                std::alloc::dealloc(out_host_ptr, layout);
-                return Err(Error::AllocationFailed);
-            } else {
-                Vec::from_raw_parts(out_host_ptr as *mut #return_type, #n, #n)
-            };
-            let mut out_dev = dev.htod_copy(out_host_vec)?;
+
+            #alloc
+
             let config = LaunchConfig::for_num_elems(#n as u32);
             f.launch(config, (&mut out_dev, #n as i32))?;
             let out_host_2 = dev.sync_reclaim(out_dev)?;
         }
     };
+
     let launch_little_n = launch_kernel(little_n);
     let launch_big_n = launch_kernel(big_n);
 
@@ -359,10 +376,7 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
         }
     };
 
-    let mod_name = syn::Ident::new(
-        &format!("__{}", item.name()),
-        item.0.sig.ident.span(),
-    );
+    let mod_name = syn::Ident::new(&format!("__{}", item.name()), item.0.sig.ident.span());
 
     Ok(quote::quote! {
         #item
