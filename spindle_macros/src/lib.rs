@@ -315,43 +315,46 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
 
     let _host_alloc = |n: TokenStream| {
         quote::quote! {
-            let mut out_host_ptr = std::alloc::alloc(layout.clone());
-            let out_host_vec = if out_host_ptr.is_null() {
-                std::alloc::dealloc(out_host_ptr, layout);
+            use cudarc::driver::safe::CudaSlice;
+            use std::alloc::{alloc, dealloc};
+            let mut out_host_ptr: *mut u8 = alloc(layout.clone());
+            let out_host_vec: Vec<_> = if out_host_ptr.is_null() {
+                dealloc(out_host_ptr, layout);
                 return Err(Error::AllocationFailed);
             } else {
                 Vec::from_raw_parts(out_host_ptr as *mut #return_type, #n, #n)
             };
-            let mut out_dev = dev.htod_copy(out_host_vec)?;
+            let mut out_dev: CudaSlice<_> = dev.htod_copy(out_host_vec)?;
         }
     };
 
     let dev_alloc = |n: TokenStream| {
         quote::quote! {
-            let mut out_dev = dev.alloc(#n)?;
+            use cudarc::driver::safe::CudaSlice;
+            let mut out_dev: CudaSlice<_> = dev.alloc(#n)?;
         }
     };
 
     let launch_kernel = |n: TokenStream| {
-        // let alloc = host_alloc(n.clone());
-        let alloc = dev_alloc(n.clone());
+        let alloc = dev_alloc(n.clone()); // _host_alloc(n.clone());
         quote::quote! {
-            let layout = core::alloc::Layout::array::<#return_type>(#n)?;
             use spindle::range::Error;
-            use cudarc::{driver::{CudaDevice, DriverError, LaunchAsync, LaunchConfig}, nvrtc::Ptx};
-            let dev = CudaDevice::new(0)?;
+            use cudarc::{driver::{CudaDevice, CudaFunction, DriverError, LaunchAsync, LaunchConfig}, nvrtc::Ptx};
+            use core::alloc::Layout;
+            use std::sync::Arc;
+
+            let layout: Layout = Layout::array::<#return_type>(#n)?;
+            let dev: Arc<CudaDevice> = CudaDevice::new(0)?;
             dev.load_ptx(
                 Ptx::from_file(#ptx_path),
                 "kernel",
                 &["kernel"]
             )?;
-            let f = dev.get_func("kernel", "kernel").ok_or(Error::KernelNotFound)?;
-
+            let f: CudaFunction = dev.get_func("kernel", "kernel").ok_or(Error::KernelNotFound)?;
             #alloc
-
-            let config = LaunchConfig::for_num_elems(#n as u32);
+            let config: LaunchConfig = LaunchConfig::for_num_elems(#n as u32);
             f.launch(config, (&mut out_dev, #n as i32))?;
-            let out_host_2 = dev.sync_reclaim(out_dev)?;
+            let out_host_2: Vec<#return_type> = dev.sync_reclaim(out_dev)?;
         }
     };
 
@@ -362,7 +365,7 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
         impl #trait_name for #input_type {
             type Returns = Vec<#return_type>;
             unsafe fn #name (&self) -> Result<Self::Returns, spindle::range::Error> {
-                let n = *self as usize; //todo! does `as` branch?
+                let n: usize = *self as _; //todo! does `as` branch?
                 #launch_little_n
                 Ok(out_host_2)
             }
