@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use map::emit_slice_map_kernel;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde::{Deserialize, Serialize};
@@ -8,8 +9,11 @@ use syn::parse_macro_input;
 use crate::error::{command_output_result, NaivelyTokenize};
 
 mod error;
+mod map;
 mod parse;
 mod range;
+
+type TokenResult = Result<TokenStream, TokenStream>;
 
 #[proc_macro_attribute]
 pub fn basic_range(
@@ -22,7 +26,16 @@ pub fn basic_range(
     into_token_stream(result)
 }
 
-type TokenResult = Result<TokenStream, TokenStream>;
+#[proc_macro_attribute]
+pub fn slice_map(
+    attr: proc_macro::TokenStream,
+    item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    let attr = parse_macro_input!(attr as SliceMapAttributes);
+    let item = parse_macro_input!(item as SliceMapFn);
+    let result = emit_slice_map_kernel(attr, item);
+    into_token_stream(result)
+}
 
 fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
     match result {
@@ -35,7 +48,13 @@ fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
 struct RangeAttributes;
 
 #[derive(Clone)]
+struct SliceMapAttributes;
+
+#[derive(Clone)]
 struct RangeFn(syn::ItemFn);
+
+#[derive(Clone)]
+struct SliceMapFn(syn::ItemFn);
 
 static RANGE_FILES: &[(&str, &str, &str)] = &[
     ("Cargo.toml", "", range::CARGO_TOML),
@@ -45,12 +64,6 @@ static RANGE_FILES: &[(&str, &str, &str)] = &[
     ("lib.rs", "src", range::LIB_RS),
     ("kernel.ptx", "target/nvptx64-nvidia-cuda/release", ""),
 ];
-
-impl ToTokens for RangeFn {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        self.0.to_tokens(tokens);
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RangeSpindle {
