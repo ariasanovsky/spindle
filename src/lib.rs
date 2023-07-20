@@ -1,6 +1,6 @@
 pub use spindle_macros::basic_range;
 
-pub mod union_slice;
+pub mod spindle;
 
 pub mod range {
     #[derive(Debug)]
