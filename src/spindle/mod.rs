@@ -8,10 +8,14 @@ where
     Self: Sized,
 {
     // todo! compile_error! if size_of<X> > size_of<Self>
+    // todo! this is ugly, is it correct?
     unsafe fn from_raw(raw: X) -> Self {
-        unsafe { std::mem::transmute_copy(&raw) }
+        let mut y = std::mem::MaybeUninit::<Self>::uninit().as_mut_ptr();
+        std::ptr::copy_nonoverlapping(&raw as *const X as *const Self, y, 1);
+        y.read()
     }
 
+    // todo! seems okay
     unsafe fn raw_ref(&self) -> &X {
         &*(self as *const Self as *const X)
     }

@@ -3,6 +3,24 @@ use std::sync::Arc;
 use cudarc::driver::{CudaDevice, CudaSlice, DeviceRepr};
 use super::{DevSpindle, RawConvert, error::Error, HostSpindle};
 
+impl<U, X> From<DevSpindle<U, X>> for CudaSlice<U>
+where
+    U: RawConvert<X> + DeviceRepr,
+{
+    fn from(value: DevSpindle<U, X>) -> Self {
+       value.0
+    }
+}
+
+impl<U, X> From<CudaSlice<U>> for DevSpindle<U, X>
+where
+    U: RawConvert<X> + DeviceRepr,
+{
+    fn from(value: CudaSlice<U>) -> Self {
+        Self(value, std::marker::PhantomData)
+    }
+}
+
 impl<U, X> TryFrom<Vec<X>> for DevSpindle<U, X>
 where
     U: RawConvert<X> + DeviceRepr,
