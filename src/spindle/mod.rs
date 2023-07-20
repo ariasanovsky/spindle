@@ -1,14 +1,14 @@
 use cudarc::driver::{CudaSlice, DeviceRepr};
 
-mod error;
-mod try_from;
+pub mod error;
+pub mod try_from;
 
 pub unsafe trait RawConvert<X>
 where
     Self: Sized,
 {
     // todo! compile_error! if size_of<X> > size_of<Self>
-    fn from_raw(raw: X) -> Self {
+    unsafe fn from_raw(raw: X) -> Self {
         unsafe { std::mem::transmute_copy(&raw) }
     }
 

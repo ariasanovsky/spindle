@@ -13,7 +13,7 @@ where
         let dev: Arc<CudaDevice> = CudaDevice::new(0)?;
 
         // todo! unnecessary alloc
-        let value: Vec<U> = value.into_iter().map(U::from_raw).collect();
+        let value: Vec<U> = value.into_iter().map(|x| unsafe { U::from_raw(x) }).collect();
 
         let slice: CudaSlice<U> = dev.htod_sync_copy(&value)?;
         Ok(Self(slice, std::marker::PhantomData))
