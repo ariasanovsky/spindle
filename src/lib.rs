@@ -1,4 +1,4 @@
-pub use spindle_macros::basic_range;
+pub use spindle_macros::{basic_range, spin};
 
 pub mod spindle;
 

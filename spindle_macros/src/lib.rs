@@ -4,6 +4,7 @@ use map::emit_slice_map_kernel;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde::{Deserialize, Serialize};
+use spin::SpinInput;
 use syn::parse_macro_input;
 
 use crate::error::{command_output_result, NaivelyTokenize};
@@ -11,17 +12,49 @@ use crate::error::{command_output_result, NaivelyTokenize};
 mod error;
 mod map;
 mod parse;
-mod range;
+mod basic_range;
+mod spin;
 
 type TokenResult = Result<TokenStream, TokenStream>;
+
+#[proc_macro]
+pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let SpinInput { union_name, types } = parse_macro_input!(input as SpinInput);
+
+    let union_fields = types.iter().enumerate().map(|(i, ty)| {
+        let field_name = format!("_{}", i);
+        let field_name = syn::Ident::new(&field_name, proc_macro2::Span::call_site());
+        quote::quote! { #field_name: #ty }
+    });
+
+    let impls = types.iter().map(|ty| {
+        quote::quote! {
+            unsafe impl spindle::spindle::RawConvert<#ty> for #union_name {}
+        }
+    });
+
+    let expanded = quote::quote! {
+        #[repr(C)]
+        union #union_name {
+            #( #union_fields, )*
+        }
+        unsafe impl cudarc::driver::DeviceRepr for #union_name {}
+
+        #( #impls )*
+    };
+
+    println!("{}", expanded.to_string());
+
+    expanded.into()
+}
 
 #[proc_macro_attribute]
 pub fn basic_range(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let attr = parse_macro_input!(attr as RangeAttributes);
-    let item = parse_macro_input!(item as RangeFn);
+    let attr = parse_macro_input!(attr as BasicRangeAttrs);
+    let item = parse_macro_input!(item as BasicRangeFn);
     let result = emit_range_kernel(attr, item);
     into_token_stream(result)
 }
@@ -31,8 +64,8 @@ pub fn slice_map(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let attr = parse_macro_input!(attr as SliceMapAttributes);
-    let item = parse_macro_input!(item as SliceMapFn);
+    let attr = parse_macro_input!(attr as MapAttrs);
+    let item = parse_macro_input!(item as MapFn);
     let result = emit_slice_map_kernel(attr, item);
     into_token_stream(result)
 }
@@ -45,23 +78,23 @@ fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
 }
 
 #[derive(Clone)]
-struct RangeAttributes;
+struct BasicRangeAttrs;
 
 #[derive(Clone)]
-struct SliceMapAttributes;
+struct MapAttrs;
 
 #[derive(Clone)]
-struct RangeFn(syn::ItemFn);
+struct BasicRangeFn(syn::ItemFn);
 
 #[derive(Clone)]
-struct SliceMapFn(syn::ItemFn);
+struct MapFn(syn::ItemFn);
 
 static RANGE_FILES: &[(&str, &str, &str)] = &[
-    ("Cargo.toml", "", range::CARGO_TOML),
-    ("rust-toolchain.toml", "", range::RUST_TOOLCHAIN_TOML),
-    ("config.toml", ".cargo", range::CONFIG_TOML),
+    ("Cargo.toml", "", basic_range::CARGO_TOML),
+    ("rust-toolchain.toml", "", basic_range::RUST_TOOLCHAIN_TOML),
+    ("config.toml", ".cargo", basic_range::CONFIG_TOML),
     ("device.rs", "src", ""),
-    ("lib.rs", "src", range::LIB_RS),
+    ("lib.rs", "src", basic_range::LIB_RS),
     ("kernel.ptx", "target/nvptx64-nvidia-cuda/release", ""),
 ];
 
@@ -77,7 +110,7 @@ struct RangeSpindle {
 }
 
 impl RangeSpindle {
-    fn generate(name: &str, device: &RangeFn) -> Result<Self, TokenStream> {
+    fn generate(name: &str, device: &BasicRangeFn) -> Result<Self, TokenStream> {
         let spindle = PathBuf::from(KERNELS).join(name).with_extension("json");
         let new_device = device.clone().into_token_stream().to_string();
         let spindle = if spindle.exists() {
@@ -257,7 +290,7 @@ fn snake_to_camel(s: &str) -> String {
     s.join("")
 }
 
-impl RangeFn {
+impl BasicRangeFn {
     fn name(&self) -> String {
         self.0.sig.ident.to_string()
     }
@@ -271,7 +304,7 @@ impl RangeFn {
     }
 }
 
-fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
+fn emit_range_kernel(_attr: BasicRangeAttrs, item: BasicRangeFn) -> TokenResult {
     let name = item.name();
     let mut device = item.clone();
     device.make_visible();
@@ -365,6 +398,7 @@ fn emit_range_kernel(_attr: RangeAttributes, item: RangeFn) -> TokenResult {
             )?;
             let f: CudaFunction = dev.get_func("kernel", "kernel").ok_or(Error::KernelNotFound)?;
             #alloc
+            // todo! for_num_elems?
             let config: LaunchConfig = LaunchConfig::for_num_elems(#n as u32);
             f.launch(config, (&mut out_dev, #n as i32))?;
             let out_host_2: Vec<#return_type> = dev.sync_reclaim(out_dev)?;

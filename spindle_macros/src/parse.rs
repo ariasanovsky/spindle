@@ -5,7 +5,7 @@ use syn::{
 };
 use proc_macro2::TokenStream;
 
-use crate::{RangeFn, SliceMapAttributes};
+use crate::{BasicRangeFn, MapAttrs};
 
 static NO_ATTRIBUTES: &str = "no attributes";
 static NO_GENERICS: &str = "no generics";
@@ -18,7 +18,7 @@ static ONLY_PRIMITIVE_RETURNS: &str =
     "only returns primitive numbers (i32, usize, f32, etc.)";
 static ONLY_I32: &str = "range functions currently only admit i32";
 
-impl Parse for SliceMapAttributes {
+impl Parse for MapAttrs {
     fn parse(input: ParseStream) -> Result<Self> {
         if input.is_empty() {
             Ok(Self)
@@ -28,7 +28,7 @@ impl Parse for SliceMapAttributes {
     }
 }
 
-impl Parse for RangeFn {
+impl Parse for BasicRangeFn {
     fn parse(input: ParseStream) -> Result<Self> {
         let range_fn: ItemFn = input.parse()?;
         if !range_fn.attrs.is_empty() {
@@ -113,7 +113,7 @@ impl Parse for RangeFn {
     }
 }
 
-impl ToTokens for RangeFn {
+impl ToTokens for BasicRangeFn {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         self.0.to_tokens(tokens);
     }

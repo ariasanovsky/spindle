@@ -6,29 +6,48 @@ pub mod try_from;
 pub unsafe trait RawConvert<X>
 where
     Self: Sized,
+    X: Copy,    
+    // todo! relax once we stabilize numeric primitives
+    // todo! are we implicitly using unstated traits?
+    /* https://doc.rust-lang.org/reference/items/unions.html
+        union fields can be:
+            T: Copy
+            &T or &mut T
+            ManuallyDrop<T>
+            tuples of union fields
+            arrays of union fields
+    */
 {
     // todo! compile_error! if size_of<X> > size_of<Self>
+    // todo! compile_error! if align_of<X> > align_of<Self>
     // todo! this is ugly, is it correct?
     unsafe fn from_raw(raw: X) -> Self {
-        let mut y = std::mem::MaybeUninit::<Self>::uninit().as_mut_ptr();
-        std::ptr::copy_nonoverlapping(&raw as *const X as *const Self, y, 1);
+        let mut y = core::mem::MaybeUninit::<Self>::uninit().as_mut_ptr();
+        core::ptr::copy_nonoverlapping(&raw as *const X as *const Self, y, 1);
         y.read()
     }
 
     // todo! seems okay
-    unsafe fn raw_ref(&self) -> &X {
+    unsafe fn ref_raw(&self) -> &X {
         &*(self as *const Self as *const X)
+    }
+
+    unsafe fn as_raw(self) -> X {
+        // self.ref_raw().clone()  // Copy -> Clone
+        *(&self as *const Self as *const X)
     }
 }
 
 pub struct DevSpindle<U, X>(CudaSlice<U>, std::marker::PhantomData<X>)
 where
-    U: RawConvert<X> + DeviceRepr
+    U: RawConvert<X> + DeviceRepr,
+    X: Copy
 ;
 
 impl<X, U> DevSpindle<U, X>
 where
-    U: RawConvert<X> + DeviceRepr
+    U: RawConvert<X> + DeviceRepr,
+    X: Copy,
 {
     // X marks the current state of the union
     // [x] self gets initialized from a Vec<X> usually
@@ -46,12 +65,14 @@ where
 
 pub struct HostSpindle<U, X>(Vec<U>, std::marker::PhantomData<X>)
 where
-    U: RawConvert<X>
+    U: RawConvert<X>,
+    X: Copy,
 ;
 
 impl<X, U> HostSpindle<U, X>
 where
     U: RawConvert<X>,
+    X: Copy,
 {
     // see above
     // [x] this struct is the byproduct of a DevSpindle<U, X> being reclaimed
@@ -60,15 +81,15 @@ where
     // we will not perform operations on it directly
 
     pub fn get(&self, i: usize) -> Option<&X> {
-        unsafe { self.0.get(i).map(|u| u.raw_ref()) }
+        unsafe { self.0.get(i).map(|u| u.ref_raw()) }
     }
 
     pub fn iter(&self) -> std::iter::Map<std::slice::Iter<'_, U>, fn(&U) -> &X> {
-        self.0.iter().map(|u| unsafe { u.raw_ref() })
+        self.0.iter().map(|u| unsafe { u.ref_raw() })
     }
 }
 
-#[allow(dead_code)]
+#[allow(unused)]
 #[cfg(test)]
 mod test_union_from_raw {
     use super::*;
@@ -84,7 +105,12 @@ mod test_union_from_raw {
         unsafe impl RawConvert<u32> for U {}
 
         let u = U { f: 1.0 };
-        let f: f64 = unsafe { *u.raw_ref() };
+        let f: f64 = unsafe { *u.ref_raw() };
         assert_eq!(f, 1.0);
+        let f: f64 = unsafe { u.as_raw() };
+        let u = U { b: true };
+        let b: &bool = unsafe { u.ref_raw() };
+        // drop(u); // does not compile 💔
+        assert_eq!(*b, true);
     }
 }

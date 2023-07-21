@@ -1,17 +1,16 @@
 use std::sync::Arc;
 
 use cudarc::{driver::{CudaSlice, CudaDevice, CudaFunction, LaunchConfig, LaunchAsync, DeviceRepr}, nvrtc::Ptx};
-use spindle::spindle::RawConvert;
 
 fn _i32_to_f64(x: i32) -> f64 {
     x as f64
 }
 
-unsafe trait _I32ToF64
+unsafe trait I32ToF64U
 where
-    <Self as _I32ToF64>::U: DeviceRepr,
+    <Self as I32ToF64U>::U: DeviceRepr,
     Self: Into<CudaSlice<Self::U>>,
-    CudaSlice<<Self as _I32ToF64>::U>: Into<<Self as _I32ToF64>::Return>,
+    CudaSlice<<Self as I32ToF64U>::U>: Into<<Self as I32ToF64U>::Return>,
 {
     type U;
     type Return;
@@ -30,14 +29,16 @@ where
 }
 
 fn main() -> Result<(), spindle::spindle::error::Error> {
-    union U {
-        i32: i32,
-        f64: f64,
-    }
-    unsafe impl RawConvert<i32> for U {}
-    unsafe impl RawConvert<f64> for U {}
-    unsafe impl DeviceRepr for U {}
-    unsafe impl _I32ToF64 for spindle::spindle::DevSpindle<U, i32> {
+    spindle::spin!(U, i32, f64);
+    
+    // union U {
+    //     i32: i32,
+    //     f64: f64,
+    // }
+    // unsafe impl RawConvert<i32> for U {}
+    // unsafe impl RawConvert<f64> for U {}
+    // unsafe impl DeviceRepr for U {}
+    unsafe impl I32ToF64U for spindle::spindle::DevSpindle<U, i32> {
         type U = U;
         type Return = spindle::spindle::DevSpindle<U, f64>;
     }
