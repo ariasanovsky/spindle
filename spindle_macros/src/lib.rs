@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use map::emit_slice_map_kernel;
+use map::serialize_map;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde::{Deserialize, Serialize};
@@ -16,6 +16,20 @@ mod basic_range;
 mod spin;
 
 type TokenResult = Result<TokenStream, TokenStream>;
+
+#[derive(Clone)]
+struct BasicRangeAttrs;
+
+#[derive(Clone)]
+struct MapAttrs;
+
+#[derive(Clone)]
+struct BasicRangeFn(syn::ItemFn);
+
+#[derive(Clone)]
+struct MapFn(syn::ItemFn);
+
+
 
 #[proc_macro]
 pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -60,13 +74,13 @@ pub fn basic_range(
 }
 
 #[proc_macro_attribute]
-pub fn slice_map(
+pub fn map(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let attr = parse_macro_input!(attr as MapAttrs);
     let item = parse_macro_input!(item as MapFn);
-    let result = emit_slice_map_kernel(attr, item);
+    let result = serialize_map(attr, item);
     into_token_stream(result)
 }
 
@@ -76,18 +90,6 @@ fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
     }
     .into()
 }
-
-#[derive(Clone)]
-struct BasicRangeAttrs;
-
-#[derive(Clone)]
-struct MapAttrs;
-
-#[derive(Clone)]
-struct BasicRangeFn(syn::ItemFn);
-
-#[derive(Clone)]
-struct MapFn(syn::ItemFn);
 
 static RANGE_FILES: &[(&str, &str, &str)] = &[
     ("Cargo.toml", "", basic_range::CARGO_TOML),

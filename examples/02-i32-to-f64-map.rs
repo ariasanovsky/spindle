@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use cudarc::{driver::{CudaSlice, CudaDevice, CudaFunction, LaunchConfig, LaunchAsync, DeviceRepr}, nvrtc::Ptx};
 
+#[spindle::map]
 fn _i32_to_f64(x: i32) -> f64 {
     x as f64
 }

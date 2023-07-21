@@ -1,14 +1,27 @@
 use std::path::PathBuf;
 
-use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde::{Deserialize, Serialize};
-use syn::parse_macro_input;
 
-use crate::{MapAttrs, MapFn, TokenResult};
+use crate::{MapAttrs, MapFn, TokenResult, error::NaivelyTokenize};
 
 mod parse;
 
-pub(crate) fn emit_slice_map_kernel(_attr: MapAttrs, item: MapFn) -> TokenResult {
-    todo!()
+static MAP_PATH: &str = "target/spindle/map/";
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct MapFnStrings(String, String);
+
+pub(crate) fn serialize_map(_attr: MapAttrs, item: MapFn) -> TokenResult {
+    let map_dir = PathBuf::from(MAP_PATH);
+    std::fs::create_dir_all(&map_dir).map_err(NaivelyTokenize::naively_tokenize)?;
+    let map_fn_strings = MapFnStrings("".into(), item.0.to_token_stream().to_string());
+    let map_fn_strings = serde_json::to_string(&map_fn_strings).map_err(NaivelyTokenize::naively_tokenize)?;
+    let map_path = map_dir.join(&item.0.sig.ident.to_string())
+        .with_extension("json");
+    std::fs::write(map_path, map_fn_strings).map_err(NaivelyTokenize::naively_tokenize)?;
+    Ok(quote::quote! {
+        // #_attr todo! traits for MapAttrs (currently requiried to be empty)
+        #item
+    })
 }
