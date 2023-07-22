@@ -41,15 +41,15 @@ mod __i32_to_f64 {
 }
 
 fn main() -> Result<(), spindle::error::Error> {
-    spindle::spin!(U, i32, f64);
+    // spindle::spin!(U, i32, f64);
 
-    // union U {
-    //     _0: i32,
-    //     _1: f64,
-    // }
-    // unsafe impl RawConvert<i32> for U {}
-    // unsafe impl RawConvert<f64> for U {}
-    // unsafe impl DeviceRepr for U {}
+    union U {
+        _0: i32,
+        _1: f64,
+    }
+    unsafe impl spindle::spindle::RawConvert<i32> for U {}
+    unsafe impl spindle::spindle::RawConvert<f64> for U {}
+    unsafe impl cudarc::driver::DeviceRepr for U {}
 
     use __i32_to_f64::I32ToF64;
 

@@ -10,7 +10,7 @@ mod parse;
 static MAP_PATH: &str = "target/spindle/map/";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct MapFnStrings(String, String);
+pub(crate) struct MapFnStrings(pub(crate) String, pub(crate) String);
 
 pub(crate) fn serialize_map(_attr: MapAttrs, item: MapFn) -> TokenResult {
     let map_dir = PathBuf::from(MAP_PATH);
