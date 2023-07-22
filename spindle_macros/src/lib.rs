@@ -39,14 +39,14 @@ struct RangeSpindle {
 #[proc_macro]
 pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as SpinInput);
-    if let Err(e) = input.emit_map_kernels() {
-        return e.into();
-    }
-    let union = input.union();
+    let spindle_impls = match input.emit_map_kernels_and_return_spindle_impls() {
+        Ok(spindle_impls) => spindle_impls,
+        Err(err) => return err.into(),
+    };
     let impls = input.impls();
     let expanded = quote::quote! {
-        #union
         #impls
+        #spindle_impls
     };
     expanded.into()
 }

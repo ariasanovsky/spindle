@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use proc_macro2::TokenStream;
 use syn::{parse::Parse, parse::ParseStream, Ident, Token};
 
-use crate::{MapFn, MapAttrs, map::MapFnStrings, TokenResult, error::NaivelyTokenize, file_strings::{CARGO_TOML, RUST_TOOLCHAIN_TOML, CONFIG_TOML}};
+use crate::{MapFn, map::MapFnStrings, TokenResult, error::NaivelyTokenize, file_strings::{CARGO_TOML, RUST_TOOLCHAIN_TOML, CONFIG_TOML}, snake_to_camel};
 
 pub(crate) struct SpinInput {
     pub(crate) union_name: Ident,
@@ -52,14 +52,7 @@ impl SpinInput {
         }
     }
 
-    pub(crate) fn emit_map_kernels(&self) -> Result<(), TokenStream> {
-        let crate_home = PathBuf::from("target/spindle/map/").join(self.union_name.to_string());
-
-        // todo! temporary safeguard: if the crate_home already exists, return Ok(())
-        if crate_home.exists() {
-            return Ok(());
-        }
-
+    pub(crate) fn emit_map_kernels_and_return_spindle_impls(&self) -> TokenResult {
         // get all map strings from $PROJECT/target/spindle/map/*.json
         let map_dir = std::path::PathBuf::from("target/spindle/map/");
         let map_paths = std::fs::read_dir(map_dir)
@@ -89,11 +82,101 @@ impl SpinInput {
             [x] write src/foo.rs and src/bar.rs
             [x] write src/union.rs w/ union U { _0: i32, _1: f64, ... }
             [x] write the methods foo & bar for U
-            write src/lib.rs w/ fn foo_kernel, fn bar_kernel, etc.
-            compile the crate
+            [x] write src/lib.rs w/ fn foo_kernel, fn bar_kernel, etc.
+            [x] compile the crate
             capture the ptx
             😓 (sloppy first drafts are fine here)
         */
+
+        let crate_home = PathBuf::from("target/spindle/map/").join(self.union_name.to_string());
+        let union_name = &self.union_name;
+        let union = self.union();
+
+        let trait_and_impl_maker = |map_fn: MapFn| {
+            // todo! very sloppy
+            let fn_name = &map_fn.0.sig.ident;
+            let trimmed_name = fn_name.to_string().trim_start_matches('_').to_string();
+            let fn_name = proc_macro2::Ident::new(&format!("{trimmed_name}"), proc_macro2::Span::call_site());
+
+            let mod_name = format!("__{trimmed_name}");
+            let mod_name = proc_macro2::Ident::new(&format!("{mod_name}"), proc_macro2::Span::call_site());
+            let trait_name = snake_to_camel(&fn_name.to_string());
+            let trait_name = proc_macro2::Ident::new(&format!("{trait_name}"), proc_macro2::Span::call_site());
+            let input_type = match map_fn.0.sig.inputs.first().unwrap() {
+                syn::FnArg::Receiver(_) => todo!("so much todo"),
+                syn::FnArg::Typed(pat_type) => &pat_type.ty,
+            };
+            let output_type = match &map_fn.0.sig.output {
+                syn::ReturnType::Default => todo!("so much todo"),
+                syn::ReturnType::Type(_, t) => t,
+            };
+
+            let union_definition = self.union();
+
+            quote::quote! {
+                mod #mod_name {
+                    use cudarc::{
+                        driver::{
+                            CudaDevice, CudaFunction, CudaSlice, DeviceRepr, DeviceSlice, LaunchAsync, LaunchConfig,
+                        },
+                        nvrtc::Ptx,
+                    };
+                    use spindle::error::Error;
+                    use std::sync::Arc;
+                    
+                    pub unsafe trait #trait_name
+                    where
+                        <Self as #trait_name>::U: DeviceRepr,
+                        Self: Into<CudaSlice<Self::U>>,
+                        CudaSlice<<Self as #trait_name>::U>: Into<<Self as #trait_name>::Return>,
+                    {
+                        type U;
+                        type Return;
+                        fn #fn_name(self) -> Result<Self::Return, Error> {
+                            let mut slice: CudaSlice<Self::U> = self.into();
+                            let n: usize = slice.len();
+                            let device: Arc<CudaDevice> = slice.device();
+                            let _res: () = device.load_ptx( // todo! hardcoded path
+                                Ptx::from_file("target/spindle/map/U/target/nvptx64-nvidia-cuda/release/kernel.ptx"), // todo! panic -> error
+                                "kernel",
+                                &["i32_to_f64_kernel"],
+                            )?;
+                            let f: CudaFunction = device
+                                .get_func("kernel", "i32_to_f64_kernel")
+                                .ok_or(Error::FunctionNotFound)?;
+                            let config: LaunchConfig = LaunchConfig::for_num_elems(n as u32); // todo! inspect cudarc fn
+                            unsafe { f.launch(config, (&mut slice, n as i32)) }
+                                .map(|()| slice.into())
+                                .map_err(Into::into)
+                        }
+                    }
+
+                    #union_definition
+
+                    unsafe impl #trait_name for spindle::DevSpindle<#union_name, #input_type> {
+                        type U = #union_name;
+                        type Return = spindle::DevSpindle<#union_name, #output_type>;
+                    }
+                }
+                use #mod_name::*;
+            }
+        };
+
+        let map_fn_impls = map_fns.iter().map(|map_fn| {
+            trait_and_impl_maker(map_fn.clone())
+        });
+
+        let map_fn_impls = quote::quote! {
+            #(#map_fn_impls)*
+        };
+
+        let ahhh = map_fn_impls.to_string();
+        println!("{ahhh}");
+
+        // todo! temporary safeguard: if the crate_home already exists
+        if crate_home.exists() { // todo! this is a hack
+            return Ok(map_fn_impls);
+        }
 
         std::fs::create_dir_all(&crate_home).map_err(NaivelyTokenize::naively_tokenize)?;
         // copy the template toml files
@@ -104,9 +187,6 @@ impl SpinInput {
         // src
         std::fs::create_dir_all(crate_home.join("src")).map_err(NaivelyTokenize::naively_tokenize)?;
         // screw it, let's just dump all functions into union.rs for now
-        let union_name = &self.union_name;
-        let union = self.union();
-        
         let method_maker = |ident: Ident| quote::quote! {
             impl #union_name {
                 pub(crate) unsafe fn #ident(&mut self) {
@@ -132,7 +212,10 @@ impl SpinInput {
         std::fs::write(crate_home.join("src/device.rs"), union_rs.to_string()).map_err(NaivelyTokenize::naively_tokenize)?;
 
         let kernel_maker = |fn_name: Ident| {
-            let kernel_name = proc_macro2::Ident::new(&format!("{}_kernel", &fn_name), proc_macro2::Span::call_site());
+            // let fn_name = &map_fn.0.sig.ident;
+            let trimmed_name = fn_name.to_string().trim_start_matches('_').to_string();
+            
+            let kernel_name = proc_macro2::Ident::new(&format!("{trimmed_name}_kernel"), proc_macro2::Span::call_site());
             quote::quote! {
                 #[no_mangle]
                 pub unsafe extern "ptx-kernel" fn #kernel_name(slice: *mut #union_name, size: i32) {
@@ -190,8 +273,8 @@ impl SpinInput {
             "--release",
         ]);
         let output = cmd.output().map_err(NaivelyTokenize::naively_tokenize)?;
-        todo!("{output:?}");
+        println!("stderr: {}\nstdout: {}", String::from_utf8_lossy(&output.stderr), String::from_utf8_lossy(&output.stdout));
 
-        todo!("crate_home: {crate_home:?}, {:?}", union_rs.to_string())
+        Ok(map_fn_impls)
     }
 }
