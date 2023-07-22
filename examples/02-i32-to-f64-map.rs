@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use cudarc::{driver::{CudaSlice, CudaDevice, CudaFunction, LaunchConfig, LaunchAsync, DeviceRepr}, nvrtc::Ptx};
+use cudarc::{driver::{CudaSlice, CudaDevice, CudaFunction, LaunchConfig, LaunchAsync, DeviceRepr, DeviceSlice}, nvrtc::Ptx};
 
 #[spindle::map]
 fn _i32_to_f64(x: i32) -> f64 {
@@ -15,13 +15,14 @@ where
 {
     type U;
     type Return;
-    fn i32_to_f64(self, n: usize) -> Result<Self::Return, spindle::spindle::error::Error>
+    fn i32_to_f64(self) -> Result<Self::Return, spindle::error::Error>
     {
         let mut slice: CudaSlice<Self::U> = self.into();
+        let n: usize = slice.len();
         let device: Arc<CudaDevice> = slice.device();
         device.load_ptx(Ptx::from_file("target/spindle/i32_to_f64"), "kernel", &["kernel"])?;
         let f: CudaFunction = device.get_func("kernel", "kernel")
-            .ok_or(spindle::spindle::error::Error::FunctionNotFound)?;
+            .ok_or(spindle::error::Error::FunctionNotFound)?;
         let config: LaunchConfig = LaunchConfig::for_num_elems(n as u32);
         unsafe { f.launch(config, (&mut slice, n as i32)) }?;
         Ok(slice.into())
@@ -29,7 +30,7 @@ where
 
 }
 
-fn main() -> Result<(), spindle::spindle::error::Error> {
+fn main() -> Result<(), spindle::error::Error> {
     spindle::spin!(U, i32, f64);
     
     // union U {
@@ -39,14 +40,14 @@ fn main() -> Result<(), spindle::spindle::error::Error> {
     // unsafe impl RawConvert<i32> for U {}
     // unsafe impl RawConvert<f64> for U {}
     // unsafe impl DeviceRepr for U {}
-    unsafe impl I32ToF64U for spindle::spindle::DevSpindle<U, i32> {
+    unsafe impl I32ToF64U for spindle::DevSpindle<U, i32> {
         type U = U;
-        type Return = spindle::spindle::DevSpindle<U, f64>;
+        type Return = spindle::DevSpindle<U, f64>;
     }
     let nums: Vec<i32> = (0..10).collect();
-    let spindle: spindle::spindle::DevSpindle<U, i32> = nums.try_into()?;
-    let spindle: spindle::spindle::DevSpindle<U, f64> = spindle.i32_to_f64(10)?;
-    let spindle: spindle::spindle::HostSpindle<U, f64> = spindle.try_to_host()?;
+    let spindle: spindle::DevSpindle<U, i32> = nums.try_into()?;
+    let spindle: spindle::DevSpindle<U, f64> = spindle.i32_to_f64()?;
+    let spindle: spindle::HostSpindle<U, f64> = spindle.try_to_host()?;
     for (i, x) in spindle.iter().enumerate() {
         println!("{}: {}", i, x);
     }

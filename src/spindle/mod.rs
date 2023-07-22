@@ -1,6 +1,7 @@
-use cudarc::driver::{CudaSlice, DeviceRepr};
+use cudarc::driver::{DeviceRepr, DeviceSlice};
 
-pub mod error;
+use crate::{HostSpindle, DevSpindle};
+
 pub mod try_from;
 
 pub unsafe trait RawConvert<X>
@@ -39,16 +40,10 @@ where
     }
 }
 
-pub struct DevSpindle<U, X>(CudaSlice<U>, std::marker::PhantomData<X>)
-where
-    U: RawConvert<X> + DeviceRepr,
-    X: Copy
-;
-
 impl<X, U> DevSpindle<U, X>
 where
     U: RawConvert<X> + DeviceRepr,
-    X: Copy,
+    X: Copy,    // todo! relax once we stabilize numeric primitives
 {
     // X marks the current state of the union
     // [x] self gets initialized from a Vec<X> usually
@@ -59,21 +54,15 @@ where
     // which we impl for Self so that
     // self.foo() is a DevSpindle<U, Y>
 
-    pub fn try_to_host(self) -> Result<HostSpindle<U, X>, error::Error> {
+    pub fn try_to_host(self) -> Result<HostSpindle<U, X>, super::error::Error> {
         self.try_into()
     }
 }
 
-pub struct HostSpindle<U, X>(Vec<U>, std::marker::PhantomData<X>)
-where
-    U: RawConvert<X>,
-    X: Copy,
-;
-
 impl<X, U> HostSpindle<U, X>
 where
     U: RawConvert<X>,
-    X: Copy,
+    X: Copy,    // todo! relax once we stabilize numeric primitives
 {
     // see above
     // [x] this struct is the byproduct of a DevSpindle<U, X> being reclaimed
@@ -97,19 +86,19 @@ mod test_union_from_raw {
     #[test]
     fn test_f64_bool_u32_union_from_raw() {
         union U {
-            f: f64,
-            b: bool,
-            u: u32,
+            _0: f64,
+            _1: bool,
+            _2: u32,
         }
         unsafe impl RawConvert<f64> for U {}
         unsafe impl RawConvert<bool> for U {}
         unsafe impl RawConvert<u32> for U {}
 
-        let u = U { f: 1.0 };
+        let u = U { _0: 1.0 };
         let f: f64 = unsafe { *u.ref_raw() };
         assert_eq!(f, 1.0);
         let f: f64 = unsafe { u.as_raw() };
-        let u = U { b: true };
+        let u = U { _1: true };
         let b: &bool = unsafe { u.ref_raw() };
         // drop(u); // does not compile 💔
         assert_eq!(*b, true);

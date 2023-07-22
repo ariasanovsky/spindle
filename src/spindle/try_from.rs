@@ -1,7 +1,9 @@
 use std::sync::Arc;
 
 use cudarc::driver::{CudaDevice, CudaSlice, DeviceRepr};
-use super::{DevSpindle, RawConvert, error::Error, HostSpindle};
+use crate::error::Error;
+
+use super::{DevSpindle, RawConvert, HostSpindle};
 
 impl<U, X> From<DevSpindle<U, X>> for CudaSlice<U>
 where
@@ -34,7 +36,7 @@ where
         let dev: Arc<CudaDevice> = CudaDevice::new(0)?;
 
         // todo! unnecessary alloc
-        let value: Vec<U> = value.into_iter().map(|x| unsafe { U::from_raw(x) }).collect();
+        let value: Vec<U> = value.into_iter().map(|x| unsafe { RawConvert::from_raw(x) }).collect();
 
         let slice: CudaSlice<U> = dev.htod_sync_copy(&value)?;
         Ok(slice.into())
