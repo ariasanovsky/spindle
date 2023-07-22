@@ -1,11 +1,11 @@
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
     ItemFn, Result,
 };
-use proc_macro2::TokenStream;
 
-use crate::{BasicRangeFn, BasicRangeAttrs};
+use crate::{BasicRangeAttrs, BasicRangeFn};
 
 static NO_ATTRIBUTES: &str = "no attributes";
 static NO_GENERICS: &str = "no generics";
@@ -14,8 +14,7 @@ static NO_WHERE_CLAUSE: &str = "no where clauses";
 static EXACTLY_ONE_INPUT: &str = "exactly one (integer) input";
 static ONLY_INTEGERS: &str = "only integer inputs (isize, usize, i32, u32, etc.)";
 static NO_RETURN: &str = "missing return type";
-static ONLY_PRIMITIVE_RETURNS: &str =
-    "only returns primitive numbers (i32, usize, f32, etc.)";
+static ONLY_PRIMITIVE_RETURNS: &str = "only returns primitive numbers (i32, usize, f32, etc.)";
 static ONLY_I32: &str = "range functions currently only admit i32";
 
 impl Parse for BasicRangeAttrs {
@@ -27,7 +26,7 @@ impl Parse for BasicRangeAttrs {
         }
     }
 }
-    
+
 // todo! trait to filter ItemFns instead of this mess
 impl Parse for BasicRangeFn {
     fn parse(input: ParseStream) -> Result<Self> {

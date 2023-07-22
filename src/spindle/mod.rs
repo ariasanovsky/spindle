@@ -1,24 +1,24 @@
-use cudarc::driver::{DeviceRepr, DeviceSlice};
+use cudarc::driver::DeviceRepr;
 
-use crate::{HostSpindle, DevSpindle};
+use crate::{DevSpindle, HostSpindle};
 
 pub mod try_from;
 
+// todo! are we implicitly using unstated traits?
+/* https://doc.rust-lang.org/reference/items/unions.html
+    union fields can be:
+        T: Copy
+        &T or &mut T
+        ManuallyDrop<T>
+        tuples of union fields
+        arrays of union fields
+*/
 pub unsafe trait RawConvert<X>
 where
     Self: Sized,
-    X: Copy,    
-    // todo! relax once we stabilize numeric primitives
-    // todo! are we implicitly using unstated traits?
-    /* https://doc.rust-lang.org/reference/items/unions.html
-        union fields can be:
-            T: Copy
-            &T or &mut T
-            ManuallyDrop<T>
-            tuples of union fields
-            arrays of union fields
-    */
+    X: Copy,
 {
+    // todo! ?relax Copy once we stabilize numeric primitives
     // todo! compile_error! if size_of<X> > size_of<Self>
     // todo! compile_error! if align_of<X> > align_of<Self>
     // todo! this is ugly, is it correct?
@@ -34,22 +34,22 @@ where
         &*(self as *const Self as *const X)
     }
 
-    unsafe fn as_raw(self) -> X {
+    unsafe fn as_raw(&self) -> X {
         // self.ref_raw().clone()  // Copy -> Clone
-        *(&self as *const Self as *const X)
+        *(self as *const Self as *const X)
     }
 }
 
 impl<X, U> DevSpindle<U, X>
 where
     U: RawConvert<X> + DeviceRepr,
-    X: Copy,    // todo! relax once we stabilize numeric primitives
+    X: Copy, // todo! relax once we stabilize numeric primitives
 {
     // X marks the current state of the union
     // [x] self gets initialized from a Vec<X> usually
     // [x] using cudarc, the contents decay into a Vec<U>
     // [x] we'll use HostSpindle<U, X> to wrap and mark this Vec for safety
-    
+
     // we want fn foo(x: X) -> Y to macro expand into a trait _Foo
     // which we impl for Self so that
     // self.foo() is a DevSpindle<U, Y>
@@ -62,7 +62,7 @@ where
 impl<X, U> HostSpindle<U, X>
 where
     U: RawConvert<X>,
-    X: Copy,    // todo! relax once we stabilize numeric primitives
+    X: Copy, // todo! relax once we stabilize numeric primitives
 {
     // see above
     // [x] this struct is the byproduct of a DevSpindle<U, X> being reclaimed

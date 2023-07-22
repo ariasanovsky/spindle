@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use syn::{Ident, Token, parse::Parse, parse::ParseStream};
+use syn::{parse::Parse, parse::ParseStream, Ident, Token};
 
 pub(crate) struct SpinInput {
     pub(crate) union_name: Ident,
@@ -10,7 +10,8 @@ impl Parse for SpinInput {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let union_name: Ident = input.parse()?;
         input.parse::<Token![,]>()?;
-        let types: syn::punctuated::Punctuated<Ident, Token![,]> = input.parse_terminated(Ident::parse, Token![,])?;
+        let types: syn::punctuated::Punctuated<Ident, Token![,]> =
+            input.parse_terminated(Ident::parse, Token![,])?;
         Ok(SpinInput {
             union_name,
             types: types.into_iter().collect(),
@@ -21,10 +22,7 @@ impl Parse for SpinInput {
 impl SpinInput {
     pub(crate) fn union(&self) -> TokenStream {
         let Self { union_name, types } = self;
-        let union_fields = types
-        .iter()
-        .enumerate()
-        .map(|(i, ty)| {
+        let union_fields = types.iter().enumerate().map(|(i, ty)| {
             let field_name = format!("_{}", i);
             let field_name = syn::Ident::new(&field_name, proc_macro2::Span::call_site());
             quote::quote! { #field_name: #ty }

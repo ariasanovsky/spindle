@@ -3,13 +3,20 @@ use std::path::PathBuf;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
-use crate::{RangeSpindle, BasicRangeFn, error::{NaivelyTokenize, command_output_result}, BasicRangeAttrs, TokenResult, snake_to_camel};
+use crate::{
+    error::{command_output_result, NaivelyTokenize},
+    snake_to_camel, BasicRangeAttrs, BasicRangeFn, RangeSpindle, TokenResult,
+};
 
 pub(crate) mod parse;
 
 static RANGE_FILES: &[(&str, &str, &str)] = &[
     ("Cargo.toml", "", super::file_strings::CARGO_TOML),
-    ("rust-toolchain.toml", "", super::file_strings::RUST_TOOLCHAIN_TOML),
+    (
+        "rust-toolchain.toml",
+        "",
+        super::file_strings::RUST_TOOLCHAIN_TOML,
+    ),
     ("config.toml", ".cargo", super::file_strings::CONFIG_TOML),
     ("device.rs", "src", ""),
     ("lib.rs", "src", super::file_strings::LIB_RS),

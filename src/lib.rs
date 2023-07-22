@@ -9,14 +9,12 @@ use spindle::RawConvert;
 pub struct DevSpindle<U, X>(CudaSlice<U>, std::marker::PhantomData<X>)
 where
     U: RawConvert<X> + DeviceRepr,
-    X: Copy
-;
+    X: Copy;
 
 pub struct HostSpindle<U, X>(Vec<U>, std::marker::PhantomData<X>)
 where
     U: RawConvert<X>,
-    X: Copy,
-;
+    X: Copy;
 
 pub mod range {
     #[derive(Debug)]
@@ -33,10 +31,10 @@ pub mod range {
             Error::DriverError(error)
         }
     }
-    
+
     impl From<core::alloc::LayoutError> for Error {
         fn from(error: core::alloc::LayoutError) -> Self {
             Error::LayoutError(error)
         }
-    }    
+    }
 }

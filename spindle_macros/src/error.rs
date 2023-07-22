@@ -38,8 +38,8 @@ impl NaivelyTokenize for serde_json::Error {}
 impl NaivelyTokenize for String {
     fn naively_tokenize(self) -> TokenStream {
         println!("{self}");
+        // quote::quote! { #self } todo! sanitize self
         quote::quote! { "kernel compile error: see terminal" }
-        // todo!("sanitize #self")
     }
 }
 

@@ -5,11 +5,11 @@ use serde::{Deserialize, Serialize};
 use spin::SpinInput;
 use syn::parse_macro_input;
 
-mod error;
-mod map;
 mod basic_range;
-mod spin;
+mod error;
 pub(crate) mod file_strings;
+mod map;
+mod spin;
 
 type TokenResult = Result<TokenStream, TokenStream>;
 

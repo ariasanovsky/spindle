@@ -1,11 +1,11 @@
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
     ItemFn, Result,
 };
-use proc_macro2::TokenStream;
 
-use crate::{MapFn, MapAttrs};
+use crate::{MapAttrs, MapFn};
 
 static NO_ATTRIBUTES: &str = "no attributes";
 static NO_GENERICS: &str = "no generics";
@@ -14,8 +14,7 @@ static NO_WHERE_CLAUSE: &str = "no where clauses";
 static EXACTLY_ONE_INPUT: &str = "exactly one (integer) input";
 static ONLY_PRIMITIVE_INPUTS: &str = "only primitive number inputs (i32, usize, f32, etc.)";
 static NO_RETURN: &str = "missing return type";
-static ONLY_PRIMITIVE_RETURNS: &str =
-    "only returns primitive numbers (i32, usize, f32, etc.)";
+static ONLY_PRIMITIVE_RETURNS: &str = "only returns primitive numbers (i32, usize, f32, etc.)";
 
 impl Parse for MapAttrs {
     fn parse(input: ParseStream) -> Result<Self> {
