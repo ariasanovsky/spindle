@@ -3,6 +3,34 @@ fn _i32_to_f64(x: i32) -> f64 {
     x as f64
 }
 
+fn main() -> Result<(), spindle::error::Error> {
+    spindle::spin!(U, i32, f64);
+    let nums: Vec<i32> = (0..10).collect();
+    let spindle: spindle::DevSpindle<U, i32> = nums.try_into()?;
+    let spindle: spindle::DevSpindle<U, f64> = unsafe { spindle.i32_to_f64() }?;
+    let spindle: spindle::HostSpindle<U, f64> = spindle.try_to_host()?;
+    for (i, x) in spindle.iter().enumerate() {
+        assert_eq!(*x, i as f64);
+    }
+    Ok(())
+}
+
+// union U {
+//     _0: i32,
+//     _1: f64,
+// }
+// unsafe impl spindle::spindle::RawConvert<i32> for U {}
+// unsafe impl spindle::spindle::RawConvert<f64> for U {}
+// unsafe impl cudarc::driver::DeviceRepr for U {}
+
+// use __i32_to_f64::I32ToF64;
+
+// unsafe impl I32ToF64 for spindle::DevSpindle<U, i32> {
+//     type U = U;
+//     type Return = spindle::DevSpindle<U, f64>;
+// }
+
+
 // mod __i32_to_f64 {
 //     use cudarc::{
 //         driver::{
@@ -39,30 +67,3 @@ fn _i32_to_f64(x: i32) -> f64 {
 //         }
 //     }
 // }
-
-fn main() -> Result<(), spindle::error::Error> {
-    spindle::spin!(U, i32, f64);
-
-    // union U {
-    //     _0: i32,
-    //     _1: f64,
-    // }
-    // unsafe impl spindle::spindle::RawConvert<i32> for U {}
-    // unsafe impl spindle::spindle::RawConvert<f64> for U {}
-    // unsafe impl cudarc::driver::DeviceRepr for U {}
-
-    // use __i32_to_f64::I32ToF64;
-
-    // unsafe impl I32ToF64 for spindle::DevSpindle<U, i32> {
-    //     type U = U;
-    //     type Return = spindle::DevSpindle<U, f64>;
-    // }
-    let nums: Vec<i32> = (0..10).collect();
-    let spindle: spindle::DevSpindle<U, i32> = nums.try_into()?;
-    let spindle: spindle::DevSpindle<U, f64> = spindle.i32_to_f64()?;
-    let spindle: spindle::HostSpindle<U, f64> = spindle.try_to_host()?;
-    for (i, x) in spindle.iter().enumerate() {
-        println!("{}: {}", i, x);
-    }
-    Ok(())
-}

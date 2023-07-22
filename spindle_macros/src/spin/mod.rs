@@ -132,7 +132,7 @@ impl SpinInput {
                     {
                         type U;
                         type Return;
-                        fn #fn_name(self) -> Result<Self::Return, Error> {
+                        unsafe fn #fn_name(self) -> Result<Self::Return, Error> {
                             let mut slice: CudaSlice<Self::U> = self.into();
                             let n: usize = slice.len();
                             let device: Arc<CudaDevice> = slice.device();
