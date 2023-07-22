@@ -5,7 +5,7 @@ use syn::{
 };
 use proc_macro2::TokenStream;
 
-use crate::{MapFn, BasicRangeAttrs};
+use crate::{MapFn, MapAttrs};
 
 static NO_ATTRIBUTES: &str = "no attributes";
 static NO_GENERICS: &str = "no generics";
@@ -17,7 +17,7 @@ static NO_RETURN: &str = "missing return type";
 static ONLY_PRIMITIVE_RETURNS: &str =
     "only returns primitive numbers (i32, usize, f32, etc.)";
 
-impl Parse for BasicRangeAttrs {
+impl Parse for MapAttrs {
     fn parse(input: ParseStream) -> Result<Self> {
         if input.is_empty() {
             Ok(Self)
@@ -26,8 +26,7 @@ impl Parse for BasicRangeAttrs {
         }
     }
 }
-    
-    
+
 impl Parse for MapFn {
     fn parse(input: ParseStream) -> Result<Self> {
         let range_fn: ItemFn = input.parse()?;

@@ -5,7 +5,7 @@ use syn::{
 };
 use proc_macro2::TokenStream;
 
-use crate::{BasicRangeFn, MapAttrs};
+use crate::{BasicRangeFn, BasicRangeAttrs};
 
 static NO_ATTRIBUTES: &str = "no attributes";
 static NO_GENERICS: &str = "no generics";
@@ -18,7 +18,7 @@ static ONLY_PRIMITIVE_RETURNS: &str =
     "only returns primitive numbers (i32, usize, f32, etc.)";
 static ONLY_I32: &str = "range functions currently only admit i32";
 
-impl Parse for MapAttrs {
+impl Parse for BasicRangeAttrs {
     fn parse(input: ParseStream) -> Result<Self> {
         if input.is_empty() {
             Ok(Self)
@@ -27,7 +27,8 @@ impl Parse for MapAttrs {
         }
     }
 }
-
+    
+// todo! trait to filter ItemFns instead of this mess
 impl Parse for BasicRangeFn {
     fn parse(input: ParseStream) -> Result<Self> {
         let range_fn: ItemFn = input.parse()?;

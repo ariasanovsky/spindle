@@ -1,6 +1,5 @@
-use proc_macro::TokenStream;
-use quote::quote;
-use syn::{parse_macro_input, Ident, Token, parse::Parse, parse::ParseStream};
+use proc_macro2::TokenStream;
+use syn::{Ident, Token, parse::Parse, parse::ParseStream};
 
 pub(crate) struct SpinInput {
     pub(crate) union_name: Ident,
@@ -18,4 +17,36 @@ impl Parse for SpinInput {
         })
     }
 }
-// my favorite emojis are: 🦀 and also 💔
+
+impl SpinInput {
+    pub(crate) fn union(&self) -> TokenStream {
+        let Self { union_name, types } = self;
+        let union_fields = types
+        .iter()
+        .enumerate()
+        .map(|(i, ty)| {
+            let field_name = format!("_{}", i);
+            let field_name = syn::Ident::new(&field_name, proc_macro2::Span::call_site());
+            quote::quote! { #field_name: #ty }
+        });
+        quote::quote! {
+            #[repr(C)]
+            pub union #union_name {
+                #(#union_fields),*
+            }
+        }
+    }
+
+    pub(crate) fn impls(&self) -> TokenStream {
+        let Self { union_name, types } = self;
+        let impls = types.iter().map(|ty| {
+            quote::quote! {
+                unsafe impl spindle::spindle::RawConvert<#ty> for #union_name {}
+            }
+        });
+        quote::quote! {
+            unsafe impl cudarc::driver::DeviceRepr for #union_name {}
+            #(#impls)*
+        }
+    }
+}

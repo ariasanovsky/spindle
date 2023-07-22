@@ -22,7 +22,8 @@ where
     // todo! compile_error! if align_of<X> > align_of<Self>
     // todo! this is ugly, is it correct?
     unsafe fn from_raw(raw: X) -> Self {
-        let mut y = core::mem::MaybeUninit::<Self>::uninit().as_mut_ptr();
+        // todo! mut?
+        let /* mut */ y = core::mem::MaybeUninit::<Self>::uninit().as_mut_ptr();
         core::ptr::copy_nonoverlapping(&raw as *const X as *const Self, y, 1);
         y.read()
     }

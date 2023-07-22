@@ -1,6 +1,6 @@
 [package]
 name = "spindle"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "A macro crate for ergonomic GPGPU data parallel computing."
@@ -20,7 +20,7 @@ rayon = "1.7.0"
 members = ["spindle_macros"]
 
 [workspace.dependencies]
-spindle_macros = { version = "0.1.3", path = "spindle_macros" }
+spindle_macros = { version = "0.1.5", path = "spindle_macros" }
 
 [[bench]]
 name = "filling_boxed_array"
