@@ -31,7 +31,13 @@ This file may not be copied, modified, or distributed except according to those 
 ## Contributing
 
 Contributions are welcome!
-If you have any ideas for new features or improvements, feel free to open an issue or submit a pull request.
+Please follow these steps:
+
+1. **Skim the existing [GitHub Issues](https://github.com/ariasanovsky/spindle/issues)**: Check existing issues to see if your idea has been suggested before.
+2. **Create or discuss the issue**: If your idea isn't present, open a new issue with your proposal.
+3. **Submit a Pull Request**: Submit a pull request with your changes and link to the issue.
+
+Thank you for your contributions!
 
 ## Acknowledgments
 
