@@ -10,6 +10,7 @@ mod error;
 pub(crate) mod file_strings;
 mod map;
 mod spin;
+pub(crate) mod regulate;
 
 type TokenResult = Result<TokenStream, TokenStream>;
 
