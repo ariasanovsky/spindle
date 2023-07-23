@@ -289,11 +289,43 @@ impl RegulateSignature for Signature {
 */
 
 static EXACTLY_ONE_INPUT: &str = "exactly one (integer) input";
-static ONLY_INTEGERS: &str = "only integer inputs (isize, usize, i32, u32, etc.)";
-static NO_RETURN: &str = "missing return type";
-static ONLY_PRIMITIVE_RETURNS: &str = "only returns primitive numbers (i32, usize, f32, etc.)";
-static ONLY_I32: &str = "range functions currently only admit i32";
+static ONLY_IDENT_INPUTS: &str = "only explicit named types as inputs";
+// static ONLY_I32: &str = "range functions currently only admit i32";
+static _ONLY_INTEGERS: &str = "only integer inputs (isize, usize, i32, u32, etc.)";
 
 pub(crate) trait RegulatePatTypes: Sized {
-
+    fn exactly_one_input(self) -> Result<Self, &'static str>;
+    fn only_ident_inputs(&self) -> Result<Vec<&Ident>, &'static str>;
 }
+
+impl RegulatePatTypes for Vec<&PatType> {
+    fn exactly_one_input(self) -> Result<Self, &'static str> {
+        if self.len() == 1 {
+            Ok(self)
+        } else {
+            Err(EXACTLY_ONE_INPUT)
+        }
+    }
+
+    fn only_ident_inputs(&self) -> Result<Vec<&Ident>, &'static str> {
+        self.iter().map(|&arg| {
+            if !arg.attrs.is_empty() {
+                return Err(NO_ATTRIBUTES);
+            }
+            // todo! what to do with `pat: Pat`?
+            let type_path = match arg.ty.as_ref() {
+                syn::Type::Path(type_path) => type_path,
+                _ => return Err(ONLY_IDENT_INPUTS),
+            };
+            // The explicit Self type in a qualified path: the T in <T as Display>::fmt.
+            if type_path.qself.is_some() {
+                return Err(ONLY_IDENT_INPUTS);
+            }
+            // A path like std::slice::Iter, optionally qualified with a self-type as in <Vec<T> as SomeTrait>::Associated.
+            type_path.path.get_ident().ok_or(ONLY_IDENT_INPUTS)
+        }).collect()
+    }
+}
+
+static NO_RETURN: &str = "missing return type";
+static ONLY_PRIMITIVE_RETURNS: &str = "only returns primitive numbers (i32, usize, f32, etc.)";
