@@ -6,6 +6,9 @@ license = "Apache-2.0 OR MIT"
 description = "A macro crate for ergonomic GPGPU data parallel computing."
 repository = "https://github.com/ariasanovsky/spindle"
 
+[package.metadata.docs.rs]
+features = ["ci-check"]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -15,6 +18,10 @@ spindle_macros = { workspace = true }
 [dev-dependencies]
 criterion = "0.5.1"
 rayon = "1.7.0"
+
+[features]
+default = []
+ci-check = ["cudarc/ci-check"]
 
 [workspace]
 members = ["spindle_macros"]
