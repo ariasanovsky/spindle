@@ -1,5 +1,5 @@
 use proc_macro2::Ident;
-use syn::{ItemFn, Signature};
+use syn::{ItemFn, Signature, PatType};
 
 use crate::camel_word;
 
@@ -130,8 +130,7 @@ impl RegulateIdent for Ident {
     pub fn receiver(&self) -> Option<&Receiver>
         ... A method’s self receiver, such as &self or self: Box<Self>.
         * forbid for now
-}
-*/
+} */
 
 pub(crate) trait RegulateSignature: Sized {
     fn no_const(self) -> Result<Self, &'static str>;
@@ -139,7 +138,7 @@ pub(crate) trait RegulateSignature: Sized {
     fn no_abi(self) -> Result<Self, &'static str>;
     fn no_generics(self) -> Result<Self, &'static str>;
     fn no_variadic(self) -> Result<Self, &'static str>;
-    fn typed_args(self) -> Result<Self, &'static str>;
+    fn typed_args(&self) -> Result<Vec<&PatType>, &'static str>;
 }
 
 static NO_CONST: &str = "no const fns";
@@ -189,23 +188,105 @@ impl RegulateSignature for Signature {
         }
     }
     
-    fn typed_args(self) -> Result<
-        Self,
-        &'static str
-        > {
-        let foo: syn::punctuated::Iter<'_, syn::FnArg> = self.inputs.iter();
-        let foo: Vec<&syn::PatType> = foo.map(|arg| match arg {
+    fn typed_args(&self) -> Result<Vec<&PatType>, &'static str> {
+        self.inputs.iter().map(|arg| match arg {
             syn::FnArg::Receiver(_) => Err(NOT_A_METHOD),
             syn::FnArg::Typed(arg) => Ok(arg),
-        }).collect::<Result<Vec<_>, _>>()?;
-        
-        if self.receiver().is_some() {
-            return Err(NOT_A_METHOD);
-        } else {
-            Ok(self)
-        }
+        }).collect()
     }
 }
+
+/* pub struct PatType { https://docs.rs/syn/latest/syn/struct.PatType.html
+    pub attrs: Vec<Attribute>,  An attribute, like #[repr(transparent)].
+        * prohibit
+    
+    pub pat: Box<Pat>,  https://docs.rs/syn/latest/syn/enum.Pat.html
+        A pattern in a local binding, function signature, match expression, or various other places.
+        ❌ Const(PatConst)      A const block: const { ... }.
+        ❌ Ident(PatIdent)      A pattern that binds a new variable: ref mut binding @ SUBPATTERN.
+        ❌ Lit(PatLit)          A literal in place of an expression: 1, "foo".
+        ❌ Macro(PatMacro)      A macro invocation expression: format!("{}", q).
+        ❌ Or(PatOr)            A pattern that matches any one of a set of cases.
+        ❌ Paren(PatParen)      A parenthesized pattern: (A | B).
+        🤔 Path(PatPath)        A path like std::mem::replace possibly containing generic parameters and a qualified self-type.
+                                A plain identifier like x is a path of length 1.
+        ❌ Range(PatRange)      A range expression: 1..2, 1.., ..2, 1..=2, ..=2.
+        🤔 Reference(PatReference)
+                                A reference pattern: &mut var.
+        ❌ Rest(PatRest)        The dots in a tuple or slice pattern: [0, 1, ..].
+        ❌ Slice(PatSlice)      A dynamically sized slice pattern: [a, b, ref i @ .., y, z].
+        ❌ Struct(PatStruct)    A struct or struct variant pattern: Variant { x, y, .. }.
+        🤔 Tuple(PatTuple)      A tuple pattern: (a, b).
+        🤔 TupleStruct(PatTupleStruct)
+                                A tuple struct or tuple variant pattern: Variant(x, y, .., z).
+        🚧 Type(PatType)        A type ascription pattern: foo: f64.
+        ❌ Verbatim(TokenStream)
+                                An abstract stream of tokens, or more concretely a sequence of token trees.
+        ❌ Wild(PatWild)        A pattern that matches any value: _.
+    pub colon_token: Colon,     Don’t try to remember the name of this type — use the Token! macro instead.
+    
+    pub ty: Box<Type>,  https://docs.rs/syn/latest/syn/enum.Type.html
+        The possible types that a Rust value could have.
+        🚧 Array(TypeArray)     A fixed size array type: [T; n].
+        ❌ BareFn(TypeBareFn)   A bare function type: fn(usize) -> bool.
+        ❌ Group(TypeGroup)     A type contained within invisible delimiters.
+        ❌ ImplTrait(TypeImplTrait)
+                                An impl Bound1 + Bound2 + Bound3 type where Bound is a trait or a lifetime.
+        ❌ Infer(TypeInfer)     Indication that a type should be inferred by the compiler: _.
+        ❌ Macro(TypeMacro)     A macro in the type position.
+        ❌ Never(TypeNever)     The never type: !.
+        ❌ Paren(TypeParen)     A parenthesized type equivalent to the inner type.
+        🚧 Path(TypePath)       A path like std::slice::Iter, optionally qualified with a self-type as in <Vec<T> as SomeTrait>::Associated.
+        ❌ Ptr(TypePtr)         A raw pointer type: *const T or *mut T.
+        🚧 Reference(TypeReference)
+                                A reference type: &'a T or &'a mut T.
+        ❌ Slice(TypeSlice)     A dynamically sized slice type: [T].
+        ❌ TraitObject(TypeTraitObject)
+                                A trait object type dyn Bound1 + Bound2 + Bound3 where Bound is a trait or a lifetime.
+        🤔 Tuple(TypeTuple)     A tuple type: (A, B, C, String).
+        ❌ Verbatim(TokenStream)
+                                An abstract stream of tokens, or more concretely a sequence of token trees.
+} */
+
+/* regulations for types:
+    * start with primitive types (i32, usize, f32, etc.)
+    * 🚧 work in [T; n] and then [T; N]
+    * 🤔 think about what we want from tuples, structs, enums, etc.
+    * ❌ explicitly forbid () types
+*/
+
+/* plan for lifts
+    [range function initializers]
+        fn foo(n: i32) ➡️ X constructs
+        DevSpindle<U, X>
+            U: RawConvert<X>
+        from a range, e.g., 30..100_030
+    [univariate function]
+        fn foo(x: X) ➡️ Y lifts to
+        DevSpindle<U, X> ➡️
+        DevSpindle<U, Y>
+            U: RawConvert<X> + RawConvert<Y>
+    [univariate function with an ⚠️ immutible reference]
+        fn foo(x: X, a: &A) ➡️ Y lifts to
+        DevSpindle<U, X> ➕ &DevState<S> ➡️
+        DevSpindle<U, Y>
+            U: RawConvert<X> ➕ RawConvert<Y>,
+            S: RawConvert<A>
+        ⚠️ immutability is required since the "state" S is shared by threads
+        ⚠️ note that pure functions have arguments mapped in a "mutable" way already
+    [multivariate function]
+        fn foo(w: W, x: X) ➡️ (Y, Z) lifts to
+        DevSpindle<U, W> ➕ DevSpindle<V, X> ➡️
+        DevSpindle<U, Y> ➕ DevSpindle<V, Z>
+            U: RawConvert<W> + RawConvert<Y>,
+            V: RawConvert<X> + RawConvert<Z>,
+    [multivariate function w/ optional inplace mutability]
+        fn foo(w: W, x: X) ➡️ (Y, ()) lifts to
+        DevSpindle<U, W> ➕ DevSpindle<V, X> ➡️
+        DevSpindle<U, Y>
+            U: RawConvert<W> + RawConvert<Y>,
+            V: RawConvert<X>,
+*/
 
 static EXACTLY_ONE_INPUT: &str = "exactly one (integer) input";
 static ONLY_INTEGERS: &str = "only integer inputs (isize, usize, i32, u32, etc.)";
@@ -213,12 +294,6 @@ static NO_RETURN: &str = "missing return type";
 static ONLY_PRIMITIVE_RETURNS: &str = "only returns primitive numbers (i32, usize, f32, etc.)";
 static ONLY_I32: &str = "range functions currently only admit i32";
 
-/* enum FnArg {
-    Receiver(Receiver),
-    Typed(PatType),
-}
-*/
-
-pub(crate) trait RegulateFnArg: Sized {
+pub(crate) trait RegulatePatTypes: Sized {
 
 }
