@@ -1,14 +1,15 @@
 pub(crate) mod ident;
-pub(crate) mod signature;
+pub(crate) mod item_fn;
 pub(crate) mod pat_type;
 pub(crate) mod return_type;
-pub(crate) mod item_fn;
+pub(crate) mod signature;
 
 pub(crate) static UNEXPECTED_ATTRIBUTES: &str = "no attributes";
 pub(crate) static UNEXPECTED_GENERICS: &str = "no generics";
 pub(crate) static UNEXPECTED_WHERE_CLAUSE: &str = "no where clauses";
 
-pub(crate) static SNAKE_NAME_HEAD: &str = "lower snake case w/ at most one leading _ (must be followed by a letter)";
+pub(crate) static SNAKE_NAME_HEAD: &str =
+    "lower snake case w/ at most one leading _ (must be followed by a letter)";
 pub(crate) static SNAKE_NAME_TAIL: &str = "lower snake case w/ no trailing _";
 
 pub(crate) static UNEXPECTED_CONST: &str = "unexpected const token";
@@ -27,7 +28,8 @@ pub(crate) static _EXPECTED_ONE_INPUT_INTEGER_I32: &str = "expected exactly one 
 // pub(crate) static NO_RETURN: &str = "missing return type";
 pub(crate) static EXPECTED_RETURN_IDENT: &str = "expected an ident return type";
 pub(crate) static UNEXPECTED_RETURN: &str = "expected no return type";
-pub(crate) static EXPECTED_RETURN_PRIMITIVE: &str = "expeected a primitive return (i32, usize, f64, etc.)";
+pub(crate) static EXPECTED_RETURN_PRIMITIVE: &str =
+    "expeected a primitive return (i32, usize, f64, etc.)";
 
 pub(crate) static ARRAYS_SOON: &str = "arrays will be soon!";
 pub(crate) static REFERENCES_SOON: &str = "references will be soon!";
@@ -67,4 +69,3 @@ pub(crate) static UNSUPPORTED_RETURN: &str = "unsupported return type -- suggest
             U: RawConvert<W> + RawConvert<Y>,
             V: RawConvert<X>,
 */
-

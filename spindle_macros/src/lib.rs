@@ -9,8 +9,8 @@ mod basic_range;
 mod error;
 pub(crate) mod file_strings;
 mod map;
-mod spin;
 pub(crate) mod regulate;
+mod spin;
 
 type TokenResult = Result<TokenStream, TokenStream>;
 

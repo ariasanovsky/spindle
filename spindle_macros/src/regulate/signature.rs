@@ -1,6 +1,9 @@
 use syn::{PatType, Signature};
 
-use super::{UNEXPECTED_ASYNC, UNEXPECTED_ABI, UNEXPECTED_GENERICS, UNEXPECTED_SELF, UNEXPECTED_VARIADICS, UNEXPECTED_CONST};
+use super::{
+    UNEXPECTED_ABI, UNEXPECTED_ASYNC, UNEXPECTED_CONST, UNEXPECTED_GENERICS, UNEXPECTED_SELF,
+    UNEXPECTED_VARIADICS,
+};
 
 /*  https://docs.rs/syn/latest/syn/struct.Signature.html
 pub struct Signature {
@@ -82,10 +85,13 @@ impl RegulateSignature for Signature {
     }
 
     fn only_typed_inputs(&self) -> Result<Vec<&PatType>, &'static str> {
-        self.inputs.iter().map(|arg| match arg {
-            syn::FnArg::Receiver(_) => Err(UNEXPECTED_SELF),
-            syn::FnArg::Typed(arg) => Ok(arg),
-        }).collect()
+        self.inputs
+            .iter()
+            .map(|arg| match arg {
+                syn::FnArg::Receiver(_) => Err(UNEXPECTED_SELF),
+                syn::FnArg::Typed(arg) => Ok(arg),
+            })
+            .collect()
     }
 
     fn no_variadic(self) -> Result<Self, &'static str> {

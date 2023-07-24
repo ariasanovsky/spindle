@@ -51,16 +51,16 @@
 } */
 
 /* regulations for types:
-    * start with primitive types (i32, usize, f32, etc.)
-    * 🚧 work in [T; n] and then [T; N]
-    * 🤔 think about what we want from tuples, structs, enums, etc.
-    * ❌ explicitly forbid () types
+ * start with primitive types (i32, usize, f32, etc.)
+ * 🚧 work in [T; n] and then [T; N]
+ * 🤔 think about what we want from tuples, structs, enums, etc.
+ * ❌ explicitly forbid () types
 */
 
 use proc_macro2::Ident;
 use syn::PatType;
 
-use super::{EXPECTED_ONE_INPUT_INTEGER, UNEXPECTED_ATTRIBUTES, EXPECTED_INPUTS_INDENT};
+use super::{EXPECTED_INPUTS_INDENT, EXPECTED_ONE_INPUT_INTEGER, UNEXPECTED_ATTRIBUTES};
 
 pub(crate) trait RegulatePatTypes: Sized {
     fn exactly_one_input(self) -> Result<Self, &'static str>;
@@ -77,21 +77,27 @@ impl RegulatePatTypes for Vec<PatType> {
     }
 
     fn only_ident_inputs(&self) -> Result<Vec<Ident>, &'static str> {
-        self.iter().map(|arg| {
-            if !arg.attrs.is_empty() {
-                return Err(UNEXPECTED_ATTRIBUTES);
-            }
-            // todo! what to do with `pat: Pat`?
-            let type_path = match arg.ty.as_ref() {
-                syn::Type::Path(type_path) => type_path.clone(),
-                _ => return Err(EXPECTED_INPUTS_INDENT),
-            };
-            // The explicit Self type in a qualified path: the T in <T as Display>::fmt.
-            if type_path.qself.is_some() {
-                return Err(EXPECTED_INPUTS_INDENT);
-            }
-            // A path like std::slice::Iter, optionally qualified with a self-type as in <Vec<T> as SomeTrait>::Associated.
-            type_path.path.get_ident().cloned().ok_or(EXPECTED_INPUTS_INDENT)
-        }).collect()
+        self.iter()
+            .map(|arg| {
+                if !arg.attrs.is_empty() {
+                    return Err(UNEXPECTED_ATTRIBUTES);
+                }
+                // todo! what to do with `pat: Pat`?
+                let type_path = match arg.ty.as_ref() {
+                    syn::Type::Path(type_path) => type_path.clone(),
+                    _ => return Err(EXPECTED_INPUTS_INDENT),
+                };
+                // The explicit Self type in a qualified path: the T in <T as Display>::fmt.
+                if type_path.qself.is_some() {
+                    return Err(EXPECTED_INPUTS_INDENT);
+                }
+                // A path like std::slice::Iter, optionally qualified with a self-type as in <Vec<T> as SomeTrait>::Associated.
+                type_path
+                    .path
+                    .get_ident()
+                    .cloned()
+                    .ok_or(EXPECTED_INPUTS_INDENT)
+            })
+            .collect()
     }
 }

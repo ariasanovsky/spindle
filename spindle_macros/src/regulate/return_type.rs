@@ -3,7 +3,10 @@ use syn::{ReturnType, Type};
 
 use crate::regulate::EXPECTED_INPUTS_INDENT;
 
-use super::{ARRAYS_SOON, REFERENCES_SOON, TUPLES_SOON, UNSUPPORTED_RETURN, EXPECTED_RETURN_IDENT, UNEXPECTED_RETURN};
+use super::{
+    ARRAYS_SOON, EXPECTED_RETURN_IDENT, REFERENCES_SOON, TUPLES_SOON, UNEXPECTED_RETURN,
+    UNSUPPORTED_RETURN,
+};
 
 pub(crate) trait RegulateReturnType: Sized {
     fn ident_return(&self) -> Result<Ident, &'static str>;
@@ -24,13 +27,16 @@ impl RegulateReturnType for ReturnType {
                     return Err(EXPECTED_INPUTS_INDENT);
                 }
                 // A path like std::slice::Iter, optionally qualified with a self-type as in <Vec<T> as SomeTrait>::Associated.
-                type_path.path.get_ident().cloned().ok_or(EXPECTED_INPUTS_INDENT)
+                type_path
+                    .path
+                    .get_ident()
+                    .cloned()
+                    .ok_or(EXPECTED_INPUTS_INDENT)
             }
             Type::Reference(_) => Err(REFERENCES_SOON),
             Type::Tuple(_) => Err(TUPLES_SOON),
             _ => Err(UNSUPPORTED_RETURN),
         }
-
     }
 
     fn no_return(self) -> Result<Self, &'static str> {
