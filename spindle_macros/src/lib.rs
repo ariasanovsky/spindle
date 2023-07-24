@@ -24,7 +24,11 @@ struct MapAttrs;
 struct BasicRangeFn(syn::ItemFn);
 
 #[derive(Clone)]
-struct MapFn(syn::ItemFn);
+struct MapFn {
+    item_fn: syn::ItemFn,
+    input: syn::Ident,
+    output: syn::Ident,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RangeSpindle {

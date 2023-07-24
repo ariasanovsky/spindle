@@ -94,19 +94,19 @@ impl SpinInput {
 
         let trait_and_impl_maker = |map_fn: MapFn| {
             // todo! very sloppy
-            let fn_name = &map_fn.0.sig.ident;
+            let fn_name = &map_fn.item_fn.sig.ident;
             let trimmed_name = fn_name.to_string().trim_start_matches('_').to_string();
-            let fn_name = proc_macro2::Ident::new(&format!("{trimmed_name}"), proc_macro2::Span::call_site());
+            let fn_name = proc_macro2::Ident::new(&trimmed_name, proc_macro2::Span::call_site());
 
             let mod_name = format!("__{trimmed_name}");
-            let mod_name = proc_macro2::Ident::new(&format!("{mod_name}"), proc_macro2::Span::call_site());
+            let mod_name = proc_macro2::Ident::new(&mod_name, proc_macro2::Span::call_site());
             let trait_name = snake_to_camel(&fn_name.to_string());
-            let trait_name = proc_macro2::Ident::new(&format!("{trait_name}"), proc_macro2::Span::call_site());
-            let input_type = match map_fn.0.sig.inputs.first().unwrap() {
+            let trait_name = proc_macro2::Ident::new(&trait_name, proc_macro2::Span::call_site());
+            let input_type = match map_fn.item_fn.sig.inputs.first().unwrap() {
                 syn::FnArg::Receiver(_) => todo!("so much todo"),
                 syn::FnArg::Typed(pat_type) => &pat_type.ty,
             };
-            let output_type = match &map_fn.0.sig.output {
+            let output_type = match &map_fn.item_fn.sig.output {
                 syn::ReturnType::Default => todo!("so much todo"),
                 syn::ReturnType::Type(_, t) => t,
             };
@@ -199,7 +199,7 @@ impl SpinInput {
         };
 
         let methods = map_fns.iter().map(|map_fn| {
-            let ident = &map_fn.0.sig.ident;
+            let ident = &map_fn.item_fn.sig.ident;
             method_maker(ident.clone())
         });
         
@@ -237,7 +237,7 @@ impl SpinInput {
         }};
 
         let kernels = map_fns.iter().map(|map_fn| {
-            let ident = &map_fn.0.sig.ident;
+            let ident = &map_fn.item_fn.sig.ident;
             kernel_maker(ident.clone())
         });
 
