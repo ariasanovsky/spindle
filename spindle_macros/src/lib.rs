@@ -12,6 +12,15 @@ mod map;
 pub(crate) mod regulate;
 mod spin;
 
+
+pub(crate) mod unions;
+pub(crate) mod fields;
+pub(crate) mod maps;
+pub(crate) mod spindles;
+
+
+
+
 type TokenResult = Result<TokenStream, TokenStream>;
 
 #[derive(Clone)]
