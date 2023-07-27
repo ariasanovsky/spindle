@@ -1,4 +1,4 @@
-use proc_macro2::Ident;
+use proc_macro2::{Ident, Span};
 // use serde::{Deserialize, Serialize};
 // use uuid::Uuid;
 
@@ -25,6 +25,10 @@ impl Primitive {
         match &self.kind {
             FieldKind::Primitive(ident) => &ident.0,
         }
+    }
+
+    fn span(&self) -> Span {
+        self.ident().span()
     }
 }
 

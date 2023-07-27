@@ -6,7 +6,6 @@ pub struct TypeDb {
 
 impl TypeDb {
     pub fn connect() -> Result<Self, sqlite::Error> {
-        let conn = sqlite::open(HOME)?;
-        Ok(Self { conn })
+        sqlite::open(HOME).map(|conn| Self { conn })
     }
 }

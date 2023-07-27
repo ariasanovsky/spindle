@@ -14,4 +14,8 @@ impl TypeDb {
             )"
         )
     }
+
+    pub fn add_union_if_not_exists(&self, u: &Union) -> Result<(), sqlite::Error> {
+        todo!()
+    }
 }
