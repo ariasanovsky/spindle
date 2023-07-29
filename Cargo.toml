@@ -3,10 +3,8 @@ name = "spindle"
 version = "0.1.6"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
-description = "A macro crate for ergonomic GPGPU data parallel computing."
+description = "Ergonomic GPGPU data parallel in Rust."
 repository = "https://github.com/ariasanovsky/spindle"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 cudarc = "0.9.12"
@@ -17,7 +15,7 @@ criterion = "0.5.1"
 rayon = "1.7.0"
 
 [workspace]
-members = ["spindle_macros"]
+members = ["spindle_macros", "spindle_db"]
 
 [workspace.dependencies]
 spindle_macros = { version = "0.1.6", path = "spindle_macros" }

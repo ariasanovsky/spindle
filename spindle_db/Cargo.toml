@@ -1,0 +1,11 @@
+[package]
+name = "spindle_db"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0 OR MIT"
+description = "A db backend for `spindle`: ergonomic GPGPU data parallel computing in Rust."
+repository = "https://github.com/ariasanovsky/spindle/spindle_db/"
+
+[dependencies]
+sqlite = "0.31.0"
+uuid = { version = "1.4.1", features = ["fast-rng", "macro-diagnostics", "serde", "v4"] }

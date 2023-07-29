@@ -1,14 +1,24 @@
 use syn::parse::Parse;
 
-use super::Primitive;
+use crate::case::LowerSnakeIdent;
 
-impl Parse for Primitive {
+use super::_Primitive;
+
+impl Parse for _Primitive {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        // first, parse as an ident
         let ident = input.parse::<syn::Ident>()?;
-        // TODO! < 0.2.0 check case
-        let ident = crate::case::LowerSnakeIdent(ident);
-        let field = Primitive::new_primitive(ident);
-        // check if the sqlite database already has this field
-        todo!()
+        // then, convert to a LowerSnakeIdent
+        let lower_ident = LowerSnakeIdent::try_from(ident).map_err(|_| {
+            syn::Error::new(input.span(), "expected lower_snake_case")
+        })?;
+        // then, update the database
+        let db = crate::db::TypeDb::connect().map_err(|err| {
+            syn::Error::new(input.span(), err)
+        })?;
+        db.add_primitive_if_not_exists(lower_ident)
+        .map_err(|err| {
+            syn::Error::new(input.span(), err)
+        })
     }
 }
