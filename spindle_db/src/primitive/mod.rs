@@ -1,5 +1,6 @@
 use crate::{TypeDb, DbResult, DbIdent};
 
+#[derive(Debug)]
 pub struct DbPrimitive {
     pub uuid: String,
     pub ident: String,
@@ -7,19 +8,19 @@ pub struct DbPrimitive {
 
 impl TypeDb {
     pub fn new_primitives(&self) -> DbResult<()> {
-        // dbg!("new_primitives");
-        self.conn.execute(
-            "DROP TABLE IF EXISTS primitives"
-        )?;
-        // dbg!("dropped primitives");
+        self.drop_primitives()?;
         self.conn.execute(
             "CREATE TABLE primitives (
                 uuid TEXT NOT NULL PRIMARY KEY,     -- Unique identifier
                 ident TEXT NOT NULL UNIQUE          -- Rust identifier
             )"
-        ) // ?;
-        // dbg!("created primitives");
-        // Ok(())
+        )
+    }
+
+    pub fn drop_primitives(&self) -> DbResult<()> {
+        self.conn.execute(
+            "DROP TABLE IF EXISTS primitives"
+        )
     }
 
     pub fn get_or_insert_primitive<P: DbIdent>(&self, prim: &P) -> DbResult<DbPrimitive> {
@@ -61,23 +62,5 @@ impl TypeDb {
                 })
             },
         }
-    }
-}
-
-#[cfg(test)]
-mod primitive_db_tests {
-    use super::*;
-
-    impl DbIdent for &str {
-        fn db_ident(&self) -> String {
-            self.to_string()
-        }
-    }
-    
-    #[test]
-    fn test_primitive_db() {
-        let db = TypeDb::new_test_primitives().unwrap();
-        dbg!("made db");
-        let p = db.get_or_insert_primitive(&"f32").unwrap();
     }
 }

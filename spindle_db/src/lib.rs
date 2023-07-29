@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use sqlite::Connection;
 
 pub mod primitive;
+pub mod test;
 pub mod union;
 
 const HOME : &str = ".spindle";
@@ -38,6 +39,10 @@ impl TypeDb {
         let conn = Connection::open(db)?;
         Ok(Self { conn })
     }
+
+    pub fn delete(&self) -> DbResult<()> {
+        todo!()
+    }
     
     // create new db
     fn new(dir: &PathBuf, name: &str) -> DbResult<Self> {
@@ -69,24 +74,22 @@ impl TypeDb {
     }
 
     pub fn new_test_primitives() -> DbResult<Self> {
-        // dbg!("new_test_primitives");
         let test_home = PathBuf::from(HOME).join(TEST);
-        // dbg!(&test_home);
         let db = Self::new(&test_home, "primitives")?;
-        // dbg!("made db");
         db.new_primitives()?;
         Ok(db)
     }
 
     pub fn new_test_unions() -> DbResult<Self> {
-        todo!()
+        dbg!("new_test_unions");
+        let test_home = PathBuf::from(HOME).join(TEST);
+        dbg!(&test_home);
+        let db = Self::new(&test_home, "unions")?;
+        dbg!("new_test_unions");
+        db.new_primitives()?;
+        dbg!("new_test_unions");
+        db.new_unions()?;
+        dbg!("new_test_unions");
+        Ok(db)
     }
 }
-
-// // create the home directory if it doesn't exist
-// std::fs::create_dir_all(&dir).map_err(|e| {
-//     sqlite::Error {
-//         code: None, // todo! what code for not found?
-//         message: Some(format!("failed to create db home: {e}")),
-//     }
-// })?;
