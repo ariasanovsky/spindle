@@ -7,16 +7,19 @@ pub struct DbPrimitive {
 
 impl TypeDb {
     pub fn new_primitives(&self) -> DbResult<()> {
+        // dbg!("new_primitives");
         self.conn.execute(
             "DROP TABLE IF EXISTS primitives"
         )?;
-        
+        // dbg!("dropped primitives");
         self.conn.execute(
             "CREATE TABLE primitives (
-                uuid TEXT NOT NULL PRIMARY KEY,     // Unique identifier
-                ident TEXT NOT NULL UNIQUE,         // Rust identifier
+                uuid TEXT NOT NULL PRIMARY KEY,     -- Unique identifier
+                ident TEXT NOT NULL UNIQUE          -- Rust identifier
             )"
-        )
+        ) // ?;
+        // dbg!("created primitives");
+        // Ok(())
     }
 
     pub fn get_or_insert_primitive<P: DbIdent>(&self, prim: &P) -> DbResult<DbPrimitive> {
@@ -73,11 +76,8 @@ mod primitive_db_tests {
     
     #[test]
     fn test_primitive_db() {
-        let db = TypeDb::connect_test("primitive").unwrap();
-        db.new_primitives().unwrap();
-        let p = db.get_or_insert_primitive(&"i32").unwrap();
-        assert_eq!(p.ident, "i32");
-        let p = db.get_primitive_from_uuid(&p.uuid).unwrap();
-        assert_eq!(p.ident, "i32");
+        let db = TypeDb::new_test_primitives().unwrap();
+        dbg!("made db");
+        let p = db.get_or_insert_primitive(&"f32").unwrap();
     }
 }

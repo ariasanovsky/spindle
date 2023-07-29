@@ -17,8 +17,8 @@ impl TypeDb {
         // however, the combination of a union ident and its fields is unique
         self.conn.execute(
             "CREATE TABLE unions (
-                uuid TEXT NOT NULL PRIMARY KEY,     // Unique identifier
-                ident TEXT NOT NULL                 // Rust identifier
+                uuid TEXT NOT NULL PRIMARY KEY,     -- Unique identifier
+                ident TEXT NOT NULL                 -- Rust identifier
             )"
         )?;
 
@@ -28,9 +28,9 @@ impl TypeDb {
 
         self.conn.execute(
             "CREATE TABLE union_fields (
-                union_uuid TEXT NOT NULL,           // Union identifier
-                index INTEGER NOT NULL,             // Field index
-                field_uuid TEXT NOT NULL,           // Field identifier
+                union_uuid TEXT NOT NULL,           -- Union identifier
+                index INTEGER NOT NULL,             -- Field index
+                field_uuid TEXT NOT NULL,           -- Field identifier
                 PRIMARY KEY (union_uuid, index)
             )"
         )

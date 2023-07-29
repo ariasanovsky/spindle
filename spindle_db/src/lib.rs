@@ -1,4 +1,4 @@
-use std::{path::PathBuf, fmt::Debug};
+use std::path::PathBuf;
 
 use sqlite::Connection;
 
@@ -25,17 +25,22 @@ pub trait DbIdent {
 // }
 
 impl TypeDb {
-    pub fn connect() -> Result<Self, sqlite::Error> {
-        let home = PathBuf::from(HOME).join(PROJECT).with_extension("db");
-        Self::connect_to(&home, PROJECT)
+    // connect to existing db
+    pub fn connect_types() -> DbResult<Self> {
+        todo!()
     }
 
-    pub fn connect_test(name: &str) -> Result<Self, sqlite::Error> {
-        let home = PathBuf::from(HOME).join(TEST);
-        Self::connect_to(&home, name)
+    pub fn connect_test(name: &str) -> DbResult<Self> {
+        todo!()
     }
 
-    fn connect_to(dir: &PathBuf, name: &str) -> Result<Self, sqlite::Error> {
+    fn connect(db: &PathBuf) -> DbResult<Self> {
+        let conn = Connection::open(db)?;
+        Ok(Self { conn })
+    }
+    
+    // create new db
+    fn new(dir: &PathBuf, name: &str) -> DbResult<Self> {
         // create the home directory if it doesn't exist
         std::fs::create_dir_all(&dir).map_err(|e| {
             sqlite::Error {
@@ -43,10 +48,45 @@ impl TypeDb {
                 message: Some(format!("failed to create db home: {e}")),
             }
         })?;
+        // delete the db if it already exists
         let db = dir.join(name).with_extension("db");
-        dbg!("got here", &dir);
-        let db = sqlite::open(db).map(|conn| Self { conn })?;
-        dbg!("got here");
+        if db.exists() {
+            std::fs::remove_file(&db).map_err(|e| {
+                sqlite::Error {
+                    code: None, // todo! what code for not found?
+                    message: Some(format!("failed to delete existing db: {e}")),
+                }
+            })?;
+        }
+        Self::connect(&db)
+    }
+
+    pub fn new_types() -> DbResult<Self> {
+        // tables for primitives, unions, primitve_unions
+        // tables for maps, inouts, map_inouts
+        // table for spindles?
+        todo!()
+    }
+
+    pub fn new_test_primitives() -> DbResult<Self> {
+        // dbg!("new_test_primitives");
+        let test_home = PathBuf::from(HOME).join(TEST);
+        // dbg!(&test_home);
+        let db = Self::new(&test_home, "primitives")?;
+        // dbg!("made db");
+        db.new_primitives()?;
         Ok(db)
     }
+
+    pub fn new_test_unions() -> DbResult<Self> {
+        todo!()
+    }
 }
+
+// // create the home directory if it doesn't exist
+// std::fs::create_dir_all(&dir).map_err(|e| {
+//     sqlite::Error {
+//         code: None, // todo! what code for not found?
+//         message: Some(format!("failed to create db home: {e}")),
+//     }
+// })?;
