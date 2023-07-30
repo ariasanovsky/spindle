@@ -1,4 +1,4 @@
-use crate::{TypeDb, DbResult, DbIdent};
+use crate::{TypeDb, DbResult};
 
 #[derive(Debug)]
 pub struct DbPrimitive {
@@ -6,61 +6,56 @@ pub struct DbPrimitive {
     pub ident: String,
 }
 
+pub trait AsDbPrimitive {
+    fn db_ident(&self) -> String;
+}
+
+const CREATE: &str = "
+    CREATE TABLE primitives (
+    uuid TEXT PRIMARY KEY,
+    ident TEXT NOT NULL UNIQUE
+)";
+const DROP: &str = "DROP TABLE IF EXISTS primitives";
+const SELECT: &str = "SELECT uuid FROM primitives WHERE ident = ?";
+const INSERT: &str = "INSERT INTO primitives (uuid, ident) VALUES (?, ?)";
+
 impl TypeDb {
-    pub fn new_primitives(&self) -> DbResult<()> {
-        self.drop_primitives()?;
-        self.conn.execute(
-            "CREATE TABLE primitives (
-                uuid TEXT NOT NULL PRIMARY KEY,     -- Unique identifier
-                ident TEXT NOT NULL UNIQUE          -- Rust identifier
-            )"
-        )
+    pub fn get_or_create_primitive<P: AsDbPrimitive>(&self, primitive: &P) -> DbResult<DbPrimitive> {
+        let ident = primitive.db_ident();
+        let uuid = self.get_primitive_uuid(&ident)?.unwrap_or({
+            let uuid = Self::new_uuid();
+            self.insert_primitive(&uuid, &ident)?;
+            uuid
+        });
+        Ok(DbPrimitive { uuid, ident })
     }
 
-    pub fn drop_primitives(&self) -> DbResult<()> {
-        self.conn.execute(
-            "DROP TABLE IF EXISTS primitives"
-        )
+    pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
+        self.drop_primitive_table()?;
+        let _: usize = self.conn.execute(CREATE, [])?;
+        Ok(())
     }
 
-    pub fn get_or_insert_primitive<P: DbIdent>(&self, prim: &P) -> DbResult<DbPrimitive> {
-        let ident = prim.db_ident();
-        let mut statement = self.conn.prepare(
-            "SELECT uuid FROM primitives WHERE ident = ?"
-        )?;
-        statement.bind((1, ident.as_str()))?;
-        Ok(match statement.next()? {
-            sqlite::State::Row => {
-                DbPrimitive { uuid: statement.read(0)?, ident }
-            },
-            sqlite::State::Done => {
-                let uuid = uuid::Uuid::new_v4().to_string();
-                let mut statement = self.conn.prepare(
-                    "INSERT INTO primitives (uuid, ident) VALUES (?, ?)"
-                )?;
-                statement.bind((1, uuid.as_str()))?;
-                statement.bind((2, ident.as_str()))?;
-                statement.next()?;
-                DbPrimitive { uuid, ident }
-            },
-        })
+    pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
+        let _: usize = self.conn.execute(DROP, [])?;
+        Ok(())
     }
 
-    pub fn get_primitive_from_uuid(&self, uuid: &str) -> DbResult<DbPrimitive> {
-        let mut statement = self.conn.prepare(
-            "SELECT ident FROM primitives WHERE uuid = ?"
-        )?;
-        statement.bind((1, uuid))?;
-        match statement.next()? {
-            sqlite::State::Row => {
-                Ok(DbPrimitive { uuid: uuid.to_string(), ident: statement.read(0)? })
-            },
-            sqlite::State::Done => {
-                Err(sqlite::Error {
-                    code: None, // todo! what code for not found?
-                    message: Some(format!("primitive uuid not found: {uuid}")),
-                })
-            },
+    fn get_primitive_uuid(&self, ident: &str) -> DbResult<Option<String>> {
+        let mut stmt = self.conn.prepare(SELECT)?;
+        let mut rows = stmt.query([ident])?;
+        if let Some(row) = rows.next()? {
+            let uuid = row.get(0)?;
+            // since ident is unique, there is only one row
+            Ok(Some(uuid))
+        } else {
+            Ok(None)
         }
+    }
+
+    fn insert_primitive(&self, uuid: &str, ident: &str) -> DbResult<()> {
+        let mut stmt = self.conn.prepare(INSERT)?;
+        let _: usize = stmt.execute([uuid, ident])?;
+        Ok(())
     }
 }
