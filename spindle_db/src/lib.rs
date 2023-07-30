@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
-use sqlite::Connection;
+use rusqlite::{Connection, Result};
 
-pub mod primitive;
-pub mod test;
-pub mod union;
+// pub mod primitive;
+// pub mod test;
+// pub mod union;
 
 const HOME : &str = ".spindle";
 const TEST: &str = "tests";
@@ -14,7 +14,7 @@ pub struct TypeDb {
     pub conn: Connection,
 }
 
-pub type DbResult<T> = Result<T, sqlite::Error>;
+pub type DbResult<T> = Result<T>;
 
 pub trait DbIdent {
     fn db_ident(&self) -> String;   // todo! Cow<str>
@@ -46,24 +46,25 @@ impl TypeDb {
     
     // create new db
     fn new(dir: &PathBuf, name: &str) -> DbResult<Self> {
+        todo!()
         // create the home directory if it doesn't exist
-        std::fs::create_dir_all(&dir).map_err(|e| {
-            sqlite::Error {
-                code: None, // todo! what code for not found?
-                message: Some(format!("failed to create db home: {e}")),
-            }
-        })?;
-        // delete the db if it already exists
-        let db = dir.join(name).with_extension("db");
-        if db.exists() {
-            std::fs::remove_file(&db).map_err(|e| {
-                sqlite::Error {
-                    code: None, // todo! what code for not found?
-                    message: Some(format!("failed to delete existing db: {e}")),
-                }
-            })?;
-        }
-        Self::connect(&db)
+        // std::fs::create_dir_all(&dir).map_err(|e| {
+        //     sqlite::Error {
+        //         code: None, // todo! what code for not found?
+        //         message: Some(format!("failed to create db home: {e}")),
+        //     }
+        // })?;
+        // // delete the db if it already exists
+        // let db = dir.join(name).with_extension("db");
+        // if db.exists() {
+        //     std::fs::remove_file(&db).map_err(|e| {
+        //         sqlite::Error {
+        //             code: None, // todo! what code for not found?
+        //             message: Some(format!("failed to delete existing db: {e}")),
+        //         }
+        //     })?;
+        // }
+        // Self::connect(&db)
     }
 
     pub fn new_types() -> DbResult<Self> {
@@ -76,8 +77,9 @@ impl TypeDb {
     pub fn new_test_primitives() -> DbResult<Self> {
         let test_home = PathBuf::from(HOME).join(TEST);
         let db = Self::new(&test_home, "primitives")?;
-        db.new_primitives()?;
-        Ok(db)
+        todo!()
+        // db.new_primitives()?;
+        // Ok(db)
     }
 
     pub fn new_test_unions() -> DbResult<Self> {
@@ -86,10 +88,11 @@ impl TypeDb {
         dbg!(&test_home);
         let db = Self::new(&test_home, "unions")?;
         dbg!("new_test_unions");
-        db.new_primitives()?;
-        dbg!("new_test_unions");
-        db.new_unions()?;
-        dbg!("new_test_unions");
-        Ok(db)
+        todo!()
+        // db.new_primitives()?;
+        // dbg!("new_test_unions");
+        // db.new_unions()?;
+        // dbg!("new_test_unions");
+        // Ok(db)
     }
 }

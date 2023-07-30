@@ -7,7 +7,7 @@ use syn::parse_macro_input;
 
 mod basic_range;
 pub(crate) mod case;
-pub(crate) mod db;
+// pub(crate) mod db;
 mod error;
 pub(crate) mod file_strings;
 pub(crate) mod map;

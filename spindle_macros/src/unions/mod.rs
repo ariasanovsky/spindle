@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::{primitives::_Primitive, case::{LowerSnakeIdent, UpperCamelIdent}};
 
-pub mod db;
+// pub mod db;
 mod parse;
 
 #[derive(Clone)]

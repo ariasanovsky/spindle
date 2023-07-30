@@ -7,7 +7,7 @@ use uuid::Uuid;
 use self::attrs::MapAttrs;
 
 pub mod attrs;
-pub mod db;
+// pub mod db;
 pub mod in_out;
 
 #[derive(Clone)]

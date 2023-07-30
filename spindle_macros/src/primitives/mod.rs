@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::case::LowerSnakeIdent;
 
-pub mod db;
+// pub mod db;
 pub mod parse;
 
 #[derive(Debug, Clone)]

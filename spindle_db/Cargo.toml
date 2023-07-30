@@ -7,5 +7,5 @@ description = "A db backend for `spindle`: ergonomic GPGPU data parallel computi
 repository = "https://github.com/ariasanovsky/spindle/spindle_db/"
 
 [dependencies]
-sqlite = "0.31.0"
+rusqlite = { version = "0.29.0", features = ["bundled"] }
 uuid = { version = "1.4.1", features = ["fast-rng", "macro-diagnostics", "serde", "v4"] }

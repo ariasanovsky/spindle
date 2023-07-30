@@ -18,7 +18,7 @@ rayon = "1.7.0"
 members = ["spindle_macros", "spindle_db"]
 
 [workspace.dependencies]
-spindle_macros = { version = "0.1.6", path = "spindle_macros" }
+spindle_macros = { version = "0.1.7", path = "spindle_macros" }
 
 [[bench]]
 name = "filling_boxed_array"

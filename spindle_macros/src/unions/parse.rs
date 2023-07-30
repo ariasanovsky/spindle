@@ -35,13 +35,14 @@ impl Parse for _Union {
             // unexpected token
             return Err(syn::Error::new(input.span(), "expected `=` or `,`"))
         };
-        let db = crate::db::TypeDb::connect().map_err(|err| {
-            syn::Error::new(input.span(), err)
-        })?;
-        db.add_union_if_not_exists(upper_ident, uuids)
-        .map_err(|err| {
-            syn::Error::new(input.span(), err)
-        })
+        todo!()
+        // let db = crate::db::TypeDb::connect().map_err(|err| {
+        //     syn::Error::new(input.span(), err)
+        // })?;
+        // db.add_union_if_not_exists(upper_ident, uuids)
+        // .map_err(|err| {
+        //     syn::Error::new(input.span(), err)
+        // })
     }
 }
 
