@@ -32,30 +32,47 @@ impl TypeDb {
 
 #[cfg(test)]
 mod db_tests {
-    use crate::TypeDb;
+    use crate::{TypeDb, primitive::{AsDbPrimitive, DbPrimitive}};
     use super::*;
 
+    impl AsDbPrimitive for &str {
+        fn db_ident(&self) -> String {
+            self.to_string()
+        }
+    }
+    
     #[test]
     fn new_primitves_db_table_names() {
         let db = TypeDb::new_primitives_test_db().unwrap();
         let mut names = db.table_names().unwrap();
         names.sort();
-        assert_eq!(&names, &["primitives"]);
+        assert_eq!(&names, &[PRIMITIVES.to_string()]);
     }
 
-    
     #[test]
-    fn db_test_primitive() {
-        let db = TypeDb::new_primitives_test_db();
-        // let p = db.get_or_insert_primitive(&"f32").unwrap();
-        // assert_eq!(p.ident, "f32");
-        // let p = db.get_primitive_from_uuid(&p.uuid).unwrap();
-        // assert_eq!(p.ident, "f32");
-        // let q = db.get_or_insert_primitive(&"f32").unwrap();
-        // assert_eq!(p.uuid, q.uuid);
-        // let r = db.get_or_insert_primitive(&"f64").unwrap();
-        // assert_ne!(p.uuid, r.uuid);
-        // db.drop_all().unwrap();
+    fn primitives_are_added_uniquely() {
+        let db = TypeDb::new_primitives_test_db().unwrap();
+        assert_eq!(db.get_primitives().unwrap(), vec![]);
+        let p = db.get_or_insert_primitive(&"f32").unwrap();
+        assert_eq!(db.get_primitives().unwrap(), vec![
+            DbPrimitive::new("f32".to_string())
+        ]);
+        let q = db.get_primitive_from_uuid(p.uuid).unwrap().unwrap();
+        assert_eq!(db.get_primitives().unwrap(), vec![
+            DbPrimitive::new("f32".to_string())
+        ]);
+        let r = db.get_or_insert_primitive(&"f32").unwrap();
+        assert_eq!(db.get_primitives().unwrap(), vec![
+            DbPrimitive::new("f32".to_string())
+        ]);
+        assert_eq!(q.uuid, r.uuid);
+        let s = db.get_or_insert_primitive(&"f64").unwrap();
+        dbg!(&s);
+        assert_eq!(db.get_primitives().unwrap(), vec![
+            DbPrimitive::new("f32".to_string()),
+            DbPrimitive::new("f64".to_string())
+        ]);
+        assert_ne!(q.uuid, s.uuid);
     }
 
     // #[test]

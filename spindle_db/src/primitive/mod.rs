@@ -1,9 +1,24 @@
-use crate::{TypeDb, DbResult};
+use crate::{TypeDb, DbResult, primitive};
 
-#[derive(Debug)]
+#[derive(Debug, Eq)]
 pub struct DbPrimitive {
     pub uuid: String,
     pub ident: String,
+}
+
+impl PartialEq for DbPrimitive {
+    fn eq(&self, other: &Self) -> bool {
+        self.ident == other.ident
+    }
+}
+
+impl DbPrimitive {
+    pub(crate) fn new(ident: String) -> Self {
+        Self {
+            uuid: TypeDb::new_uuid(),
+            ident,
+        }
+    }
 }
 
 pub trait AsDbPrimitive {
@@ -16,18 +31,45 @@ const CREATE: &str = "
     ident TEXT NOT NULL UNIQUE
 )";
 const DROP: &str = "DROP TABLE IF EXISTS primitives";
-const SELECT: &str = "SELECT uuid FROM primitives WHERE ident = ?";
-const INSERT: &str = "INSERT INTO primitives (uuid, ident) VALUES (?, ?)";
+const SELECT_UUID: &str = "SELECT uuid FROM primitives WHERE ident = ?";
+const SELECT_IDENT: &str = "SELECT ident FROM primitives WHERE uuid = ?";
+const SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
+const INSERT_PRIMITIVE: &str = "INSERT INTO primitives (uuid, ident) VALUES (?, ?)";
 
 impl TypeDb {
-    pub fn get_or_create_primitive<P: AsDbPrimitive>(&self, primitive: &P) -> DbResult<DbPrimitive> {
+    pub fn get_or_insert_primitive<P: AsDbPrimitive>(&self, primitive: &P) -> DbResult<DbPrimitive> {
         let ident = primitive.db_ident();
-        let uuid = self.get_primitive_uuid(&ident)?.unwrap_or({
-            let uuid = Self::new_uuid();
-            self.insert_primitive(&uuid, &ident)?;
-            uuid
-        });
-        Ok(DbPrimitive { uuid, ident })
+        dbg!(&ident);
+        let uuid = self.get_primitive_uuid(&ident)?;
+        Ok(if let Some(uuid) = uuid {
+            DbPrimitive { uuid, ident }
+        } else {
+            let primitive = DbPrimitive::new(ident);
+            self.insert_primitive(&primitive)?;
+            primitive
+        })
+    }
+
+    pub fn get_primitive_from_uuid(&self, uuid: String) -> DbResult<Option<DbPrimitive>> {
+        let mut stmt = self.conn.prepare(SELECT_IDENT)?;
+        let mut rows = stmt.query([&uuid])?;
+        if let Some(row) = rows.next()? {
+            let ident = row.get(0)?;
+            Ok(Some(DbPrimitive { uuid, ident }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
+        let mut statement = self.conn.prepare(SELECT_PRIMITIVE)?;
+        let primitives = statement.query_map([], |row| {
+            Ok(DbPrimitive {
+                uuid: row.get(0)?,
+                ident: row.get(1)?,
+            })
+        })?.collect::<DbResult<_>>();
+        primitives
     }
 
     pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
@@ -42,7 +84,7 @@ impl TypeDb {
     }
 
     fn get_primitive_uuid(&self, ident: &str) -> DbResult<Option<String>> {
-        let mut stmt = self.conn.prepare(SELECT)?;
+        let mut stmt = self.conn.prepare(SELECT_UUID)?;
         let mut rows = stmt.query([ident])?;
         if let Some(row) = rows.next()? {
             let uuid = row.get(0)?;
@@ -53,9 +95,9 @@ impl TypeDb {
         }
     }
 
-    fn insert_primitive(&self, uuid: &str, ident: &str) -> DbResult<()> {
-        let mut stmt = self.conn.prepare(INSERT)?;
-        let _: usize = stmt.execute([uuid, ident])?;
+    fn insert_primitive(&self, prim: &DbPrimitive) -> DbResult<()> {
+        let mut stmt = self.conn.prepare(INSERT_PRIMITIVE)?;
+        stmt.execute([prim.uuid.as_str(), prim.ident.as_str()])?;
         Ok(())
     }
 }
