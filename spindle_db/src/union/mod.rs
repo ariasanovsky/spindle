@@ -87,20 +87,51 @@ const SELECT_UNION_FIELDS: &str = "
 impl TypeDb {
     pub fn get_or_insert_union<U: AsDbUnion>(&self, union: &U) -> DbResult<DbUnion> {
         let ident = union.db_ident();
+        dbg!(&ident);
         let fields = union.db_fields();
         let fields = fields.iter().map(|p| self.get_or_insert_primitive(p)).collect::<DbResult<Vec<_>>>()?;
+        dbg!(&fields);
         let uuid = self.get_union_uuid(&ident, &fields)?;
+        // todo! unwrap_or* is more idiomatic
         Ok(if let Some(uuid) = uuid {
+            dbg!(&uuid);
             DbUnion { uuid, ident, fields }
         } else {
             let union = DbUnion::new(ident, fields);
+            dbg!(&union);
             self.insert_union(&union)?;
             union
         })
     }
-    
+
     pub fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
-        todo!()
+        let mut statement = self.conn.prepare(SELECT_UUID)?;
+        let mut rows = statement.query([&uuid])?;
+        // todo! `map` is more idiomatic
+        if let Some(row) = rows.next()? {
+            let uuid: String = row.get(0)?; // todo! redundant
+            let ident: String = row.get(1)?;
+            self.get_union_from_uuid_and_ident(uuid, ident).map(Some)
+        } else {
+            Ok(None)
+        }
+    }
+    
+    pub(crate) fn get_union_from_uuid_and_ident(&self, uuid: String, ident: String) -> DbResult<DbUnion> {
+        let mut statement = self.conn.prepare(SELECT_FIELDS)?;
+        let fields = statement.query_map([&uuid], |row| {
+            let pos: i64 = row.get(0)?;
+            let uuid: String = row.get(1)?;
+            let ident: String = row.get(2)?;
+            Ok((pos, DbPrimitive { uuid, ident }))
+        })?.enumerate().map(|(i, x)| {
+            x.map(|(pos, x)| {
+                assert_eq!(i as i64, pos);  // todo! handle this error
+                x
+            })
+        });
+        let fields = fields.collect::<DbResult<_>>()?;
+        Ok(DbUnion { uuid, ident, fields })
     }
     
     pub(crate) fn get_unions(&self) -> DbResult<Vec<DbUnion>> {
@@ -108,18 +139,7 @@ impl TypeDb {
         let rows = statement.query_map([], |row| {
             let uuid: String = row.get(0)?;
             let ident: String = row.get(1)?;
-            let mut statement = self.conn.prepare(SELECT_FIELDS)?;
-            let fields = statement.query_map([&uuid], |row| {
-                let pos: i64 = row.get(0)?;
-                let uuid: String = row.get(1)?;
-                let ident: String = row.get(2)?;
-                Ok(DbPrimitive {
-                    uuid,
-                    ident,
-                })
-            })?;
-            let fields = fields.collect::<DbResult<_>>()?;
-            Ok(DbUnion { uuid, ident, fields })
+            self.get_union_from_uuid_and_ident(uuid, ident)
         })?;
         rows.collect::<DbResult<_>>()
     }
@@ -150,19 +170,16 @@ impl TypeDb {
     }
     
     fn get_union_uuid(&self, ident: &str, fields: &Vec<DbPrimitive>) -> DbResult<Option<String>> {
-        // todo! what a silly mess 🫣
+        // todo! ?overkill
+        dbg!(&ident);
         let mut statement = self.conn.prepare(SELECT_UUID)?;
         let rows = statement.query_map([&ident], |row| {
+            dbg!(&row);
             let uuid: String = row.get(0)?;
-            let mut statement = self.conn.prepare(SELECT_FIELDS)?;
-            let fields = statement.query_map([&uuid], |row| {
-                Ok(DbPrimitive {
-                    uuid: row.get(0)?,
-                    ident: row.get(1)?,
-                })
-            })?;
-            let fields = fields.collect::<DbResult<_>>()?;
-            Ok(DbUnion { uuid, ident: ident.to_string(), fields })
+            dbg!(&uuid);
+            let union = self.get_union_from_uuid_and_ident(uuid, ident.to_string())?;
+            dbg!(&union);
+            Ok(union)
         })?;
         let mut rows: Vec<DbUnion> = rows.filter(|r| true).collect::<DbResult<_>>()?;
         rows.retain(|r| {

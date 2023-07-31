@@ -52,7 +52,7 @@ impl TypeDb {
         })
     }
 
-    pub fn get_primitive_from_uuid(&self, uuid: String) -> DbResult<Option<DbPrimitive>> {
+    pub(crate) fn get_primitive_from_uuid(&self, uuid: String) -> DbResult<Option<DbPrimitive>> {
         let mut statement = self.conn.prepare(SELECT_IDENT)?;
         let mut rows = statement.query([&uuid])?;
         // todo! more idiomatic with `map`
