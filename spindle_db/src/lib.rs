@@ -3,9 +3,7 @@ use std::path::PathBuf;
 use rusqlite::{Connection, Result};
 
 pub mod primitive;
-#[allow(dead_code)]
-pub mod test;
-// pub mod union;
+pub mod union;
 
 pub(crate) const HOME : &str = ".spindle";
 pub(crate) const DB: &str = "db";

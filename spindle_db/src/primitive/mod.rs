@@ -1,4 +1,7 @@
-use crate::{TypeDb, DbResult, primitive};
+use crate::{TypeDb, DbResult};
+
+#[allow(dead_code)]
+mod test;
 
 #[derive(Debug, Eq)]
 pub struct DbPrimitive {
@@ -25,12 +28,12 @@ pub trait AsDbPrimitive {
     fn db_ident(&self) -> String;
 }
 
-const CREATE: &str = "
+const CREATE_TABLE: &str = "
     CREATE TABLE primitives (
     uuid TEXT PRIMARY KEY,
-    ident TEXT NOT NULL UNIQUE
+    ident TEXT NOT NULL UNIQUE  -- unique identifier (there is only one `i32`)
 )";
-const DROP: &str = "DROP TABLE IF EXISTS primitives";
+const DROP_TABLE: &str = "DROP TABLE IF EXISTS primitives";
 const SELECT_UUID: &str = "SELECT uuid FROM primitives WHERE ident = ?";
 const SELECT_IDENT: &str = "SELECT ident FROM primitives WHERE uuid = ?";
 const SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
@@ -39,7 +42,6 @@ const INSERT_PRIMITIVE: &str = "INSERT INTO primitives (uuid, ident) VALUES (?, 
 impl TypeDb {
     pub fn get_or_insert_primitive<P: AsDbPrimitive>(&self, primitive: &P) -> DbResult<DbPrimitive> {
         let ident = primitive.db_ident();
-        dbg!(&ident);
         let uuid = self.get_primitive_uuid(&ident)?;
         Ok(if let Some(uuid) = uuid {
             DbPrimitive { uuid, ident }
@@ -74,12 +76,12 @@ impl TypeDb {
 
     pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
         self.drop_primitive_table()?;
-        let _: usize = self.conn.execute(CREATE, [])?;
+        let _: usize = self.conn.execute(CREATE_TABLE, [])?;
         Ok(())
     }
 
     pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute(DROP, [])?;
+        let _: usize = self.conn.execute(DROP_TABLE, [])?;
         Ok(())
     }
 

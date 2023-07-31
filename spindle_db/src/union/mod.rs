@@ -1,153 +1,115 @@
-use crate::{TypeDb, DbResult, DbIdent, primitive::DbPrimitive};
+use crate::{TypeDb, DbResult, primitive::{DbPrimitive, AsDbPrimitive}};
 
-// todo! distinguish bare unions from explicit ones (e.g., do we need to define union U, or is it in scope?)
-#[derive(Debug)]
+#[allow(dead_code)]
+mod test;
+
+#[derive(Debug, Eq)]
 pub struct DbUnion {
     pub uuid: String,
     pub ident: String,
     pub fields: Vec<DbPrimitive>,
 }
 
+impl PartialEq for DbUnion {
+    fn eq(&self, other: &Self) -> bool {
+        self.ident == other.ident && self.fields == other.fields
+    }
+}
+
+impl DbUnion {
+    pub(crate) fn new(ident: String, fields: Vec<DbPrimitive>) -> Self {
+        Self {
+            uuid: TypeDb::new_uuid(),
+            ident,
+            fields,
+        }
+    }
+}
+
+pub trait AsDbUnion {
+    type Primitive: AsDbPrimitive;
+    fn db_ident(&self) -> String;
+    fn db_fields(&self) -> Vec<<Self as AsDbUnion>::Primitive>;
+}
+
+const CREATE_TABLE: &str = "
+    CREATE TABLE unions (
+    uuid TEXT PRIMARY KEY,
+    ident TEXT NOT NULL             -- not a unique identifier (there may be multiple unions `U`)
+)";
+const CREATE_JUNCTION: &str = "
+    CREATE TABLE union_fields (
+    union_uuid TEXT NOT NULL,
+    pos INTEGER NOT NULL,
+    field_uuid TEXT NOT NULL,
+    PRIMARY KEY (union_uuid, pos)   -- each union has a unique enumerated set of fields
+)";
+const DROP_TABLE: &str = "DROP TABLE IF EXISTS unions";
+const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS union_fields";
+const SELECT_UUID: &str = "SELECT unions.uuid FROM unions WHERE unions.ident = ?";
+const SELECT_FIELDS: &str = "
+    SELECT fields.uuid, fields.ident
+    FROM fields
+    INNER JOIN union_fields ON fields.uuid = union_fields.field_uuid
+    INNER JOIN unions ON unions.uuid = union_fields.union_uuid
+    WHERE unions.ident = ?1
+    ORDER BY union_fields.pos ASC
+";
+const INSERT_UNION: &str = "INSERT INTO unions (uuid, ident) VALUES (?1, ?2)";
+const JOIN_UNION_FIELD: &str = "
+    INSERT INTO union_fields (union_uuid, pos, field_uuid)
+    VALUES (?1, ?2, ?3)
+";
+
 impl TypeDb {
-    pub fn new_unions(&self) -> DbResult<()> {
-        dbg!("new unions");
-        self.conn.execute(
-            "DROP TABLE IF EXISTS unions"
-        )?;
-        dbg!("dropped unions");
-        // union idents are not unique because they belong to a module
-        // however, the combination of a union ident and its fields is unique
-        self.conn.execute(
-            "CREATE TABLE unions (
-                uuid TEXT NOT NULL PRIMARY KEY,     -- Unique identifier
-                ident TEXT NOT NULL                 -- Rust identifier
-            )"
-        )?;
-        dbg!("created unions");
+    pub fn get_or_insert_union<U: AsDbUnion>(&self, union: &U) -> DbResult<DbUnion> {
+        let ident = union.db_ident();
+        let fields = union.db_fields();
+        let fields = fields.iter().map(|p| self.get_or_insert_primitive(p)).collect::<DbResult<Vec<_>>>()?;
+        let uuid = self.get_union_uuid(&ident, &fields)?;
+        Ok(if let Some(uuid) = uuid {
+            DbUnion { uuid, ident, fields }
+        } else {
+            let union = DbUnion::new(ident, fields);
+            self.insert_union(&union)?;
+            union
+        })
+    }
+    
+    fn get_union_uuid(&self, ident: &str, fields: &Vec<DbPrimitive>) -> DbResult<Option<String>> {
+        // todo! what a silly mess 🫣
+        let mut statement = self.conn.prepare(SELECT_UUID)?;
+        let rows = statement.query_map([&ident], |row| {
+            let uuid: String = row.get(0)?;
+            let mut statement = self.conn.prepare(SELECT_FIELDS)?;
+            let fields = statement.query_map([&uuid], |row| {
+                Ok(DbPrimitive {
+                    uuid: row.get(0)?,
+                    ident: row.get(1)?,
+                })
+            })?;
+            let fields = fields.collect::<DbResult<_>>()?;
+            Ok(DbUnion { uuid, ident: ident.to_string(), fields })
+        })?;
+        let mut rows: Vec<DbUnion> = rows.filter(|r| true).collect::<DbResult<_>>()?;
+        rows.retain(|r| {
+            r.fields.len() == fields.len() 
+            && r.fields.iter().zip(fields.iter()).all(|(a, b)| a == b)
+        });
+        // todo! this is a hack on top of a hack 🫣 todo! handle this error
+        assert!(rows.len() <= 1, "multiple unions with the same ident and fields");
+        Ok(rows.into_iter().next().map(|r| r.uuid))
+    }
 
-        self.conn.execute(
-            "DROP TABLE IF EXISTS union_fields"
-        )?;
-        dbg!("dropped union_fields");
-        self.conn.execute(
-            "CREATE TABLE union_fields (
-                union_uuid TEXT NOT NULL,           -- Union identifier
-                pos INTEGER NOT NULL,               -- Field index
-                field_uuid TEXT NOT NULL,           -- Field identifier
-                PRIMARY KEY (union_uuid, pos)
-            )"
-        )?;
-        dbg!("created union_fields");
+    fn insert_union(&self, union: &DbUnion) -> DbResult<()> {
+        // first insert the union with INSERT_UNION
+        let mut statement = self.conn.prepare(INSERT_UNION)?;
+        statement.execute([&union.uuid, &union.ident])?;
+        // then join the union with its fields with JOIN_UNION_FIELD
+        let mut statement = self.conn.prepare(JOIN_UNION_FIELD)?;
+        for (pos, field) in union.fields.iter().enumerate() {
+            statement.execute(rusqlite::params![&union.uuid, pos as i64, &field.uuid])?;
+        }
         Ok(())
-    }
-
-    pub fn get_or_insert_union<U, P>(&self, u: &U, p: Option<&Vec<P>>) -> DbResult<DbUnion>
-    where
-        U: DbIdent,
-        P: DbIdent,
-    {
-        let ident = u.db_ident();
-        dbg!(&ident);
-        // sieve for unions by ident first
-        // then check if the fields match by uuid(!)
-        let mut statement = self.conn.prepare(
-            "SELECT uuid FROM unions WHERE ident = ?"
-        )?;
-        statement.bind((1, ident.as_str()))?;
-        while let sqlite::State::Row = statement.next()? {
-            let uuid: String = statement.read(0)?;
-            dbg!(&uuid);
-            let db_u = self.get_union_from_uuid(&uuid)?;
-            dbg!(&db_u.ident);
-            // since primitives have unique idents, we can verify the fields by ident
-            if let Some(p) = p {
-                // if the fields match, return the union
-                if db_u.fields.iter().zip(p.iter()).all(|(f, p)| f.ident == p.db_ident()) {
-                    return Ok(DbUnion { uuid, ident, fields: db_u.fields })
-                }
-            } else {
-                // bare unions only make sense when they are unique in the database w.r.t. the host scope
-                // this is tricky because we don't encode the host scope in the database
-                // encoding the file itself is a nightly feature (we'd lose semver with proc-macro2)
-                // perhaps we should? or is it better to just disallow bare unions?
-                // should names be unique in the database?
-                return Err(sqlite::Error {
-                    code: None, // todo! what code for not found?
-                    message: Some(format!("`spin!({ident})` is not supported. Please use `spin!({ident} = f32 | u64)`, for example."))
-                })
-            }
-        }
-        // if no union was found, hopefully we came with fields
-        match p {
-            Some(p) => Ok({
-                // insert the union
-                dbg!("inserting union");
-                let uuid = uuid::Uuid::new_v4().to_string();
-                let mut statement = self.conn.prepare(
-                    "INSERT INTO unions (uuid, ident) VALUES (?, ?)"
-                )?;
-                statement.bind((1, uuid.as_str()))?;
-                statement.bind((2, ident.as_str()))?;
-                statement.next()?;
-                dbg!("inserted union");
-                // insert the fields
-                let fields = p.iter().enumerate().map(|(i, p)| {
-                    let mut insert_statement = self.conn.prepare(
-                        "INSERT INTO union_fields (union_uuid, pos, field_uuid) VALUES (?, ?, ?)"
-                    )?;
-                    let field_uuid = uuid::Uuid::new_v4().to_string();
-                    insert_statement.bind((1, uuid.as_str()))?;
-                    insert_statement.bind((2, i as i64))?;
-                    insert_statement.bind((3, field_uuid.as_str()))?;
-                    insert_statement.next()?;
-                    let p = DbPrimitive { uuid: field_uuid, ident: p.db_ident() };
-                    dbg!(&p);
-                    Ok(p)
-                }).collect::<Result<_, _>>()?;
-                dbg!("returning union");
-                DbUnion { uuid, ident, fields }
-            }),
-            None => Err(sqlite::Error {
-                code: None, // todo! what code for not found?
-                message: Some(format!("`spin!({ident})` is not supported. Please use `spin!({ident} = f32 | u64)`, for example."))
-            })
-        }
-    }
-
-    pub fn get_union_from_uuid(&self, uuid: &str) -> DbResult<DbUnion> {
-        dbg!("get union from uuid");
-        // get the index and field uuids for the union
-        let mut statement = self.conn.prepare(
-            "SELECT index, field_uuid FROM union_fields WHERE union_uuid = ?"
-        )?;
-        statement.bind((1, uuid))?;
-        let mut fields = Vec::new();
-        while let sqlite::State::Row = statement.next()? {
-            let index: i64 = statement.read(0)?;
-            let field_uuid: String = statement.read(1)?;
-            let field = self.get_primitive_from_uuid(&field_uuid)?;
-            fields.push((index, field));
-        }
-        // sort the fields by index
-        fields.sort_by(|(i1, _), (i2, _)| i1.cmp(i2));
-        // verify index by enumeration
-        let fields = fields.into_iter().enumerate().map(|(i, (index, field))| {
-            if i as i64 != index {
-                Err(sqlite::Error {
-                    code: None, // todo! what code for index mismatch?
-                    message: Some("index mismatch".to_string()),
-                })
-            } else {
-                Ok(field)
-            }
-        }).collect::<Result<_, _>>()?;
-        // get the union ident
-        let mut statement = self.conn.prepare(
-            "SELECT ident FROM unions WHERE uuid = ?"
-        )?;
-        statement.bind((1, uuid))?;
-        let ident: String = statement.read(0)?;
-        // return the union
-        Ok(DbUnion { uuid: uuid.to_string(), ident, fields })
     }
 }

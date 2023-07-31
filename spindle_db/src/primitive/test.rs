@@ -17,14 +17,17 @@ impl TypeDb {
         Ok(names)
     }
 
-    fn new_test_db(name: &str) -> DbResult<TypeDb> {
-        let path = PathBuf::from(HOME).join(TEST).join(name).with_extension(DB);
+    fn new_test_db(test_name: &str) -> DbResult<TypeDb> {
+        let path = PathBuf::from(HOME)
+            .join(TEST)
+            .join(test_name)
+            .with_extension(DB);
         let db = TypeDb::new(path)?;
         Ok(db)
     }
 
-    fn new_primitives_test_db() -> DbResult<TypeDb> {
-        let db = Self::new_test_db(PRIMITIVES)?;
+    fn new_primitives_test_db(test_name: &str) -> DbResult<TypeDb> {
+        let db = Self::new_test_db(test_name)?;
         db.create_new_primitive_table()?;
         Ok(db)
     }
@@ -42,8 +45,8 @@ mod db_tests {
     }
     
     #[test]
-    fn new_primitves_db_table_names() {
-        let db = TypeDb::new_primitives_test_db().unwrap();
+    fn primitives_new_db_has_correct_table_names() {
+        let db = TypeDb::new_primitives_test_db("primitives_new_db_has_correct_table_names").unwrap();
         let mut names = db.table_names().unwrap();
         names.sort();
         assert_eq!(&names, &[PRIMITIVES.to_string()]);
@@ -51,7 +54,7 @@ mod db_tests {
 
     #[test]
     fn primitives_are_added_uniquely() {
-        let db = TypeDb::new_primitives_test_db().unwrap();
+        let db = TypeDb::new_primitives_test_db("primitives_are_added_uniquely").unwrap();
         assert_eq!(db.get_primitives().unwrap(), vec![]);
         let p = db.get_or_insert_primitive(&"f32").unwrap();
         assert_eq!(db.get_primitives().unwrap(), vec![

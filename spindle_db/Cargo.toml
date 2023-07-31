@@ -7,5 +7,18 @@ description = "A db backend for `spindle`: ergonomic GPGPU data parallel computi
 repository = "https://github.com/ariasanovsky/spindle/spindle_db/"
 
 [dependencies]
-rusqlite = { version = "0.29.0", features = ["bundled"] }
-uuid = { version = "1.4.1", features = ["fast-rng", "macro-diagnostics", "serde", "v4"] }
+# `bundled` causes us to automatically compile and link in an up to date
+# version of SQLite for you. This avoids many common build issues, and
+# avoids depending on the version of SQLite on the users system (or your
+# system), which may be old or missing. It's the right choice for most
+# programs that control their own SQLite databases.
+#
+# That said, it's not ideal for all scenarios and in particular, generic
+# libraries built around `rusqlite` should probably not enable it, which
+# is why it is not a default feature -- it could become hard to disable.
+# ^taken from https://github.com/rusqlite/rusqlite/blob/e093d7db7bc4ee33d24bddd381c288d702e3de3d/README.md?plain=1
+# note from Alex Riasanovsky: I'm not sure if bundling is the right choice
+# bundled releases of spindle crates will (restrict to + adbide by) the MIT license
+# ^my working understanding based on conversation with `rusqlite` maintainer(s)
+rusqlite = { version = "0.29.0", features = ["bundled"] }   # todo! ?"uuid"
+uuid = { version = "1.4.1", features = ["fast-rng", "macro-diagnostics", "v4"] }
