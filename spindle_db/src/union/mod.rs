@@ -32,6 +32,9 @@ pub trait AsDbUnion {
     fn db_fields(&self) -> Vec<<Self as AsDbUnion>::Primitive>;
 }
 
+const DROP_TABLE: &str = "DROP TABLE IF EXISTS unions";
+const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS union_fields";
+
 const CREATE_TABLE: &str = "
     CREATE TABLE unions (
     uuid TEXT PRIMARY KEY,
@@ -42,23 +45,43 @@ const CREATE_JUNCTION: &str = "
     union_uuid TEXT NOT NULL,
     pos INTEGER NOT NULL,
     field_uuid TEXT NOT NULL,
-    PRIMARY KEY (union_uuid, pos)   -- each union has a unique enumerated set of fields
+    FOREIGN KEY (union_uuid) REFERENCES unions (uuid),
+    FOREIGN KEY (field_uuid) REFERENCES primitives (uuid),
+    PRIMARY KEY (union_uuid, pos)
 )";
-const DROP_TABLE: &str = "DROP TABLE IF EXISTS unions";
-const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS union_fields";
-const SELECT_UUID: &str = "SELECT unions.uuid FROM unions WHERE unions.ident = ?";
-const SELECT_FIELDS: &str = "
-    SELECT fields.uuid, fields.ident
-    FROM fields
-    INNER JOIN union_fields ON fields.uuid = union_fields.field_uuid
-    INNER JOIN unions ON unions.uuid = union_fields.union_uuid
-    WHERE unions.ident = ?1
-    ORDER BY union_fields.pos ASC
-";
+
 const INSERT_UNION: &str = "INSERT INTO unions (uuid, ident) VALUES (?1, ?2)";
-const JOIN_UNION_FIELD: &str = "
+const INSERT_UNION_FIELD: &str = "
     INSERT INTO union_fields (union_uuid, pos, field_uuid)
     VALUES (?1, ?2, ?3)
+";
+const SELECT_UUID: &str = "SELECT unions.uuid FROM unions WHERE unions.ident = ?";
+
+
+
+
+// from a union's uuid, we get the uuids, idents, and positions of its fields
+const SELECT_FIELDS: &str = "
+    SELECT union_fields.pos, primitives.uuid, primitives.ident
+    FROM union_fields
+    INNER JOIN primitives ON union_fields.field_uuid = primitives.uuid
+    WHERE union_fields.union_uuid = ?
+    ORDER BY union_fields.pos
+";
+
+
+
+
+
+
+
+
+
+
+
+const SELECT_UNION : &str = "SELECT uuid, ident FROM unions";
+const SELECT_UNION_FIELDS: &str = "
+    SELECT * FROM union_fields
 ";
 
 impl TypeDb {
@@ -74,6 +97,56 @@ impl TypeDb {
             self.insert_union(&union)?;
             union
         })
+    }
+    
+    pub fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
+        todo!()
+    }
+    
+    pub(crate) fn get_unions(&self) -> DbResult<Vec<DbUnion>> {
+        let mut statement = self.conn.prepare(SELECT_UNION)?;
+        let rows = statement.query_map([], |row| {
+            let uuid: String = row.get(0)?;
+            let ident: String = row.get(1)?;
+            let mut statement = self.conn.prepare(SELECT_FIELDS)?;
+            let fields = statement.query_map([&uuid], |row| {
+                let pos: i64 = row.get(0)?;
+                let uuid: String = row.get(1)?;
+                let ident: String = row.get(2)?;
+                Ok(DbPrimitive {
+                    uuid,
+                    ident,
+                })
+            })?;
+            let fields = fields.collect::<DbResult<_>>()?;
+            Ok(DbUnion { uuid, ident, fields })
+        })?;
+        rows.collect::<DbResult<_>>()
+    }
+
+    pub(crate) fn get_union_fields(&self) -> DbResult<Vec<(String, i64, String)>> {
+        let mut statement = self.conn.prepare(SELECT_UNION_FIELDS)?;
+        let rows = statement.query_map([], |row| {
+            let union_uuid: String = row.get(0)?;
+            let pos: i64 = row.get(1)?;
+            let field_uuid: String = row.get(2)?;
+            Ok((union_uuid, pos, field_uuid))
+        })?;
+        rows.collect::<DbResult<_>>()
+    }
+    
+    pub(crate) fn create_new_union_tables(&self) -> DbResult<()> {
+        self.drop_union_tables()?;
+        self.create_new_primitive_table()?;
+        let _: usize = self.conn.execute(CREATE_TABLE, [])?;
+        let _: usize = self.conn.execute(CREATE_JUNCTION, [])?;
+        Ok(())
+    }
+
+    pub(crate) fn drop_union_tables(&self) -> DbResult<()> {
+        self.conn.execute(DROP_TABLE, [])?;
+        self.conn.execute(DROP_JUNCTION, [])?;
+        Ok(())
     }
     
     fn get_union_uuid(&self, ident: &str, fields: &Vec<DbPrimitive>) -> DbResult<Option<String>> {
@@ -106,7 +179,7 @@ impl TypeDb {
         let mut statement = self.conn.prepare(INSERT_UNION)?;
         statement.execute([&union.uuid, &union.ident])?;
         // then join the union with its fields with JOIN_UNION_FIELD
-        let mut statement = self.conn.prepare(JOIN_UNION_FIELD)?;
+        let mut statement = self.conn.prepare(INSERT_UNION_FIELD)?;
         for (pos, field) in union.fields.iter().enumerate() {
             statement.execute(rusqlite::params![&union.uuid, pos as i64, &field.uuid])?;
         }

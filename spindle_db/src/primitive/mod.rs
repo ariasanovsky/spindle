@@ -53,17 +53,18 @@ impl TypeDb {
     }
 
     pub fn get_primitive_from_uuid(&self, uuid: String) -> DbResult<Option<DbPrimitive>> {
-        let mut stmt = self.conn.prepare(SELECT_IDENT)?;
-        let mut rows = stmt.query([&uuid])?;
-        if let Some(row) = rows.next()? {
+        let mut statement = self.conn.prepare(SELECT_IDENT)?;
+        let mut rows = statement.query([&uuid])?;
+        // todo! more idiomatic with `map`
+        Ok(if let Some(row) = rows.next()? {
             let ident = row.get(0)?;
-            Ok(Some(DbPrimitive { uuid, ident }))
+            Some(DbPrimitive { uuid, ident })
         } else {
-            Ok(None)
-        }
+            None
+        })
     }
 
-    pub fn get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
+    pub(crate) fn get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
         let mut statement = self.conn.prepare(SELECT_PRIMITIVE)?;
         let primitives = statement.query_map([], |row| {
             Ok(DbPrimitive {

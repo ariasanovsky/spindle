@@ -1,31 +1,9 @@
-use std::path::PathBuf;
-
-use crate::{TypeDb, HOME, DbResult, DB, TABLES};
+use crate::{TypeDb, DbResult};
 
 const TEST: &str = "tests";
 const PRIMITIVES: &str = "primitives";
 
 impl TypeDb {
-    fn table_names(&self) -> DbResult<Vec<String>> {
-        let mut statement = self.conn.prepare(TABLES)?;
-        let mut rows = statement.query([])?;
-        let mut names = Vec::new();
-        while let Some(row) = rows.next()? {
-            let name: String = row.get(0)?;
-            names.push(name);
-        }
-        Ok(names)
-    }
-
-    fn new_test_db(test_name: &str) -> DbResult<TypeDb> {
-        let path = PathBuf::from(HOME)
-            .join(TEST)
-            .join(test_name)
-            .with_extension(DB);
-        let db = TypeDb::new(path)?;
-        Ok(db)
-    }
-
     fn new_primitives_test_db(test_name: &str) -> DbResult<TypeDb> {
         let db = Self::new_test_db(test_name)?;
         db.create_new_primitive_table()?;
