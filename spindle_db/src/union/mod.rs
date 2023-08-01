@@ -3,7 +3,7 @@ use crate::{TypeDb, DbResult, primitive::{DbPrimitive, AsDbPrimitive}};
 #[allow(dead_code)]
 mod test;
 
-#[derive(Debug, Eq)]
+#[derive(Clone, Debug, Eq)]
 pub struct DbUnion {
     pub uuid: String,
     pub ident: String,

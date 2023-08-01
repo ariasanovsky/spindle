@@ -3,7 +3,7 @@ use crate::{TypeDb, DbResult};
 #[allow(dead_code)]
 mod test;
 
-#[derive(Debug, Eq)]
+#[derive(Clone, Debug, Eq)]
 pub struct DbPrimitive {
     pub uuid: String,
     pub ident: String,
@@ -86,7 +86,7 @@ impl TypeDb {
         Ok(())
     }
 
-    fn get_primitive_uuid(&self, ident: &str) -> DbResult<Option<String>> {
+    pub(crate) fn get_primitive_uuid(&self, ident: &str) -> DbResult<Option<String>> {
         let mut stmt = self.conn.prepare(SELECT_UUID)?;
         let mut rows = stmt.query([ident])?;
         if let Some(row) = rows.next()? {

@@ -17,11 +17,11 @@ mod db_tests {
         type Primitive = &'a str;
 
         fn db_ident(&self) -> String {
-            todo!()
+            self.0.to_string()
         }
 
         fn db_inout_pairs(&self) -> Vec<(Option<Self::Primitive>, Option<Self::Primitive>)> {
-            todo!()
+            self.1.iter().map(|(i, o)| (i.clone(), o.clone())).collect()
         }
     }
 
@@ -41,8 +41,14 @@ mod db_tests {
     fn maps_are_inserted_uniquely() {
         let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
         assert_eq!(db.get_maps().unwrap(), vec![]);
-        let m = db.get_or_insert_map(&("M", vec![
+        dbg!(db.get_maps().unwrap());
+        let m = db.get_or_insert_map(&("foo", vec![
             (Some("f32"), Some("f32"))
         ])).unwrap();
+        assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
+        let n = db.get_or_insert_map(&("foo", vec![
+            (Some("f32"), Some("f32"))
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap(), vec![m]);
     }
 }
