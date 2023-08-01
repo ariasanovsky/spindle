@@ -13,7 +13,7 @@ impl TypeDb {
 mod db_tests {
     use crate::{map::{DbMap, AsDbMap}, TypeDb, PRIMITIVES, MAPS, IN_OUTS};
 
-    impl<'a> AsDbMap for (&'a str, &'a str) {
+    impl<'a> AsDbMap for (&'a str, Vec<(Option<&'a str>, Option<&'a str>)>) {
         type Primitive = &'a str;
 
         fn db_ident(&self) -> String {
@@ -38,8 +38,11 @@ mod db_tests {
     }
 
     #[test]
-    fn maps_are_added_uniquely() {
+    fn maps_are_inserted_uniquely() {
         let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
         assert_eq!(db.get_maps().unwrap(), vec![]);
+        let m = db.get_or_insert_map(&("M", vec![
+            (Some("f32"), Some("f32"))
+        ])).unwrap();
     }
 }
