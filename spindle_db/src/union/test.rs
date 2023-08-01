@@ -3,6 +3,7 @@ use crate::{TypeDb, DbResult};
 impl TypeDb {
     fn new_unions_test_db(test_name: &str) -> DbResult<TypeDb> {
         let db = Self::new_test_db(test_name)?;
+        db.create_new_primitive_table()?;
         db.create_new_union_tables()?;
         Ok(db)
     }
@@ -10,9 +11,7 @@ impl TypeDb {
 
 #[cfg(test)]
 mod db_tests {
-    use crate::{TypeDb, primitive::{AsDbPrimitive, DbPrimitive}, PRIMITIVES, UNIONS, UNION_FIELDS, union::{AsDbUnion, DbUnion}};
-    use super::*;
-
+    use crate::{TypeDb, primitive::DbPrimitive, PRIMITIVES, UNIONS, UNION_FIELDS, union::{AsDbUnion, DbUnion}};
     impl<'a> AsDbUnion for (&'a str, Vec<&'a str>) {
         type Primitive = &'a str;
 
@@ -55,10 +54,10 @@ mod db_tests {
             ])
         ]);
         // same ident, different fields
-        let w = db.get_or_insert_union(&("U", vec!["u64"])).unwrap();
+        let _w = db.get_or_insert_union(&("U", vec!["u64"])).unwrap();
         assert_eq!(db.get_unions().unwrap().len(), 2);
         // multiple fields
-        let x = db.get_or_insert_union(&("X", vec!["f32", "u64"])).unwrap();
+        let _x = db.get_or_insert_union(&("X", vec!["f32", "u64"])).unwrap();
         assert_eq!(db.get_unions().unwrap().len(), 3);
     }
 }

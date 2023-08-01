@@ -29,7 +29,7 @@ impl DbUnion {
 pub trait AsDbUnion {
     type Primitive: AsDbPrimitive;
     fn db_ident(&self) -> String;
-    fn db_fields(&self) -> Vec<<Self as AsDbUnion>::Primitive>;
+    fn db_fields(&self) -> Vec<Self::Primitive>;
 }
 
 const DROP_TABLE: &str = "DROP TABLE IF EXISTS unions";
@@ -57,9 +57,6 @@ const INSERT_UNION_FIELD: &str = "
 ";
 const SELECT_UUID: &str = "SELECT unions.uuid FROM unions WHERE unions.ident = ?";
 
-
-
-
 // from a union's uuid, we get the uuids, idents, and positions of its fields
 const SELECT_FIELDS: &str = "
     SELECT union_fields.pos, primitives.uuid, primitives.ident
@@ -68,16 +65,6 @@ const SELECT_FIELDS: &str = "
     WHERE union_fields.union_uuid = ?
     ORDER BY union_fields.pos
 ";
-
-
-
-
-
-
-
-
-
-
 
 const SELECT_UNION : &str = "SELECT uuid, ident FROM unions";
 const SELECT_UNION_FIELDS: &str = "
@@ -157,7 +144,7 @@ impl TypeDb {
     
     pub(crate) fn create_new_union_tables(&self) -> DbResult<()> {
         self.drop_union_tables()?;
-        self.create_new_primitive_table()?;
+        // self.create_new_primitive_table()?;
         let _: usize = self.conn.execute(CREATE_TABLE, [])?;
         let _: usize = self.conn.execute(CREATE_JUNCTION, [])?;
         Ok(())
