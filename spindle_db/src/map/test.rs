@@ -11,7 +11,7 @@ impl TypeDb {
 
 #[cfg(test)]
 mod db_tests {
-    use crate::{map::{DbMap, AsDbMap}, TypeDb, PRIMITIVES, MAPS};
+    use crate::{map::{DbMap, AsDbMap}, TypeDb, PRIMITIVES, MAPS, IN_OUTS};
 
     impl<'a> AsDbMap for (&'a str, &'a str) {
         type Primitive = &'a str;
@@ -31,6 +31,7 @@ mod db_tests {
         let mut names = db.table_names().unwrap();
         names.sort();
         assert_eq!(&names, &[
+            IN_OUTS.to_string(),
             MAPS.to_string(),
             PRIMITIVES.to_string(),
         ]);
@@ -38,6 +39,7 @@ mod db_tests {
 
     #[test]
     fn maps_are_added_uniquely() {
-        todo!()
+        let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
+        assert_eq!(db.get_maps().unwrap(), vec![]);
     }
 }

@@ -9,6 +9,7 @@ pub mod union;
 pub(crate) const HOME : &str = ".spindle";
 pub(crate) const TEST: &str = "tests";
 pub(crate) const DB: &str = "db";
+pub(crate) const IN_OUTS: &str = "in_outs";
 pub(crate) const MAPS: &str = "maps";
 pub(crate) const PRIMITIVES: &str = "primitives";
 pub(crate) const UNIONS: &str = "unions";

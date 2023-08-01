@@ -1,4 +1,4 @@
-use crate::{TypeDb, DbResult, primitive::AsDbPrimitive};
+use crate::{TypeDb, DbResult, primitive::{AsDbPrimitive, DbPrimitive}};
 
 #[allow(dead_code)]
 mod test;
@@ -6,22 +6,20 @@ mod test;
 #[derive(Debug, Eq)]
 pub struct DbMap {
     pub uuid: String,
-    pub in_field: String,
-    pub out_field: String,
+    pub in_outs: Vec<(Option<DbPrimitive>, Option<DbPrimitive>)>,
 }
 
 impl PartialEq for DbMap {
     fn eq(&self, other: &Self) -> bool {
-        self.in_field == other.in_field && self.out_field == other.out_field
+        self.in_outs == other.in_outs
     }
 }
 
 impl DbMap {
-    pub(crate) fn new(in_field: String, out_field: String) -> Self {
+    pub(crate) fn new(in_outs: Vec<(Option<DbPrimitive>, Option<DbPrimitive>)>) -> Self {
         Self {
             uuid: TypeDb::new_uuid(),
-            in_field,
-            out_field,
+            in_outs,
         }
     }
 }
@@ -50,10 +48,23 @@ const CREATE_JUNCTION: &str = "
 )";
 
 const DROP_TABLE: &str = "DROP TABLE IF EXISTS maps";
+const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS map_fields";
 
 impl TypeDb {
-    pub fn create_new_map_tables(&self) -> DbResult<()> {
+    pub(crate) fn create_new_map_tables(&self) -> DbResult<()> {
+        self.drop_map_tables()?;
         self.conn.execute(CREATE_TABLE, [])?;
+        self.conn.execute(CREATE_JUNCTION, [])?;
         Ok(())
+    }
+
+    pub(crate) fn drop_map_tables(&self) -> DbResult<()> {
+        self.conn.execute(DROP_TABLE, [])?;
+        self.conn.execute(DROP_JUNCTION, [])?;
+        Ok(())
+    }
+
+    pub(crate) fn get_maps(&self) -> DbResult<Vec<DbMap>> {
+        todo!()
     }
 }
