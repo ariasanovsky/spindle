@@ -5,9 +5,9 @@ mod test;
 
 #[derive(Clone, Debug, Eq)]
 pub struct DbUnion {
-    pub uuid: String,
-    pub ident: String,
-    pub fields: Vec<DbPrimitive>,
+    pub(crate) uuid: String,
+    pub(crate) ident: String,
+    pub(crate) fields: Vec<DbPrimitive>,
 }
 
 impl PartialEq for DbUnion {

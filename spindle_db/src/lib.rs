@@ -4,6 +4,7 @@ use rusqlite::{Connection, Result};
 
 pub mod map;
 pub mod primitive;
+pub mod spindle_crate;
 pub mod union;
 
 pub(crate) const HOME : &str = ".spindle";
@@ -19,7 +20,7 @@ const TABLES: &str = "SELECT name FROM sqlite_master WHERE type='table' AND name
 const DROP_TABLE: &str = "DROP TABLE ?";
 
 pub struct TypeDb {
-    pub conn: Connection,
+    pub(crate) conn: Connection,
 }
 
 pub type DbResult<T> = Result<T>;

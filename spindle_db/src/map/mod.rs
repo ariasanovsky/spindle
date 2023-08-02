@@ -5,9 +5,9 @@ mod test;
 
 #[derive(Clone, Debug, Eq)]
 pub struct DbMap {
-    pub uuid: String,
-    pub content: String,
-    pub in_outs: Vec<(Option<DbPrimitive>, Option<DbPrimitive>)>,
+    pub(crate) uuid: String,
+    pub(crate) content: String,
+    pub(crate) in_outs: Vec<(Option<DbPrimitive>, Option<DbPrimitive>)>,
 }
 
 impl PartialEq for DbMap {
@@ -103,7 +103,7 @@ impl TypeDb {
         let in_outs: Vec<_> = in_outs
             .into_iter()
             .map(|(input_uuid, output_uuid)| {
-                // todo! `map`
+                // todo! ?should get_*_from_uuid be infallible
                 let input = input_uuid.map(|uuid| self.get_primitive_from_uuid(uuid)).transpose()?.flatten();
                 let output = output_uuid.map(|uuid| self.get_primitive_from_uuid(uuid)).transpose()?.flatten();
                 Ok((input, output))
@@ -150,9 +150,9 @@ impl TypeDb {
                 .collect::<DbResult<Vec<_>>>()?;
             let in_outs: Vec<_> = in_outs.into_iter().map(|(input, output)| {
                 let input: Option<DbPrimitive> = input.map(|uuid| self.get_primitive_from_uuid(uuid))
-                    .transpose()?.unwrap(); // todo! handle error (we could `flatten`, but the error is fatal in this case)
+                    .transpose()?.flatten(); // todo! ?unhandled error
                 let output: Option<DbPrimitive> = output.map(|uuid| self.get_primitive_from_uuid(uuid))
-                    .transpose()?.unwrap(); // todo! handle error (we could `flatten`, but the error is fatal in this case)
+                    .transpose()?.flatten(); // todo! ?unhandled error
                 Ok((input, output))
             }).collect::<DbResult<_>>()?;
             let map = DbMap {
