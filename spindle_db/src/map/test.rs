@@ -66,5 +66,18 @@ mod db_tests {
             (Some("f32"), Some("f32"))
         ])).unwrap();
         assert_eq!(db.get_maps().unwrap().len(), 3);
+        // and make sure to test `None` examples, too
+        let r = db.get_or_insert_map(&("pub fn foo(...)", vec![
+            (Some("f32"), Some("f32")),
+            (None, Some("u64")),
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap().len(), 4);
+        assert_ne!(m, r);
+        // let's look up the map with the `None` value
+        let s = db.get_or_insert_map(&("pub fn foo(...)", vec![
+            (Some("f32"), Some("f32")),
+            (None, Some("u64")),
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap().len(), 4);
     }
 }
