@@ -16,7 +16,7 @@ mod db_tests {
     impl<'a> AsDbMap for (&'a str, Vec<(Option<&'a str>, Option<&'a str>)>) {
         type Primitive = &'a str;
 
-        fn db_ident(&self) -> String {
+        fn db_content(&self) -> String {
             self.0.to_string()
         }
 
@@ -42,13 +42,29 @@ mod db_tests {
         let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
         assert_eq!(db.get_maps().unwrap(), vec![]);
         dbg!(db.get_maps().unwrap());
-        let m = db.get_or_insert_map(&("foo", vec![
+        let m = db.get_or_insert_map(&("pub fn foo(...)", vec![
             (Some("f32"), Some("f32"))
         ])).unwrap();
         assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
-        let n = db.get_or_insert_map(&("foo", vec![
+        let n = db.get_or_insert_map(&("pub fn foo(...)", vec![
             (Some("f32"), Some("f32"))
         ])).unwrap();
-        assert_eq!(db.get_maps().unwrap(), vec![m]);
+        assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
+        assert_eq!(m, n);
+        let o = db.get_or_insert_map(&("unsafe fn bar(...)", vec![
+            (Some("f32"), Some("f32"))
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap().len(), 2);
+        assert_ne!(m, o);
+        let p = db.get_or_insert_map(&("pub fn foo(...)", vec![
+            (Some("f32"), Some("f32")),
+            (Some("u64"), Some("u64")),
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap().len(), 3);
+        // insert a previous element
+        let q = db.get_or_insert_map(&("pub fn foo(...)", vec![
+            (Some("f32"), Some("f32"))
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap().len(), 3);
     }
 }
