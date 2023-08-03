@@ -6,11 +6,22 @@ use spin::SpinInput;
 use syn::parse_macro_input;
 
 mod basic_range;
+pub(crate) mod case;
+// pub(crate) mod db;
 mod error;
 pub(crate) mod file_strings;
-mod map;
+pub(crate) mod map;
 pub(crate) mod regulate;
-mod spin;
+pub(crate) mod spin;
+
+
+pub(crate) mod unions;
+pub(crate) mod primitives;
+pub(crate) mod maps;
+pub(crate) mod spindles;
+
+
+
 
 type TokenResult = Result<TokenStream, TokenStream>;
 
@@ -44,10 +55,14 @@ struct RangeSpindle {
 #[proc_macro]
 pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as SpinInput);
+    
     let spindle_impls = match input.emit_map_kernels_and_return_spindle_impls() {
         Ok(spindle_impls) => spindle_impls,
         Err(err) => return err.into(),
     };
+
+
+
     let impls = input.impls();
     let expanded = quote::quote! {
         #impls
