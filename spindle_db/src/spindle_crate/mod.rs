@@ -16,7 +16,7 @@ mod test;
     * via a junction table
 */
 
-use crate::{union::DbUnion, map::DbMap};
+use crate::{union::DbUnion, map::DbMap, TypeDb, DbResult};
 
 /* created by spin!(U = f32 | u64, V)
     * extracts [
@@ -35,4 +35,10 @@ pub struct SpindleCrate {
     pub(crate) uuid: String,
     pub(crate) unions: Vec<DbUnion>,
     pub(crate) maps: Vec<DbMap>,
+}
+
+impl TypeDb {
+    pub fn get_or_insert_crate_from_unions(&self, unions: &[DbUnion]) -> DbResult<SpindleCrate> {
+        todo!()
+    }
 }

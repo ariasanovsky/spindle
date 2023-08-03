@@ -35,8 +35,21 @@ mod db_tests {
         let v = db.get_or_insert_union(&("V", vec!["f32", "u64"])).unwrap();
         assert_eq!(db.get_unions().unwrap().len(), 2);
         let m = db.get_or_insert_map(&("pub fn foo(...);", vec![
-            (Some("f32"), Some("u64")),
+            (Some("u64"), Some("f32")),
         ])).unwrap();
-        assert_eq!(db.get_maps().unwrap().len(), 1);
+        let n = db.get_or_insert_map(&("pub fn bar(...);", vec![
+            (Some("f32"), Some("f32")),
+            (Some("u64"), None),
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap().len(), 2);
+        let c = db.get_or_insert_crate_from_unions(&vec![u.clone()]).unwrap();
+        assert_eq!(c.unions.len(), 1);
+        assert_eq!(c.maps.len(), 0);
+        let d = db.get_or_insert_crate_from_unions(&vec![v.clone()]).unwrap();
+        assert_eq!(d.unions.len(), 1);
+        assert_eq!(d.maps.len(), 1);
+        let e = db.get_or_insert_crate_from_unions(&vec![u, v]).unwrap();
+        assert_eq!(e.unions.len(), 2);
+        assert_eq!(e.maps.len(), 1);
     }
 }
