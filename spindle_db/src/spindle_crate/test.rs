@@ -2,13 +2,17 @@ use crate::{TypeDb, DbResult};
 
 impl TypeDb {
     fn new_crates_test_db(test_name: &str) -> DbResult<TypeDb> {
-        todo!()
+        let db = Self::new_test_db(test_name)?;
+        db.create_new_primitive_table()?;
+        db.create_new_union_tables()?;
+        db.create_new_map_tables()?;
+        Ok(db)
     }
 }
 
 #[cfg(test)]
 mod db_tests {
-    use crate::TypeDb;
+    use crate::{TypeDb, PRIMITIVES, UNION_FIELDS, UNIONS, MAPS, IN_OUTS};
 
     #[test]
     fn spindle_crate_new_db_has_correct_table_names() {
@@ -16,9 +20,23 @@ mod db_tests {
         let mut names = db.table_names().unwrap();
         names.sort();
         assert_eq!(&names, &[
-            "primitives".to_string(),
-            "union_fields".to_string(),
-            "unions".to_string(),
+            IN_OUTS.to_string(),
+            MAPS.to_string(),
+            PRIMITIVES.to_string(),
+            UNION_FIELDS.to_string(),
+            UNIONS.to_string(),
         ]);
+    }
+
+    #[test]
+    fn can_form_a_crate_from_unions() {
+        let db = TypeDb::new_crates_test_db("can_form_a_crate_from_unions").unwrap();
+        let u = db.get_or_insert_union(&("U", vec!["f32"])).unwrap();
+        let v = db.get_or_insert_union(&("V", vec!["f32", "u64"])).unwrap();
+        assert_eq!(db.get_unions().unwrap().len(), 2);
+        let m = db.get_or_insert_map(&("pub fn foo(...);", vec![
+            (Some("f32"), Some("u64")),
+        ])).unwrap();
+        assert_eq!(db.get_maps().unwrap().len(), 1);
     }
 }

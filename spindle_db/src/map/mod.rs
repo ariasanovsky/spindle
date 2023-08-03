@@ -38,7 +38,7 @@ const CREATE_TABLE: &str = "
     ident TEXT NOT NULL         -- not a unique identifier
 )";
 const CREATE_JUNCTION: &str = "
-    CREATE TABLE map_fields (
+    CREATE TABLE in_outs (
     map_uuid TEXT NOT NULL,
     pos INTEGER NOT NULL,
     input_uuid TEXT,            -- NULL if the field is ()/None
@@ -50,7 +50,7 @@ const CREATE_JUNCTION: &str = "
 )";
 
 const DROP_TABLE: &str = "DROP TABLE IF EXISTS maps";
-const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS map_fields";
+const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS in_outs";
 
 impl TypeDb {
     pub(crate) fn create_new_map_tables(&self) -> DbResult<()> {
@@ -85,7 +85,7 @@ impl TypeDb {
     }
 
     fn get_in_outs_from_uuid(&self, uuid: &str) -> DbResult<Vec<(Option<DbPrimitive>, Option<DbPrimitive>)>> {
-        let mut stmt = self.conn.prepare("SELECT pos, input_uuid, output_uuid FROM map_fields WHERE map_uuid = ? ORDER BY pos")?;
+        let mut stmt = self.conn.prepare("SELECT pos, input_uuid, output_uuid FROM in_outs WHERE map_uuid = ? ORDER BY pos")?;
         let in_outs = stmt.query_map([&uuid], |row| {
             let pos: i64 = row.get(0)?;
             let input_uuid: Option<String> = row.get(1)?;
@@ -96,7 +96,7 @@ impl TypeDb {
             .enumerate()
             .map(|(i, x)| {
                 let (pos, input_uuid, output_uuid) = x?;
-                assert_eq!(i as i64, pos, "malformed db: map_fields.pos is not sorted");
+                assert_eq!(i as i64, pos, "malformed db: in_outs.pos is not sorted");
                 Ok((input_uuid, output_uuid))
             })
             .collect::<DbResult<Vec<_>>>()?;
@@ -127,7 +127,7 @@ impl TypeDb {
             // get the position, input_uuid, and output_uuid but sort by position
             dbg!(&uuid);
             let mut statement = self.conn.prepare(
-                "SELECT pos, input_uuid, output_uuid FROM map_fields WHERE map_uuid = ? ORDER BY pos",
+                "SELECT pos, input_uuid, output_uuid FROM in_outs WHERE map_uuid = ? ORDER BY pos",
             )?;
             let in_outs = statement.query_map([&uuid], |row| {
                 let pos: i64 = row.get(0)?;
@@ -144,7 +144,7 @@ impl TypeDb {
                     dbg!(&i, &x);
                     let (pos, input_uuid, output_uuid) = x?;
                     dbg!(&pos, &input_uuid, &output_uuid);
-                    assert_eq!(i as i64, pos, "malformed db: map_fields.pos is not sorted");
+                    assert_eq!(i as i64, pos, "malformed db: in_outs.pos is not sorted");
                     Ok((input_uuid, output_uuid))
                 })
                 .collect::<DbResult<Vec<_>>>()?;
@@ -188,7 +188,7 @@ impl TypeDb {
     pub(crate) fn insert_map(&self, map: &DbMap) -> DbResult<()> {
         let mut statement = self.conn.prepare("INSERT INTO maps (uuid, ident) VALUES (?, ?)")?;
         statement.execute([map.uuid.clone(), map.content.clone()])?;
-        let mut statement = self.conn.prepare("INSERT INTO map_fields (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)")?;
+        let mut statement = self.conn.prepare("INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)")?;
         for (i, (input, output)) in map.in_outs.iter().enumerate() {
             let input_uuid = input.as_ref().map(|x| x.uuid.clone());
             let output_uuid = output.as_ref().map(|x| x.uuid.clone());
