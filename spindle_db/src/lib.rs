@@ -1,13 +1,14 @@
-use std::path::{PathBuf, Path};
+use std::path::PathBuf;
 
 use rusqlite::{Connection, Result};
 
 pub mod map;
 pub mod primitive;
 pub mod spindle_crate;
+pub mod tables;
 pub mod union;
 
-pub(crate) const HOME : &str = ".spindle";
+pub(crate) const DEFAULT_HOME : &str = "target/spindle/db/";
 pub(crate) const TEST: &str = "tests";
 pub(crate) const DB: &str = "db";
 pub(crate) const IN_OUTS: &str = "in_outs";
@@ -32,7 +33,8 @@ pub type DbResult<T> = Result<T>;
 
 impl TypeDb {
     pub fn open_or_create<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: P) -> DbResult<Self> {
-        Self::open(name, &home).unwrap_or(Self::create_assuming_dir_exists(&home, name))
+        dbg!();
+        Self::open(name, &home).unwrap_or(Self::create(&home, name))
     }
 
     pub fn new<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: P) -> DbResult<Self> {
@@ -61,17 +63,25 @@ impl TypeDb {
     pub(crate) fn open<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: &P) -> Option<DbResult<Self>> {
         // if the home exists, open the db
         let home = PathBuf::from(home);
+        dbg!(&home);
         if home.exists() {
             let path = home.join(name).with_extension(DB);
-            let conn = Connection::open(path).ok()?;
-            Some(Ok(Self { conn }))
+            dbg!(&path);
+            Some(Connection::open(path).map(|conn| Self { conn }))
         } else {
             None
         }
     }
 
-    pub(crate) fn create_assuming_dir_exists<P: std::convert::AsRef<std::ffi::OsStr>>(home: &P, name: &str) -> DbResult<Self> {
+    pub(crate) fn create<P: std::convert::AsRef<std::ffi::OsStr>>(home: &P, name: &str) -> DbResult<Self> {
+        dbg!();
+        // create the home directory
+        let home = PathBuf::from(home);
+        std::fs::create_dir_all(&home).expect("could not create home directory");
         let db = PathBuf::from(home).join(name).with_extension(DB);
+        // create an empty file
+        std::fs::File::create(&db).expect("could not create db file");
+        dbg!(&db);
         Connection::open(db).map(|conn| Self { conn })
     }
 }
@@ -89,11 +99,9 @@ impl TypeDb {
     }
 
     pub(crate) fn new_test_db(test_name: &str) -> DbResult<Self> {
-        let path = PathBuf::from(HOME)
-            .join(TEST)
-            .join(test_name)
-            .with_extension(DB);
-        let db = TypeDb::open_or_create(test_name, path)?;
-        Ok(db)
+        dbg!();
+        let path = PathBuf::from(DEFAULT_HOME).join(TEST);
+        dbg!(&path);
+        TypeDb::open_or_create(test_name, path)
     }    
 }

@@ -32,40 +32,7 @@ pub trait AsDbMap {
     fn db_inout_pairs(&self) -> Vec<(Option<Self::Primitive>, Option<Self::Primitive>)>;
 }
 
-const CREATE_TABLE: &str = "
-    CREATE TABLE maps (
-    uuid TEXT PRIMARY KEY,
-    ident TEXT NOT NULL         -- not a unique identifier
-)";
-const CREATE_JUNCTION: &str = "
-    CREATE TABLE in_outs (
-    map_uuid TEXT NOT NULL,
-    pos INTEGER NOT NULL,
-    input_uuid TEXT,            -- NULL if the field is ()/None
-    output_uuid TEXT,           -- NULL if the field is ()/None
-    FOREIGN KEY (map_uuid) REFERENCES maps (uuid),
-    FOREIGN KEY (input_uuid) REFERENCES primitives (uuid),
-    FOREIGN KEY (output_uuid) REFERENCES primitives (uuid),
-    PRIMARY KEY (map_uuid, pos)
-)";
-
-const DROP_TABLE: &str = "DROP TABLE IF EXISTS maps";
-const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS in_outs";
-
 impl TypeDb {
-    pub(crate) fn create_new_map_tables(&self) -> DbResult<()> {
-        self.drop_map_tables()?;
-        self.conn.execute(CREATE_TABLE, [])?;
-        self.conn.execute(CREATE_JUNCTION, [])?;
-        Ok(())
-    }
-
-    pub(crate) fn drop_map_tables(&self) -> DbResult<()> {
-        self.conn.execute(DROP_TABLE, [])?;
-        self.conn.execute(DROP_JUNCTION, [])?;
-        Ok(())
-    }
-
     pub(crate) fn get_maps(&self) -> DbResult<Vec<DbMap>> {
         let mut stmt = self.conn.prepare("SELECT uuid FROM maps")?;
         let uuids = stmt.query_map([], |row| row.get(0))?;

@@ -28,11 +28,6 @@ pub trait AsDbPrimitive {
     fn db_ident(&self) -> String;
 }
 
-const CREATE_TABLE: &str = "
-    CREATE TABLE primitives (
-    uuid TEXT PRIMARY KEY,
-    ident TEXT NOT NULL UNIQUE  -- unique identifier (there is only one `i32`)
-)";
 const DROP_TABLE: &str = "DROP TABLE IF EXISTS primitives";
 const SELECT_UUID: &str = "SELECT uuid FROM primitives WHERE ident = ?";
 const SELECT_IDENT: &str = "SELECT ident FROM primitives WHERE uuid = ?";
@@ -75,13 +70,8 @@ impl TypeDb {
         primitives
     }
 
-    pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
-        self.drop_primitive_table()?;
-        let _: usize = self.conn.execute(CREATE_TABLE, [])?;
-        Ok(())
-    }
-
     pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
+        dbg!();
         let _: usize = self.conn.execute(DROP_TABLE, [])?;
         Ok(())
     }

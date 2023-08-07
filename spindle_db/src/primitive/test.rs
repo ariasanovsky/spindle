@@ -5,6 +5,7 @@ const PRIMITIVES: &str = "primitives";
 
 impl TypeDb {
     fn new_primitives_test_db(test_name: &str) -> DbResult<TypeDb> {
+        dbg!();
         let db = Self::new_test_db(test_name)?;
         db.create_new_primitive_table()?;
         Ok(db)
