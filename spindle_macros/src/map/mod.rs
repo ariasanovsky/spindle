@@ -8,7 +8,7 @@ use crate::{error::NaivelyTokenize, MapAttrs, TokenResult};
 use in_out::InOut;
 
 mod display;
-mod in_out;
+pub(crate) mod in_out;
 mod parse;
 #[cfg(test)]
 mod test;

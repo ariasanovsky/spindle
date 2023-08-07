@@ -42,9 +42,9 @@ impl Display for DbCrate {
                 let positions = lift.positions.iter();
                 let map = &lift.map;
                 let in_outs = map.in_outs.iter();
-                positions.zip(in_outs).zip(self.unions.iter()).for_each(|((positions, in_out_pair), union)| {
-                    let input = PositionedField(positions.0, in_out_pair.0.as_ref());
-                    let output = PositionedField(positions.1, in_out_pair.1.as_ref());
+                positions.zip(in_outs).zip(self.unions.iter()).for_each(|((positions, in_out), union)| {
+                    let input = PositionedField(positions.0, in_out.input.as_ref());
+                    let output = PositionedField(positions.1, in_out.output.as_ref());
                     table.add_row(row![input, output, union]);
                 });
             },
@@ -57,9 +57,9 @@ impl Display for DbCrate {
             let positions = lift.positions.iter();
             let map = &lift.map;
             let in_outs = map.in_outs.iter();
-            positions.zip(in_outs).for_each(|(positions, in_out_pair)| {
-                let input = PositionedField(positions.0, in_out_pair.0.as_ref());
-                let output = PositionedField(positions.1, in_out_pair.1.as_ref());
+            positions.zip(in_outs).for_each(|(positions, in_out)| {
+                let input = PositionedField(positions.0, in_out.input.as_ref());
+                let output = PositionedField(positions.1, in_out.output.as_ref());
                 table.add_row(row![input, output, ""]);
             });
             // table.add_row(row!["X @ x", "Y @ y", "U = A | B | ..."]);

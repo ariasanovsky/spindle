@@ -12,14 +12,24 @@ impl TypeDb {
 
     use crate::{map::AsDbMap, _PRIMITIVES, _MAPS, _IN_OUTS};
 
-    impl<'a> AsDbMap for (&'a str, Vec<(Option<&'a str>, Option<&'a str>)>) {
+    use super::AsDbInOut;
+
+    impl<'a> AsDbInOut for (Option<&'a str>, Option<&'a str>) {
         type Primitive = &'a str;
+
+        fn db_inout(&self) -> (Option<Self::Primitive>, Option<Self::Primitive>) {
+            (self.0, self.1)
+        }
+    }
+
+    impl<'a> AsDbMap for (&'a str, Vec<(Option<&'a str>, Option<&'a str>)>) {
+        type InOut = (Option<&'a str>, Option<&'a str>);
 
         fn db_content(&self) -> String {
             self.0.to_string()
         }
 
-        fn db_inout_pairs(&self) -> Vec<(Option<Self::Primitive>, Option<Self::Primitive>)> {
+        fn db_inout_pairs(&self) -> Vec<Self::InOut> {
             self.1.iter().map(|(i, o)| (i.clone(), o.clone())).collect()
         }
     }

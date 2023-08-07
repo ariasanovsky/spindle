@@ -245,8 +245,8 @@ impl TypeDb {
                 // &Option<_> is useless filth
                 // Option<&_> is your best friend
                 // todo! ?style points to transpose and ? sugar
-                let in_field = in_out.0.as_ref();
-                let out_field = in_out.1.as_ref();
+                let in_field = in_out.input.as_ref();
+                let out_field = in_out.output.as_ref();
                 let in_position: Option<usize> = match in_field {
                     Some(in_field) => Some(u.fields.iter().position(|field| field == in_field)?),
                     None => None,
