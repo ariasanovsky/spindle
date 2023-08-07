@@ -10,7 +10,6 @@ pub mod parse;
 
 #[derive(Debug, Clone)]
 pub struct _Primitive {
-    pub uuid: String,   // Uuid,
     pub ident: LowerSnakeIdent,
 }
 
@@ -21,9 +20,5 @@ impl _Primitive {
 
     pub fn span(&self) -> Span {
         self.ident().span()
-    }
-
-    pub fn uuid(&self) -> &str {
-        &self.uuid
     }
 }

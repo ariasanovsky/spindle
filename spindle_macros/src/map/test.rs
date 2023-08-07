@@ -20,5 +20,5 @@ fn add_univariate_pure_function_to_db() {
     };
     let map: MapFn = parse_quote!(#map);
     dbg!(&map);
-    // let map = db.get_or_insert_map(&map).unwrap();
+    let map = db.get_or_insert_map(&map).unwrap();
 }

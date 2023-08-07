@@ -1,15 +1,23 @@
-pub struct TypeDb {
-    // pub conn: sqlite::Connection,
+use quote::ToTokens;
+use spindle_db::{map::AsDbMap, primitive::AsDbPrimitive};
+
+use crate::{map::MapFn, primitives::_Primitive};
+
+impl AsDbPrimitive for _Primitive {
+    fn db_ident(&self) -> String {
+        self.ident.0.to_string()
+    }
 }
 
-impl TypeDb {
-    pub fn connect() -> Result<Self, sqlite::Error> {
-        todo!()
-        // sqlite::open(HOME).map(|conn| Self { conn })
+impl AsDbMap for MapFn {
+    type Primitive = _Primitive;
+
+    fn db_content(&self) -> String {
+        self.item_fn.clone().into_token_stream().to_string()
     }
-    
-    pub fn new<P: Into<PathBuf>>(name: &str, home: P) -> Result<Self, sqlite::Error> {
+
+    fn db_inout_pairs(&self) -> Vec<(Option<Self::Primitive>, Option<Self::Primitive>)> {
+        let foo = &self.in_outs;
         todo!()
-        // sqlite::open(path).map(|conn| Self { conn })
     }
 }
