@@ -12,9 +12,7 @@ impl TypeDb {
     }
 }
 
-#[cfg(test)]
-mod db_tests {
-    use crate::{TypeDb, PRIMITIVES, UNION_FIELDS, UNIONS, MAPS, IN_OUTS, CRATES, LIFT_ENTRIES, LIFTS, CRATE_UNIONS, LIFT_CRATES};
+    use crate::{_PRIMITIVES, _UNION_FIELDS, _UNIONS, _MAPS, _CRATES, _LIFT_ENTRIES, _LIFTS, _CRATE_UNIONS, _LIFT_CRATES, _IN_OUTS};
 
     #[test]
     fn spindle_crate_new_db_has_correct_table_names() {
@@ -22,16 +20,16 @@ mod db_tests {
         let mut names = db.table_names().unwrap();
         names.sort();
         assert_eq!(&names, &[
-            CRATE_UNIONS.to_string(),
-            CRATES.to_string(),
-            IN_OUTS.to_string(),
-            LIFT_CRATES.to_string(),
-            LIFT_ENTRIES.to_string(),
-            LIFTS.to_string(),
-            MAPS.to_string(),
-            PRIMITIVES.to_string(),
-            UNION_FIELDS.to_string(),
-            UNIONS.to_string(),
+            _CRATE_UNIONS.to_string(),
+            _CRATES.to_string(),
+            _IN_OUTS.to_string(),
+            _LIFT_CRATES.to_string(),
+            _LIFT_ENTRIES.to_string(),
+            _LIFTS.to_string(),
+            _MAPS.to_string(),
+            _PRIMITIVES.to_string(),
+            _UNION_FIELDS.to_string(),
+            _UNIONS.to_string(),
         ]);
     }
 
@@ -67,4 +65,3 @@ mod db_tests {
 
         println!("{e}");
     }
-}

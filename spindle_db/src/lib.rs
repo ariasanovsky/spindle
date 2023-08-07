@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use rusqlite::{Connection, Result};
 
+pub mod display;
 pub mod map;
 pub mod primitive;
 pub mod spindle_crate;
@@ -11,17 +12,17 @@ pub mod union;
 pub(crate) const DEFAULT_HOME : &str = "target/spindle/db/";
 pub(crate) const TEST: &str = "tests";
 pub(crate) const DB: &str = "db";
-pub(crate) const IN_OUTS: &str = "in_outs";
-pub(crate) const CRATES: &str = "crates";
-pub(crate) const CRATE_UNIONS: &str = "crate_unions";
-pub(crate) const LIFT_CRATES: &str = "lift_crates";
-pub(crate) const LIFTS: &str = "lifts";
-pub(crate) const LIFT_ENTRIES: &str = "lift_entries";
-pub(crate) const MAPS: &str = "maps";
-pub(crate) const PRIMITIVES: &str = "primitives";
-pub(crate) const UNIONS: &str = "unions";
-pub(crate) const UNION_FIELDS: &str = "union_fields"; // todo! ?leaving space for non-primitive fields
-const PROJECT: &str = "types";
+pub(crate) const _IN_OUTS: &str = "in_outs";
+pub(crate) const _CRATES: &str = "crates";
+pub(crate) const _CRATE_UNIONS: &str = "crate_unions";
+pub(crate) const _LIFT_CRATES: &str = "lift_crates";
+pub(crate) const _LIFTS: &str = "lifts";
+pub(crate) const _LIFT_ENTRIES: &str = "lift_entries";
+pub(crate) const _MAPS: &str = "maps";
+pub(crate) const _PRIMITIVES: &str = "primitives";
+pub(crate) const _UNIONS: &str = "unions";
+pub(crate) const _UNION_FIELDS: &str = "union_fields"; // todo! ?leaving space for non-primitive fields
+// const PROJECT: &str = "types";
 
 pub struct TypeDb {
     pub(crate) conn: Connection,
@@ -36,10 +37,17 @@ impl TypeDb {
     }
 
     pub fn new<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: P) -> DbResult<Self> {
-        // connect if it exists and drop all tables, else create
-        let db = Self::open_or_create(name, home)?;
-        db.drop_tables()?;
-        Ok(db)
+        // connect if it exists
+        let db = Self::open(name, &home).transpose()?;
+        if let Some(db) = db {
+            // drop tables and recreate
+            db.drop_tables()?;
+            db.create_tables()?;
+            Ok(db)
+        } else {
+            // create
+            Self::create(&home, name)
+        }
     }
 
     // make a uuid string for entries

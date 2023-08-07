@@ -1,6 +1,6 @@
 use crate::{TypeDb, DbResult, primitive::{AsDbPrimitive, DbPrimitive}};
 
-#[allow(dead_code)]
+#[cfg(test)]
 mod test;
 
 #[derive(Clone, Debug, Eq)]
@@ -80,7 +80,7 @@ impl TypeDb {
     }
 
     // todo! put all your code into 1 function with this neat trick doctors don't want you to know
-    pub(crate) fn get_or_insert_map<M: AsDbMap>(&self, map: &M) -> DbResult<DbMap> {
+    pub fn get_or_insert_map<M: AsDbMap>(&self, map: &M) -> DbResult<DbMap> {
         let content = map.db_content();
         dbg!(&content);
         let in_outs = self.get_or_insert_in_outs(map.db_inout_pairs())?;

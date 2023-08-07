@@ -10,9 +10,8 @@ impl TypeDb {
     }
 }
 
-#[cfg(test)]
-mod db_tests {
-    use crate::{TypeDb, primitive::DbPrimitive, PRIMITIVES, UNIONS, UNION_FIELDS, union::{AsDbUnion, DbUnion}};
+
+    use crate::{primitive::DbPrimitive, _PRIMITIVES, _UNIONS, _UNION_FIELDS, union::{AsDbUnion, DbUnion}};
     impl<'a> AsDbUnion for (&'a str, Vec<&'a str>) {
         type Primitive = &'a str;
 
@@ -31,9 +30,9 @@ mod db_tests {
         let mut names = db.table_names().unwrap();
         names.sort();
         assert_eq!(&names, &[
-            PRIMITIVES.to_string(),
-            UNION_FIELDS.to_string(),
-            UNIONS.to_string(),
+            _PRIMITIVES.to_string(),
+            _UNION_FIELDS.to_string(),
+            _UNIONS.to_string(),
         ]);
     }
 
@@ -61,4 +60,3 @@ mod db_tests {
         let _x = db.get_or_insert_union(&("X", vec!["f32", "u64"])).unwrap();
         assert_eq!(db.get_unions().unwrap().len(), 3);
     }
-}

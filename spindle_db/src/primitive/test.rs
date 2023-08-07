@@ -13,11 +13,8 @@ impl TypeDb {
     }
 }
 
-#[cfg(test)]
-mod db_tests {
-    use crate::{TypeDb, primitive::{AsDbPrimitive, DbPrimitive}};
-    use super::*;
 
+    use crate::{primitive::{AsDbPrimitive, DbPrimitive}};
     impl AsDbPrimitive for &str {
         fn db_ident(&self) -> String {
             self.to_string()
@@ -86,4 +83,3 @@ mod db_tests {
     //     // assert_ne!(u.uuid, w.uuid);
     //     // db.drop_unions().unwrap();
     // }
-}

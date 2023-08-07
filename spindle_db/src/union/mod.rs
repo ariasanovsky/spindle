@@ -1,6 +1,6 @@
 use crate::{TypeDb, DbResult, primitive::{DbPrimitive, AsDbPrimitive}};
 
-#[allow(dead_code)]
+#[cfg(test)]
 mod test;
 
 #[derive(Clone, Debug, Eq)]

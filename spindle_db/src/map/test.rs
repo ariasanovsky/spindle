@@ -1,7 +1,7 @@
 use crate::{TypeDb, DbResult};
 
 impl TypeDb {
-    pub fn new_maps_test_db(test_name: &str) -> DbResult<TypeDb> {
+    fn new_maps_test_db(test_name: &str) -> DbResult<TypeDb> {
         let db = Self::new_test_db(test_name)?;
         db.drop_tables()?;
         db.create_new_primitive_table()?;
@@ -10,9 +10,7 @@ impl TypeDb {
     }
 }
 
-#[cfg(test)]
-mod db_tests {
-    use crate::{map::AsDbMap, TypeDb, PRIMITIVES, MAPS, IN_OUTS};
+    use crate::{map::AsDbMap, _PRIMITIVES, _MAPS, _IN_OUTS};
 
     impl<'a> AsDbMap for (&'a str, Vec<(Option<&'a str>, Option<&'a str>)>) {
         type Primitive = &'a str;
@@ -32,9 +30,9 @@ mod db_tests {
         let mut names = db.table_names().unwrap();
         names.sort();
         assert_eq!(&names, &[
-            IN_OUTS.to_string(),
-            MAPS.to_string(),
-            PRIMITIVES.to_string(),
+            _IN_OUTS.to_string(),
+            _MAPS.to_string(),
+            _PRIMITIVES.to_string(),
         ]);
     }
 
@@ -81,4 +79,3 @@ mod db_tests {
         ])).unwrap();
         assert_eq!(db.get_maps().unwrap().len(), 4);
     }
-}
