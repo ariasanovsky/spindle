@@ -1,4 +1,5 @@
 use proc_macro2::{Ident, Span};
+// todo! remove uuid
 use uuid::Uuid;
 // use serde::{Deserialize, Serialize};
 // use uuid::Uuid;
@@ -21,4 +22,5 @@ impl _Primitive {
     pub fn span(&self) -> Span {
         self.ident().span()
     }
+
 }

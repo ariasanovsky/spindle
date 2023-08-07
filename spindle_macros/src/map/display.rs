@@ -2,6 +2,8 @@ use std::fmt::{Debug, Display};
 
 use quote::ToTokens;
 
+use crate::primitives::_Primitive;
+
 use super::{MapFn, in_out::InOut};
 
 impl Debug for MapFn {
@@ -18,6 +20,14 @@ impl Display for InOut {
         f.debug_struct("InOut")
         .field("input", &self.input.as_ref().map_or("_".to_string(), |input| input.to_string()))
         .field("output", &self.output.as_ref().map_or("_".to_string(), |output| output.to_string()))
+        .finish()
+    }
+}
+
+impl Display for _Primitive {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("_Primitive")
+        .field("ident", &self.ident.0.to_string())
         .finish()
     }
 }

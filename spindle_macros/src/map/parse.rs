@@ -11,7 +11,7 @@ use crate::{
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
         EXPECTED_RETURN_PRIMITIVE, UNEXPECTED_ATTRIBUTES,
     },
-    MapAttrs, map::in_out::InOut,
+    MapAttrs, map::in_out::InOut, case::LowerSnakeIdent, primitives::_Primitive,
 };
 
 use super::MapFn;
@@ -86,6 +86,14 @@ impl Parse for MapFn {
             return Err(input.error(EXPECTED_RETURN_PRIMITIVE));
         }
 
+        // todo! hacks abound, ugh
+        let input = _Primitive {
+            ident: LowerSnakeIdent(input_ident),
+        };
+        let output = _Primitive {
+            ident: LowerSnakeIdent(return_ident),
+        };
+
         // let input_ident = Self::_parse_ident_as_primitive(input_idents)
         //     .map_err(|e| input.error(e))?;
         // let return_ident = Self::_parse_ident_as_primitive(return_ident)
@@ -94,11 +102,12 @@ impl Parse for MapFn {
             item_fn,
             in_outs: vec![
                 InOut {
-                    input: Some(input_ident),
-                    output: Some(return_ident),
+                    input: Some(input),
+                    output: Some(output),
                 }
             ],
         })
+        // todo!()
     }
 }
 
