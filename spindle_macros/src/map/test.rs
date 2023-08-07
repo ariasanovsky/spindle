@@ -11,6 +11,6 @@ fn add_univariate_pure_function_to_db() {
         }
     };
     let input: MapFn = parse_quote!(#input);
-    dbg!();
-    todo!("{input}");
+    dbg!(&input);
+    panic!();
 }

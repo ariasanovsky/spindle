@@ -1,11 +1,23 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
-use super::MapFn;
+use quote::ToTokens;
 
-impl Display for MapFn {
+use super::{MapFn, in_out::InOut};
+
+impl Debug for MapFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        dbg!();
-        write!(f, "{}", self.item_fn.sig.ident);
-        todo!()
+        f.debug_struct("MapFn")
+        .field("item_fn", &self.item_fn.clone().to_token_stream().to_string())
+        .field("in_outs", &self.in_outs.iter().map(|in_out| in_out.to_string()).collect::<Vec<_>>())
+        .finish()
+    }
+}
+
+impl Display for InOut {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InOut")
+        .field("input", &self.input.as_ref().map_or("_".to_string(), |input| input.to_string()))
+        .field("output", &self.output.as_ref().map_or("_".to_string(), |output| output.to_string()))
+        .finish()
     }
 }

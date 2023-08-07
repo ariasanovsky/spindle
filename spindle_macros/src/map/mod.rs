@@ -5,7 +5,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{error::NaivelyTokenize, MapAttrs, TokenResult};
 
+use in_out::InOut;
+
 mod display;
+mod in_out;
 mod parse;
 #[cfg(test)]
 mod test;
@@ -15,8 +18,7 @@ static MAP_PATH: &str = "target/spindle/map/";
 #[derive(Clone)]
 pub(crate) struct MapFn {
     pub(crate) item_fn: syn::ItemFn,
-    pub(crate) input: syn::Ident,
-    pub(crate) output: syn::Ident,
+    pub(crate) in_outs: Vec<InOut>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -11,7 +11,7 @@ use crate::{
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
         EXPECTED_RETURN_PRIMITIVE, UNEXPECTED_ATTRIBUTES,
     },
-    MapAttrs,
+    MapAttrs, map::in_out::InOut,
 };
 
 use super::MapFn;
@@ -92,8 +92,12 @@ impl Parse for MapFn {
         //     .map_err(|e| input.error(e))?;
         Ok(Self {
             item_fn,
-            input: input_ident,
-            output: return_ident,
+            in_outs: vec![
+                InOut {
+                    input: Some(input_ident),
+                    output: Some(return_ident),
+                }
+            ],
         })
     }
 }
