@@ -32,24 +32,6 @@ pub trait AsDbUnion {
     fn db_fields(&self) -> Vec<Self::Primitive>;
 }
 
-const DROP_TABLE: &str = "DROP TABLE IF EXISTS unions";
-const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS union_fields";
-
-const CREATE_TABLE: &str = "
-    CREATE TABLE unions (
-    uuid TEXT PRIMARY KEY,
-    ident TEXT NOT NULL             -- not a unique identifier (there may be multiple unions `U`)
-)";
-const CREATE_JUNCTION: &str = "
-    CREATE TABLE union_fields (
-    union_uuid TEXT NOT NULL,
-    pos INTEGER NOT NULL,
-    field_uuid TEXT NOT NULL,
-    FOREIGN KEY (union_uuid) REFERENCES unions (uuid),
-    FOREIGN KEY (field_uuid) REFERENCES primitives (uuid),
-    PRIMARY KEY (union_uuid, pos)
-)";
-
 const INSERT_UNION: &str = "INSERT INTO unions (uuid, ident) VALUES (?1, ?2)";
 const INSERT_UNION_FIELD: &str = "
     INSERT INTO union_fields (union_uuid, pos, field_uuid)
@@ -91,7 +73,7 @@ impl TypeDb {
         })
     }
 
-    pub fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
+    pub(crate) fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
         let mut statement = self.conn.prepare(SELECT_UUID)?;
         let mut rows = statement.query([&uuid])?;
         // todo! `map` is more idiomatic
@@ -140,20 +122,6 @@ impl TypeDb {
             Ok((union_uuid, pos, field_uuid))
         })?;
         rows.collect::<DbResult<_>>()
-    }
-    
-    pub(crate) fn create_new_union_tables(&self) -> DbResult<()> {
-        self.drop_union_tables()?;
-        // self.create_new_primitive_table()?;
-        let _: usize = self.conn.execute(CREATE_TABLE, [])?;
-        let _: usize = self.conn.execute(CREATE_JUNCTION, [])?;
-        Ok(())
-    }
-
-    pub(crate) fn drop_union_tables(&self) -> DbResult<()> {
-        self.conn.execute(DROP_TABLE, [])?;
-        self.conn.execute(DROP_JUNCTION, [])?;
-        Ok(())
     }
     
     fn get_union_uuid(&self, ident: &str, fields: &Vec<DbPrimitive>) -> DbResult<Option<String>> {

@@ -23,7 +23,6 @@ pub(crate) const UNIONS: &str = "unions";
 pub(crate) const UNION_FIELDS: &str = "union_fields"; // todo! ?leaving space for non-primitive fields
 const PROJECT: &str = "types";
 const TABLES: &str = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
-const DROP_TABLE: &str = "DROP TABLE ?";
 
 pub struct TypeDb {
     pub(crate) conn: Connection,

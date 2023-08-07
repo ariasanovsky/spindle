@@ -28,7 +28,6 @@ pub trait AsDbPrimitive {
     fn db_ident(&self) -> String;
 }
 
-const DROP_TABLE: &str = "DROP TABLE IF EXISTS primitives";
 const SELECT_UUID: &str = "SELECT uuid FROM primitives WHERE ident = ?";
 const SELECT_IDENT: &str = "SELECT ident FROM primitives WHERE uuid = ?";
 const SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
@@ -68,12 +67,6 @@ impl TypeDb {
             })
         })?.collect::<DbResult<_>>();
         primitives
-    }
-
-    pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
-        dbg!();
-        let _: usize = self.conn.execute(DROP_TABLE, [])?;
-        Ok(())
     }
 
     pub(crate) fn get_primitive_uuid(&self, ident: &str) -> DbResult<Option<String>> {
