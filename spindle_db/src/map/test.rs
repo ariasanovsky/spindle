@@ -11,7 +11,7 @@ impl TypeDb {
 
 #[cfg(test)]
 mod db_tests {
-    use crate::{map::{DbMap, AsDbMap}, TypeDb, PRIMITIVES, MAPS, IN_OUTS};
+    use crate::{map::AsDbMap, TypeDb, PRIMITIVES, MAPS, IN_OUTS};
 
     impl<'a> AsDbMap for (&'a str, Vec<(Option<&'a str>, Option<&'a str>)>) {
         type Primitive = &'a str;

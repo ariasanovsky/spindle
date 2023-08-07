@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 use rusqlite::{Connection, Result};
 
@@ -31,45 +31,49 @@ pub struct TypeDb {
 pub type DbResult<T> = Result<T>;
 
 impl TypeDb {
-    // make a uuid string for entries
-    pub fn new_uuid() -> String {
-        uuid::Uuid::new_v4().to_string()
+    pub fn open_or_create<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: P) -> DbResult<Self> {
+        Self::open(name, &home).unwrap_or(Self::create_assuming_dir_exists(&home, name))
     }
 
-    // (create or) open a database
-    pub fn open(path: PathBuf) -> DbResult<TypeDb> {
-        Connection::open(path).map(|conn| TypeDb { conn })
-    }
-
-    pub(crate) fn new(path: PathBuf) -> DbResult<TypeDb> {
-        // create the directory if it doesn't exist
-        if !path.exists() {
-            // todo! handle error w/ https://docs.rs/rusqlite/latest/rusqlite/enum.Error.html
-            std::fs::create_dir_all(&path.parent().unwrap()).unwrap();
-        }
-        // if it exists, delete it
-        if path.exists() {
-            // todo! handle error
-            std::fs::remove_file(&path).unwrap();
-        }
-        let db = Self::open(path)?;
+    pub fn new<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: P) -> DbResult<Self> {
+        // connect if it exists and drop all tables, else create
+        let db = Self::open_or_create(name, home)?;
+        db.drop_tables()?;
         Ok(db)
     }
 
-    // wipe all tables
-    // pub(crate) fn drop_all(&self) -> DbResult<()> {
-    //     // get table names
-    //     let mut statement = self.conn.prepare(TABLES)?;
-    //     let mut rows = statement.query([])?;
-    //     while let Some(row) = rows.next()? {
-    //         let table: String = row.get(0)?;
-    //         dbg!(&table);
-    //         // drop tables
-    //         let _: usize = self.conn.execute(format!("DROP TABLE {}", table).as_str(), [])?;
-    //         dbg!();
-    //     }
-    //     Ok(())
-    // }
+    // make a uuid string for entries
+    pub(crate) fn new_uuid() -> String {
+        uuid::Uuid::new_v4().to_string()
+    }
+
+    pub(crate) fn drop_tables(&self) -> DbResult<()> {
+        let mut statement = self.conn.prepare(TABLES)?;
+        let mut rows = statement.query([])?;
+        while let Some(row) = rows.next()? {
+            let name: String = row.get(0)?;
+            let sql = format!("DROP TABLE {name}");
+            let _: usize = self.conn.execute(&sql, [])?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn open<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: &P) -> Option<DbResult<Self>> {
+        // if the home exists, open the db
+        let home = PathBuf::from(home);
+        if home.exists() {
+            let path = home.join(name).with_extension(DB);
+            let conn = Connection::open(path).ok()?;
+            Some(Ok(Self { conn }))
+        } else {
+            None
+        }
+    }
+
+    pub(crate) fn create_assuming_dir_exists<P: std::convert::AsRef<std::ffi::OsStr>>(home: &P, name: &str) -> DbResult<Self> {
+        let db = PathBuf::from(home).join(name).with_extension(DB);
+        Connection::open(db).map(|conn| Self { conn })
+    }
 }
 
 impl TypeDb {
@@ -84,12 +88,12 @@ impl TypeDb {
         Ok(names)
     }
 
-    pub(crate) fn new_test_db(test_name: &str) -> DbResult<TypeDb> {
+    pub(crate) fn new_test_db(test_name: &str) -> DbResult<Self> {
         let path = PathBuf::from(HOME)
             .join(TEST)
             .join(test_name)
             .with_extension(DB);
-        let db = TypeDb::new(path)?;
+        let db = TypeDb::open_or_create(test_name, path)?;
         Ok(db)
     }    
 }

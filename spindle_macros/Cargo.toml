@@ -1,6 +1,6 @@
 [package]
 name = "spindle_macros"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "A macro backend for `spindle`: ergonomic GPGPU data parallel computing in Rust."
