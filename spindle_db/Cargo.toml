@@ -1,6 +1,6 @@
 [package]
 name = "spindle_db"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "A db backend for `spindle`: ergonomic GPGPU data parallel computing in Rust."
@@ -8,6 +8,7 @@ repository = "https://github.com/ariasanovsky/spindle/spindle_db/"
 
 [dependencies]
 prettytable-rs = "0.10.0"
+
 # `bundled` causes us to automatically compile and link in an up to date
 # version of SQLite for you. This avoids many common build issues, and
 # avoids depending on the version of SQLite on the users system (or your
