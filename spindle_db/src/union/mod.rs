@@ -74,18 +74,18 @@ const SELECT_UNION_FIELDS: &str = "
 impl TypeDb {
     pub fn get_or_insert_union<U: AsDbUnion>(&self, union: &U) -> DbResult<DbUnion> {
         let ident = union.db_ident();
-        dbg!(&ident);
+        // dbg!(&ident);
         let fields = union.db_fields();
         let fields = fields.iter().map(|p| self.get_or_insert_primitive(p)).collect::<DbResult<Vec<_>>>()?;
-        dbg!(&fields);
+        // dbg!(&fields);
         let uuid = self.get_union_uuid(&ident, &fields)?;
         // todo! unwrap_or* is more idiomatic
         Ok(if let Some(uuid) = uuid {
-            dbg!(&uuid);
+            // dbg!(&uuid);
             DbUnion { uuid, ident, fields }
         } else {
             let union = DbUnion::new(ident, fields);
-            dbg!(&union);
+            // dbg!(&union);
             self.insert_union(&union)?;
             union
         })
