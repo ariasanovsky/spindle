@@ -1,5 +1,5 @@
 use basic_range::emit_range_kernel;
-use map::serialize_map;
+use map::{serialize_map, MapFn};
 use proc_macro2::TokenStream;
 use serde::{Deserialize, Serialize};
 use spin::SpinInput;
@@ -14,14 +14,10 @@ pub(crate) mod map;
 pub(crate) mod regulate;
 pub(crate) mod spin;
 
-
-pub(crate) mod unions;
-pub(crate) mod primitives;
-pub(crate) mod maps;
-pub(crate) mod spindles;
-
-
-
+// pub(crate) mod unions;
+// pub(crate) mod primitives;
+// pub(crate) mod maps;
+// pub(crate) mod spindles;
 
 type TokenResult = Result<TokenStream, TokenStream>;
 
@@ -34,12 +30,6 @@ struct MapAttrs;
 #[derive(Clone)]
 struct BasicRangeFn(syn::ItemFn);
 
-#[derive(Clone)]
-struct MapFn {
-    item_fn: syn::ItemFn,
-    input: syn::Ident,
-    output: syn::Ident,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RangeSpindle {

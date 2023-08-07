@@ -65,6 +65,5 @@ mod db_tests {
         assert_eq!(e.lifts.len(), 2);
 
         println!("{e}");
-        panic!()
     }
 }

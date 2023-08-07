@@ -7,8 +7,8 @@ use syn::{parse::Parse, parse::ParseStream, Ident, Token, LitStr};
 use crate::{
     error::NaivelyTokenize,
     file_strings::{CARGO_TOML, CONFIG_TOML, RUST_TOOLCHAIN_TOML},
-    map::MapFnStrings,
-    snake_to_camel, MapFn, TokenResult,
+    map::{MapFnStrings, MapFn},
+    snake_to_camel, TokenResult,
 };
 
 pub(crate) struct SpinInput {

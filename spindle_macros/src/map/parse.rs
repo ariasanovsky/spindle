@@ -11,8 +11,10 @@ use crate::{
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
         EXPECTED_RETURN_PRIMITIVE, UNEXPECTED_ATTRIBUTES,
     },
-    MapAttrs, MapFn,
+    MapAttrs,
 };
+
+use super::MapFn;
 
 impl Parse for MapAttrs {
     fn parse(input: ParseStream) -> Result<Self> {
