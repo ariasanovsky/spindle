@@ -3,6 +3,7 @@ use crate::{TypeDb, DbResult};
 impl TypeDb {
     fn new_crates_test_db(test_name: &str) -> DbResult<TypeDb> {
         let db = Self::new_test_db(test_name)?;
+        db.drop_tables()?;
         db.create_new_primitive_table()?;
         db.create_new_union_tables()?;
         db.create_new_map_tables()?;

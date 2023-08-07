@@ -18,9 +18,6 @@ const CREATE_IN_OUTS: &str = "
     PRIMARY KEY (map_uuid, pos)
 )";
 
-const DROP_TABLE: &str = "DROP TABLE IF EXISTS unions";
-const DROP_JUNCTION: &str = "DROP TABLE IF EXISTS union_fields";
-
 const CREATE_TABLE: &str = "
     CREATE TABLE unions (
     uuid TEXT PRIMARY KEY,
@@ -86,10 +83,42 @@ const CREATE_CRATE_UNIONS: &str = "
     PRIMARY KEY (crate_uuid, pos)    -- each crate has at most one associated union
 )";
 
+// caconst DROP: &str = "DROP TABLE IF EXISTS ?";
+const DROP_PRIMITIVES: &str = "DROP TABLE IF EXISTS primitives";
+const DROP_UNIONS: &str = "DROP TABLE IF EXISTS unions";
+const DROP_UNION_FIELDS: &str = "DROP TABLE IF EXISTS union_fields";
 const DROP_MAPS: &str = "DROP TABLE IF EXISTS maps";
 const DROP_IN_OUTS: &str = "DROP TABLE IF EXISTS in_outs";
-const DROP_PRIMITIVES: &str = "DROP TABLE IF EXISTS primitives";
 
+impl TypeDb {
+    pub(crate) fn create_tables(&self) -> DbResult<()> {
+        self.create_new_map_tables()?;
+        self.create_new_union_tables()?;
+        self.create_new_primitive_table()?;
+        self.create_new_crate_tables()?;
+        Ok(())
+    }
+
+    pub(crate) fn drop_tables(&self) -> DbResult<()> {
+        for table in self.table_names()?.into_iter() {
+            let sql = format!("DROP TABLE {table}");
+            let _: usize = self.conn.execute(&sql, [])?;
+        }
+        Ok(())
+    }
+    
+    pub(crate) fn table_names(&self) -> DbResult<Vec<String>> {
+        const TABLES: &str = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+        let mut statement = self.conn.prepare(TABLES)?;
+        let mut rows = statement.query([])?;
+        let mut names = Vec::new();
+        while let Some(row) = rows.next()? {
+            let name: String = row.get(0)?;
+            names.push(name);
+        }
+        Ok(names)
+    }
+}
 
 impl TypeDb {
     pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
@@ -101,7 +130,7 @@ impl TypeDb {
 
     pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
         dbg!();
-        let _: usize = self.conn.execute(DROP_TABLE, [])?;
+        let _: usize = self.conn.execute(DROP_PRIMITIVES, [])?;
         Ok(())
     }
 }
@@ -116,8 +145,8 @@ impl TypeDb {
     }
 
     pub(crate) fn drop_union_tables(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute(DROP_TABLE, [])?;
-        let _: usize = self.conn.execute(DROP_JUNCTION, [])?;
+        let _: usize = self.conn.execute(DROP_UNIONS, [])?;
+        let _: usize = self.conn.execute(DROP_UNION_FIELDS, [])?;
         Ok(())
     }
 }

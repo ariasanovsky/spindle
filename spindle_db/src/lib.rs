@@ -22,7 +22,6 @@ pub(crate) const PRIMITIVES: &str = "primitives";
 pub(crate) const UNIONS: &str = "unions";
 pub(crate) const UNION_FIELDS: &str = "union_fields"; // todo! ?leaving space for non-primitive fields
 const PROJECT: &str = "types";
-const TABLES: &str = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
 
 pub struct TypeDb {
     pub(crate) conn: Connection,
@@ -48,17 +47,6 @@ impl TypeDb {
         uuid::Uuid::new_v4().to_string()
     }
 
-    pub(crate) fn drop_tables(&self) -> DbResult<()> {
-        let mut statement = self.conn.prepare(TABLES)?;
-        let mut rows = statement.query([])?;
-        while let Some(row) = rows.next()? {
-            let name: String = row.get(0)?;
-            let sql = format!("DROP TABLE {name}");
-            let _: usize = self.conn.execute(&sql, [])?;
-        }
-        Ok(())
-    }
-
     pub(crate) fn open<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: &P) -> Option<DbResult<Self>> {
         // if the home exists, open the db
         let home = PathBuf::from(home);
@@ -81,22 +69,14 @@ impl TypeDb {
         // create an empty file
         std::fs::File::create(&db).expect("could not create db file");
         dbg!(&db);
-        Connection::open(db).map(|conn| Self { conn })
+        let db = Connection::open(db).map(|conn| Self { conn })?;
+        // create the tables
+        db.create_tables()?;
+        Ok(db)
     }
 }
 
 impl TypeDb {
-    pub(crate) fn table_names(&self) -> DbResult<Vec<String>> {
-        let mut statement = self.conn.prepare(TABLES)?;
-        let mut rows = statement.query([])?;
-        let mut names = Vec::new();
-        while let Some(row) = rows.next()? {
-            let name: String = row.get(0)?;
-            names.push(name);
-        }
-        Ok(names)
-    }
-
     pub(crate) fn new_test_db(test_name: &str) -> DbResult<Self> {
         dbg!();
         let path = PathBuf::from(DEFAULT_HOME).join(TEST);
