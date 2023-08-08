@@ -1,6 +1,6 @@
-use crate::{TypeDb, DbResult};
+use crate::{DbResult, TypeDb};
 
-#[allow(dead_code)]
+#[cfg(test)]
 mod test;
 
 #[derive(Clone, Debug, Eq)]
@@ -28,19 +28,16 @@ pub trait AsDbPrimitive {
     fn db_ident(&self) -> String;
 }
 
-const CREATE_TABLE: &str = "
-    CREATE TABLE primitives (
-    uuid TEXT PRIMARY KEY,
-    ident TEXT NOT NULL UNIQUE  -- unique identifier (there is only one `i32`)
-)";
-const DROP_TABLE: &str = "DROP TABLE IF EXISTS primitives";
 const SELECT_UUID: &str = "SELECT uuid FROM primitives WHERE ident = ?";
 const SELECT_IDENT: &str = "SELECT ident FROM primitives WHERE uuid = ?";
-const SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
+const _SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
 const INSERT_PRIMITIVE: &str = "INSERT INTO primitives (uuid, ident) VALUES (?, ?)";
 
 impl TypeDb {
-    pub fn get_or_insert_primitive<P: AsDbPrimitive>(&self, primitive: &P) -> DbResult<DbPrimitive> {
+    pub fn get_or_insert_primitive<P: AsDbPrimitive>(
+        &self,
+        primitive: &P,
+    ) -> DbResult<DbPrimitive> {
         let ident = primitive.db_ident();
         let uuid = self.get_primitive_uuid(&ident)?;
         Ok(if let Some(uuid) = uuid {
@@ -64,26 +61,20 @@ impl TypeDb {
         })
     }
 
-    pub(crate) fn get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
-        let mut statement = self.conn.prepare(SELECT_PRIMITIVE)?;
-        let primitives = statement.query_map([], |row| {
-            Ok(DbPrimitive {
-                uuid: row.get(0)?,
-                ident: row.get(1)?,
-            })
-        })?.collect::<DbResult<_>>();
-        primitives
-    }
-
-    pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
-        self.drop_primitive_table()?;
-        let _: usize = self.conn.execute(CREATE_TABLE, [])?;
-        Ok(())
-    }
-
-    pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute(DROP_TABLE, [])?;
-        Ok(())
+    // todo! clippy wanted me to lose the let binding
+    // following the opaque suggestion led to `temporary value` binding errors
+    #[allow(clippy::needless_return)]
+    pub(crate) fn _get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
+        let mut statement = self.conn.prepare(_SELECT_PRIMITIVE)?;
+        return statement
+            .query_map([], |row| {
+                Ok(DbPrimitive {
+                    uuid: row.get(0)?,
+                    ident: row.get(1)?,
+                })
+            })?
+            .collect::<DbResult<_>>();
+        // primitives
     }
 
     pub(crate) fn get_primitive_uuid(&self, ident: &str) -> DbResult<Option<String>> {
