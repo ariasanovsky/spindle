@@ -14,7 +14,7 @@ fn add_univariate_pure_function_to_db() {
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
     dbg!(&db);
-    
+
     // first, let's show all `DbMap`s in the db
     let maps = db.map_iter().unwrap();
     maps.for_each(|map| {
@@ -22,7 +22,7 @@ fn add_univariate_pure_function_to_db() {
         dbg!(&map);
     });
     dbg!();
-    
+
     // add map to database
     let map: TokenStream = quote::quote! {
         fn foo(x: i32) -> f64 {

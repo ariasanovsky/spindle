@@ -1,11 +1,11 @@
-use crate::{TypeDb, DbResult};
+use crate::{DbResult, TypeDb};
 
 use super::DbMap;
 
 // iter over all DbMaps in the db
 impl TypeDb {
     // fallible function to iterate over all DbMaps
-    pub fn map_iter(&self) -> DbResult<MapIter /* <'a> */ > {
+    pub fn map_iter(&self) -> DbResult<MapIter /* <'a> */> {
         let mut stmt = self.conn.prepare("SELECT uuid FROM maps")?;
         let maps: Vec<DbMap> = stmt
             .query_map([], |row| {
@@ -31,7 +31,7 @@ pub struct MapIter {
 
 // impl<'a> Iterator for MapIter<'a> {
 impl Iterator for MapIter {
-    type Item = /* DbResult< */ DbMap /* > */;
+    type Item = DbMap;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.maps.pop()

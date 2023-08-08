@@ -6,12 +6,15 @@ use syn::{
 };
 
 use crate::{
+    case::LowerSnakeIdent,
+    map::in_out::InOut,
+    primitives::_Primitive,
     regulate::{
         item_fn::RegulateItemFn, pat_type::RegulatePatTypes, return_type::RegulateReturnType,
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
         EXPECTED_RETURN_PRIMITIVE, UNEXPECTED_ATTRIBUTES,
     },
-    MapAttrs, map::in_out::InOut, case::LowerSnakeIdent, primitives::_Primitive,
+    MapAttrs,
 };
 
 use super::MapFn;
@@ -100,12 +103,10 @@ impl Parse for MapFn {
         //     .map_err(|e| input.error(e))?;
         Ok(Self {
             item_fn,
-            in_outs: vec![
-                InOut {
-                    input: Some(input),
-                    output: Some(output),
-                }
-            ],
+            in_outs: vec![InOut {
+                input: Some(input),
+                output: Some(output),
+            }],
         })
         // todo!()
     }

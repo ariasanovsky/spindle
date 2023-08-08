@@ -30,7 +30,6 @@ struct MapAttrs;
 #[derive(Clone)]
 struct BasicRangeFn(syn::ItemFn);
 
-
 #[derive(Debug, Serialize, Deserialize)]
 struct RangeSpindle {
     home: String,
@@ -45,13 +44,11 @@ struct RangeSpindle {
 #[proc_macro]
 pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as SpinInput);
-    
+
     let spindle_impls = match input.emit_map_kernels_and_return_spindle_impls() {
         Ok(spindle_impls) => spindle_impls,
         Err(err) => return err.into(),
     };
-
-
 
     let impls = input.impls();
     let expanded = quote::quote! {

@@ -1,12 +1,12 @@
 use std::path::PathBuf;
 
 use proc_macro2::TokenStream;
-use syn::{parse::Parse, parse::ParseStream, Ident, Token, LitStr};
+use syn::{parse::Parse, parse::ParseStream, Ident, LitStr, Token};
 
 use crate::{
     error::NaivelyTokenize,
     file_strings::{CARGO_TOML, CONFIG_TOML, RUST_TOOLCHAIN_TOML},
-    map::{MapFnStrings, MapFn},
+    map::{MapFn, MapFnStrings},
     snake_to_camel, TokenResult,
 };
 
@@ -121,8 +121,12 @@ impl SpinInput {
 
             let union_definition = self.union();
 
-            let kernel_name: LitStr = LitStr::new(&format!("{trimmed_name}_kernel"), proc_macro2::Span::call_site());
-            let union_name_lit: LitStr = LitStr::new(&union_name.to_string(), proc_macro2::Span::call_site());
+            let kernel_name: LitStr = LitStr::new(
+                &format!("{trimmed_name}_kernel"),
+                proc_macro2::Span::call_site(),
+            );
+            let union_name_lit: LitStr =
+                LitStr::new(&union_name.to_string(), proc_macro2::Span::call_site());
 
             quote::quote! {
                 mod #mod_name {

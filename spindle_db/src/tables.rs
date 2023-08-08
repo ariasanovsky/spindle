@@ -1,4 +1,4 @@
-use crate::{TypeDb, DbResult};
+use crate::{DbResult, TypeDb};
 
 const CREATE_MAPS: &str = "
     CREATE TABLE maps (
@@ -119,15 +119,16 @@ impl TypeDb {
             DROP_UNIONS,
             DROP_PRIMITIVES,
         ];
-        DROP_TABLES.into_iter().try_for_each(|&table| {
+        DROP_TABLES.iter().try_for_each(|&table| {
             dbg!(table);
             let _: usize = self.conn.execute(table, [])?;
             Ok(())
         })
     }
-    
+
     pub(crate) fn table_names(&self) -> DbResult<Vec<String>> {
-        const TABLES: &str = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+        const TABLES: &str =
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
         let mut statement = self.conn.prepare(TABLES)?;
         let mut rows = statement.query([])?;
         let mut names = Vec::new();

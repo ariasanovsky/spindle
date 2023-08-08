@@ -4,30 +4,52 @@ use quote::ToTokens;
 
 use crate::primitives::_Primitive;
 
-use super::{MapFn, in_out::InOut};
+use super::{in_out::InOut, MapFn};
 
 impl Debug for MapFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MapFn")
-        .field("item_fn", &self.item_fn.clone().to_token_stream().to_string())
-        .field("in_outs", &self.in_outs.iter().map(|in_out| in_out.to_string()).collect::<Vec<_>>())
-        .finish()
+            .field(
+                "item_fn",
+                &self.item_fn.clone().to_token_stream().to_string(),
+            )
+            .field(
+                "in_outs",
+                &self
+                    .in_outs
+                    .iter()
+                    .map(|in_out| in_out.to_string())
+                    .collect::<Vec<_>>(),
+            )
+            .finish()
     }
 }
 
 impl Display for InOut {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("InOut")
-        .field("input", &self.input.as_ref().map_or("_".to_string(), |input| input.to_string()))
-        .field("output", &self.output.as_ref().map_or("_".to_string(), |output| output.to_string()))
-        .finish()
+            .field(
+                "input",
+                &self
+                    .input
+                    .as_ref()
+                    .map_or("_".to_string(), |input| input.to_string()),
+            )
+            .field(
+                "output",
+                &self
+                    .output
+                    .as_ref()
+                    .map_or("_".to_string(), |output| output.to_string()),
+            )
+            .finish()
     }
 }
 
 impl Display for _Primitive {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("_Primitive")
-        .field("ident", &self.ident.0.to_string())
-        .finish()
+            .field("ident", &self.ident.0.to_string())
+            .finish()
     }
 }

@@ -1,4 +1,4 @@
-use crate::{TypeDb, DbResult};
+use crate::{DbResult, TypeDb};
 
 #[cfg(test)]
 mod test;
@@ -34,7 +34,10 @@ const _SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
 const INSERT_PRIMITIVE: &str = "INSERT INTO primitives (uuid, ident) VALUES (?, ?)";
 
 impl TypeDb {
-    pub fn get_or_insert_primitive<P: AsDbPrimitive>(&self, primitive: &P) -> DbResult<DbPrimitive> {
+    pub fn get_or_insert_primitive<P: AsDbPrimitive>(
+        &self,
+        primitive: &P,
+    ) -> DbResult<DbPrimitive> {
         let ident = primitive.db_ident();
         let uuid = self.get_primitive_uuid(&ident)?;
         Ok(if let Some(uuid) = uuid {
@@ -58,15 +61,20 @@ impl TypeDb {
         })
     }
 
+    // todo! clippy wanted me to lose the let binding
+    // following the opaque suggestion led to `temporary value` binding errors
+    #[allow(clippy::needless_return)]
     pub(crate) fn _get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
         let mut statement = self.conn.prepare(_SELECT_PRIMITIVE)?;
-        let primitives = statement.query_map([], |row| {
-            Ok(DbPrimitive {
-                uuid: row.get(0)?,
-                ident: row.get(1)?,
-            })
-        })?.collect::<DbResult<_>>();
-        primitives
+        return statement
+            .query_map([], |row| {
+                Ok(DbPrimitive {
+                    uuid: row.get(0)?,
+                    ident: row.get(1)?,
+                })
+            })?
+            .collect::<DbResult<_>>();
+        // primitives
     }
 
     pub(crate) fn get_primitive_uuid(&self, ident: &str) -> DbResult<Option<String>> {

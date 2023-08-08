@@ -1,7 +1,13 @@
 use quote::ToTokens;
-use spindle_db::{map::{AsDbMap, AsDbInOut}, primitive::AsDbPrimitive};
+use spindle_db::{
+    map::{AsDbInOut, AsDbMap},
+    primitive::AsDbPrimitive,
+};
 
-use crate::{map::{MapFn, in_out::InOut}, primitives::_Primitive};
+use crate::{
+    map::{in_out::InOut, MapFn},
+    primitives::_Primitive,
+};
 
 impl AsDbPrimitive for _Primitive {
     fn db_ident(&self) -> String {
@@ -27,6 +33,4 @@ impl AsDbMap for MapFn {
     fn db_inout_pairs(&self) -> Vec<Self::InOut> {
         self.in_outs.clone()
     }
-
-    
 }

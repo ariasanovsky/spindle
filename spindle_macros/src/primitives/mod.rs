@@ -10,12 +10,12 @@ pub struct _Primitive {
 }
 
 // impl _Primitive {
-    // pub fn ident(&self) -> &Ident {
-    //     &self.ident.0
-    // }
+// pub fn ident(&self) -> &Ident {
+//     &self.ident.0
+// }
 
-    // pub fn span(&self) -> Span {
-    //     self.ident().span()
-    // }
+// pub fn span(&self) -> Span {
+//     self.ident().span()
+// }
 
 // }
