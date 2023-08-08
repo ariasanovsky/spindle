@@ -1,5 +1,7 @@
 use crate::{TypeDb, DbResult, primitive::{AsDbPrimitive, DbPrimitive}};
 
+pub mod iter;
+
 #[cfg(test)]
 mod test;
 

@@ -89,6 +89,11 @@ const DROP_UNIONS: &str = "DROP TABLE IF EXISTS unions";
 const DROP_UNION_FIELDS: &str = "DROP TABLE IF EXISTS union_fields";
 const DROP_MAPS: &str = "DROP TABLE IF EXISTS maps";
 const DROP_IN_OUTS: &str = "DROP TABLE IF EXISTS in_outs";
+const DROP_CRATES: &str = "DROP TABLE IF EXISTS crates";
+const DROP_LIFTS: &str = "DROP TABLE IF EXISTS lifts";
+const DROP_LIFT_ENTRIES: &str = "DROP TABLE IF EXISTS lift_entries";
+const DROP_LIFT_CRATES: &str = "DROP TABLE IF EXISTS lift_crates";
+const DROP_CRATE_UNIONS: &str = "DROP TABLE IF EXISTS crate_unions";
 
 impl TypeDb {
     pub(crate) fn create_tables(&self) -> DbResult<()> {
@@ -100,11 +105,25 @@ impl TypeDb {
     }
 
     pub(crate) fn drop_tables(&self) -> DbResult<()> {
-        for table in self.table_names()?.into_iter() {
-            let sql = format!("DROP TABLE {table}");
-            let _: usize = self.conn.execute(&sql, [])?;
-        }
-        Ok(())
+        dbg!();
+        // todo! ?tables in the right order
+        const DROP_TABLES: &[&str] = &[
+            DROP_CRATE_UNIONS,
+            DROP_LIFT_CRATES,
+            DROP_LIFT_ENTRIES,
+            DROP_LIFTS,
+            DROP_CRATES,
+            DROP_IN_OUTS,
+            DROP_MAPS,
+            DROP_UNION_FIELDS,
+            DROP_UNIONS,
+            DROP_PRIMITIVES,
+        ];
+        DROP_TABLES.into_iter().try_for_each(|&table| {
+            dbg!(table);
+            let _: usize = self.conn.execute(table, [])?;
+            Ok(())
+        })
     }
     
     pub(crate) fn table_names(&self) -> DbResult<Vec<String>> {
@@ -178,11 +197,16 @@ impl TypeDb {
     }
 
     pub(crate) fn drop_crate_tables(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute("DROP TABLE IF EXISTS crates", [])?;
-        let _: usize = self.conn.execute("DROP TABLE IF EXISTS lifts", [])?;
-        let _: usize = self.conn.execute("DROP TABLE IF EXISTS lift_positions", [])?;
-        let _: usize = self.conn.execute("DROP TABLE IF EXISTS lift_crates", [])?;
-        let _: usize = self.conn.execute("DROP TABLE IF EXISTS crate_unions", [])?;
+        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS crates", [])?;
+        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS lifts", [])?;
+        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS lift_entries", [])?;
+        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS lift_crates", [])?;
+        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS crate_unions", [])?;
+        let _: usize = self.conn.execute(DROP_CRATES, [])?;
+        let _: usize = self.conn.execute(DROP_LIFTS, [])?;
+        let _: usize = self.conn.execute(DROP_LIFT_ENTRIES, [])?;
+        let _: usize = self.conn.execute(DROP_LIFT_CRATES, [])?;
+        let _: usize = self.conn.execute(DROP_CRATE_UNIONS, [])?;
         Ok(())
     }
 }

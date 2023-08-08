@@ -41,8 +41,11 @@ impl TypeDb {
         let db = Self::open(name, &home).transpose()?;
         if let Some(db) = db {
             // drop tables and recreate
+            dbg!(&db);
             db.drop_tables()?;
+            dbg!(&db);
             db.create_tables()?;
+            dbg!(&db);
             Ok(db)
         } else {
             // create
@@ -62,7 +65,9 @@ impl TypeDb {
         if home.exists() {
             let path = home.join(name).with_extension(DB);
             dbg!(&path);
-            Some(Connection::open(path).map(|conn| Self { conn }))
+            let db = Some(Connection::open(path).map(|conn| Self { conn }));
+            dbg!(&db);
+            db
         } else {
             None
         }
