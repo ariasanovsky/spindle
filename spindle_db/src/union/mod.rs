@@ -48,8 +48,8 @@ const SELECT_FIELDS: &str = "
     ORDER BY union_fields.pos
 ";
 
-const SELECT_UNION : &str = "SELECT uuid, ident FROM unions";
-const SELECT_UNION_FIELDS: &str = "
+const _SELECT_UNION : &str = "SELECT uuid, ident FROM unions";
+const _SELECT_UNION_FIELDS: &str = "
     SELECT * FROM union_fields
 ";
 
@@ -103,8 +103,8 @@ impl TypeDb {
         Ok(DbUnion { uuid, ident, fields })
     }
     
-    pub(crate) fn get_unions(&self) -> DbResult<Vec<DbUnion>> {
-        let mut statement = self.conn.prepare(SELECT_UNION)?;
+    pub(crate) fn _get_unions(&self) -> DbResult<Vec<DbUnion>> {
+        let mut statement = self.conn.prepare(_SELECT_UNION)?;
         let rows = statement.query_map([], |row| {
             let uuid: String = row.get(0)?;
             let ident: String = row.get(1)?;
@@ -113,8 +113,8 @@ impl TypeDb {
         rows.collect::<DbResult<_>>()
     }
 
-    pub(crate) fn get_union_fields(&self) -> DbResult<Vec<(String, i64, String)>> {
-        let mut statement = self.conn.prepare(SELECT_UNION_FIELDS)?;
+    pub(crate) fn _get_union_fields(&self) -> DbResult<Vec<(String, i64, String)>> {
+        let mut statement = self.conn.prepare(_SELECT_UNION_FIELDS)?;
         let rows = statement.query_map([], |row| {
             let union_uuid: String = row.get(0)?;
             let pos: i64 = row.get(1)?;
@@ -136,7 +136,7 @@ impl TypeDb {
             dbg!(&union);
             Ok(union)
         })?;
-        let mut rows: Vec<DbUnion> = rows.filter(|r| true).collect::<DbResult<_>>()?;
+        let mut rows: Vec<DbUnion> = rows.collect::<DbResult<_>>()?;
         rows.retain(|r| {
             r.fields.len() == fields.len() 
             && r.fields.iter().zip(fields.iter()).all(|(a, b)| a == b)

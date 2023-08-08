@@ -2,7 +2,7 @@ use crate::{TypeDb, DbResult};
 
 impl TypeDb {
     fn new_maps_test_db(test_name: &str) -> DbResult<TypeDb> {
-        let db = Self::new_test_db(test_name)?;
+        let db = Self::_new_test_db(test_name)?;
         db.drop_tables()?;
         db.create_new_primitive_table()?;
         db.create_new_map_tables()?;
@@ -47,6 +47,7 @@ impl TypeDb {
     }
 
     #[test]
+    #[allow(unused)]
     fn maps_are_inserted_uniquely() {
         let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
         assert_eq!(db.get_maps().unwrap(), vec![]);

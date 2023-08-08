@@ -16,4 +16,3 @@ serde = { version = "1.0.176", features = ["derive"] }
 serde_json = "1.0.104"
 spindle_db = { version = "0.1.2", path = "../spindle_db" } # todo! this doesn't feel correct
 syn = { version = "2.0.25", features = ["full", "parsing", "printing"] }
-uuid = { version = "1.4.1", features = ["fast-rng", "macro-diagnostics", "serde", "v4"] }

@@ -2,7 +2,7 @@ use crate::{TypeDb, DbResult};
 
 impl TypeDb {
     fn new_crates_test_db(test_name: &str) -> DbResult<TypeDb> {
-        let db = Self::new_test_db(test_name)?;
+        let db = Self::_new_test_db(test_name)?;
         db.drop_tables()?;
         db.create_new_primitive_table()?;
         db.create_new_union_tables()?;
@@ -34,11 +34,12 @@ impl TypeDb {
     }
 
     #[test]
+    #[allow(unused)]
     fn can_form_a_crate_from_unions() {
         let db = TypeDb::new_crates_test_db("can_form_a_crate_from_unions").unwrap();
         let u = db.get_or_insert_union(&("U", vec!["f32"])).unwrap();
         let v = db.get_or_insert_union(&("V", vec!["f32", "u64"])).unwrap();
-        assert_eq!(db.get_unions().unwrap().len(), 2);
+        assert_eq!(db._get_unions().unwrap().len(), 2);
         let m = db.get_or_insert_map(&("pub fn foo(u64) -> f32;", vec![
             (Some("u64"), Some("f32")),
         ])).unwrap();

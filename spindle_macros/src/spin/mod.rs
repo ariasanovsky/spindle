@@ -1,7 +1,6 @@
 use std::path::PathBuf;
 
 use proc_macro2::TokenStream;
-use quote::ToTokens;
 use syn::{parse::Parse, parse::ParseStream, Ident, Token, LitStr};
 
 use crate::{

@@ -9,8 +9,8 @@ pub mod spindle_crate;
 pub mod tables;
 pub mod union;
 
-pub(crate) const DEFAULT_HOME : &str = "target/spindle/db/";
-pub(crate) const TEST: &str = "tests";
+pub(crate) const _DEFAULT_HOME : &str = "target/spindle/db/";
+pub(crate) const _TEST: &str = "tests";
 pub(crate) const DB: &str = "db";
 pub(crate) const _IN_OUTS: &str = "in_outs";
 pub(crate) const _CRATES: &str = "crates";
@@ -90,9 +90,9 @@ impl TypeDb {
 }
 
 impl TypeDb {
-    pub(crate) fn new_test_db(test_name: &str) -> DbResult<Self> {
+    pub(crate) fn _new_test_db(test_name: &str) -> DbResult<Self> {
         dbg!();
-        let path = PathBuf::from(DEFAULT_HOME).join(TEST);
+        let path = PathBuf::from(_DEFAULT_HOME).join(_TEST);
         dbg!(&path);
         TypeDb::open_or_create(test_name, path)
     }    

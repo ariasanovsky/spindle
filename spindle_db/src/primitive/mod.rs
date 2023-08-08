@@ -30,7 +30,7 @@ pub trait AsDbPrimitive {
 
 const SELECT_UUID: &str = "SELECT uuid FROM primitives WHERE ident = ?";
 const SELECT_IDENT: &str = "SELECT ident FROM primitives WHERE uuid = ?";
-const SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
+const _SELECT_PRIMITIVE: &str = "SELECT uuid, ident FROM primitives";
 const INSERT_PRIMITIVE: &str = "INSERT INTO primitives (uuid, ident) VALUES (?, ?)";
 
 impl TypeDb {
@@ -58,8 +58,8 @@ impl TypeDb {
         })
     }
 
-    pub(crate) fn get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
-        let mut statement = self.conn.prepare(SELECT_PRIMITIVE)?;
+    pub(crate) fn _get_primitives(&self) -> DbResult<Vec<DbPrimitive>> {
+        let mut statement = self.conn.prepare(_SELECT_PRIMITIVE)?;
         let primitives = statement.query_map([], |row| {
             Ok(DbPrimitive {
                 uuid: row.get(0)?,

@@ -6,6 +6,7 @@ use crate::map::MapFn;
 
 // this works once, then not a 2nd time
 #[test]
+#[allow(unused)]
 fn add_univariate_pure_function_to_db() {
     // connect to database
     // add function to database
