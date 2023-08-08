@@ -17,7 +17,7 @@ fn add_univariate_pure_function_to_db() {
     // first, let's show all `DbMap`s in the db
     let maps = db.map_iter().unwrap();
     maps.for_each(|map| {
-        let map = map.unwrap();
+        let map = map;
         dbg!(&map);
     });
     dbg!();
@@ -35,7 +35,7 @@ fn add_univariate_pure_function_to_db() {
 
     let maps = db.map_iter().unwrap();
     maps.for_each(|map| {
-        let map = map.unwrap();
+        let map = map;
         dbg!(&map);
     });
     dbg!();
