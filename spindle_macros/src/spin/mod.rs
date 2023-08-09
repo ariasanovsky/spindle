@@ -7,7 +7,7 @@ use crate::{
     error::NaivelyTokenize,
     file_strings::{CARGO_TOML, CONFIG_TOML, RUST_TOOLCHAIN_TOML},
     map::{MapFn, MapFnStrings},
-    snake_to_camel, TokenResult, case::{UpperCamelIdent, LowerSnakeIdent, PrimitiveIdent},
+    snake_to_camel, TokenResult, case::{UpperCamelIdent, PrimitiveIdent},
 };
 
 mod parse;
