@@ -7,8 +7,33 @@ use crate::{
     error::NaivelyTokenize,
     file_strings::{CARGO_TOML, CONFIG_TOML, RUST_TOOLCHAIN_TOML},
     map::{MapFn, MapFnStrings},
-    snake_to_camel, TokenResult,
+    snake_to_camel, TokenResult, case::{UpperCamelIdent, LowerSnakeIdent, PrimitiveIdent},
 };
+
+mod parse;
+#[cfg(test)]
+mod test;
+
+pub(crate) enum RawSpinInput {
+    OldUnion(UpperCamelIdent),
+    NewUnion(UpperCamelIdent, Vec<PrimitiveIdent>),
+}
+
+impl RawSpinInput {
+    pub(crate) fn ident(&self) -> &UpperCamelIdent {
+        match self {
+            Self::OldUnion(ident) => ident,
+            Self::NewUnion(ident, _) => ident,
+        }
+    }
+
+    pub(crate) fn fields(&self) -> Option<&Vec<PrimitiveIdent>> {
+        match self {
+            Self::OldUnion(_) => None,
+            Self::NewUnion(_, fields) => Some(fields),
+        }
+    }
+}
 
 pub(crate) struct SpinInput {
     pub(crate) union_name: Ident,
@@ -16,7 +41,7 @@ pub(crate) struct SpinInput {
 }
 
 impl Parse for SpinInput {
-    // todo! ?new grammar `U = X | Y | Z`
+    // todo! ?new grammar `U = p | q | r` or `V` comma separated
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let union_name: Ident = input.parse()?;
         input.parse::<Token![,]>()?;

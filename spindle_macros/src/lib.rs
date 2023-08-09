@@ -87,6 +87,7 @@ fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
     .into()
 }
 
+// todo! write a test for this
 pub(crate) fn camel_word(s: &str) -> String {
     let mut chars = s.chars();
     let mut camel = if let Some(c) = chars.next() {
@@ -100,6 +101,7 @@ pub(crate) fn camel_word(s: &str) -> String {
     camel
 }
 
+// todo! write a test for this
 pub(crate) fn snake_to_camel(s: &str) -> String {
     let s = s.split('_').map(camel_word).collect::<Vec<_>>();
     s.join("")
