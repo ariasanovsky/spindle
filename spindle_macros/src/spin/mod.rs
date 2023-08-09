@@ -35,11 +35,17 @@ impl RawSpinInput {
     }
 }
 
+pub(crate) struct RawSpinInputs(Vec<RawSpinInput>);
+
+
+
+// todo! deprecated
 pub(crate) struct SpinInput {
     pub(crate) union_name: Ident,
     pub(crate) types: Vec<Ident>,
 }
 
+// todo! deprecated
 impl Parse for SpinInput {
     // todo! ?new grammar `U = p | q | r` or `V` comma separated
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -54,6 +60,7 @@ impl Parse for SpinInput {
     }
 }
 
+// todo! deprecated
 impl SpinInput {
     pub(crate) fn union(&self) -> TokenStream {
         let Self { union_name, types } = self;
