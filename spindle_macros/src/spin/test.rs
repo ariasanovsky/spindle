@@ -102,7 +102,7 @@ fn get_an_old_union_from_the_db() {
 
     // parse the same union & get it from the db
     let input = quote::quote! { U };
-    let _spin_input: RawSpinInput = parse_quote!(#input);
+    let spin_input: RawSpinInput = parse_quote!(#input);
     /*
     * we use small names for unions (e.g. `U`)
         - `U` appears in the db frequently
@@ -125,6 +125,6 @@ fn get_an_old_union_from_the_db() {
     */
     let uuid: String = db_union.uuid.clone(); // U::__UUID.to_string()
     dbg!(&uuid);
-    let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, "U".to_string()).unwrap();
+    let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, spin_input.ident().0.to_string()).unwrap();
     assert_eq!(db_union, db_uuid_2);
 }
