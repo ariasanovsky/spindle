@@ -73,17 +73,39 @@ fn emit_tokens_from_new_map() {
     let map_trait = map_2.user_crate_trait();
     let map_trait_2 = quote::quote! {
         mod __foo {
-            use spindle::__cudarc::DeviceRepr as __DeviceRepr;
-            use spindle::__cudarc::CudaSlice as __CudaSlice;
+            use spindle::__cudarc::{
+                CudaDevice as __CudaDevice,
+                CudaFunction as __CudaFunction,
+                CudaSlice as __CudaSlice,
+                DeviceRepr as __DeviceRepr,
+                LaunchConfig as __LaunchConfig,
+                Ptx as __Ptx,
+            };
+            use std::sync::Arc as __Arc;
             unsafe trait __Foo
             where
-                <Self as __Foo>::U: __DeviceRepr,
-                Self: Into<__CudaSlice<Self::U>>,
-                __CudaSlice<<Self as __Foo>::U>: Into<<Self as __Foo>::Return>,
+                <Self as __Foo>::U:
+                    __DeviceRepr,
+                Self:
+                    Into<__CudaSlice<<Self as __Foo>::U>>,
+                __CudaSlice<<Self as __Foo>::U>:
+                    Into<<Self as __Foo>::Return>,
             {
                 type U;
                 type Return;
-                fn foo(&self) -> spindle::Result<Self::Return>;
+                const PTX_PATH: &'static str;
+                fn foo(&self, n: u32) -> spindle::Result<Self::Return> {
+                    let mut slice: __CudaSlice<Self::U> = self.into();
+                    let device: __Arc<__CudaDevice> = slice.device();
+                    let ptx: __Ptx = __Ptx::from_file(Self::PTX_PATH);
+                    device.load_ptx(ptx, "kernels", &["foo_kernel"])?;
+                    let f: __CudaFunction =
+                        device.get_function("foo_kernel")
+                        .ok_or(spindle::Error::FunctionNotFound)?;
+                    let config: __LaunchConfig = __LaunchConfig::for_num_elems(n as u32);
+                    unsafe { f.launch(config, (&mut slice, n as i32)) }?;
+                    Ok(slice.into())
+                }
             }
         }
     };
