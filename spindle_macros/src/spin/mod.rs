@@ -263,23 +263,23 @@ impl SpinInput {
                 proc_macro2::Span::call_site(),
             );
             quote::quote! {
-                    #[no_mangle]
-                    pub unsafe extern "ptx-kernel" fn #kernel_name(slice: *mut #union_name, size: i32) {
-                        let thread_id: i32 = _thread_idx_x();
-                        let block_id: i32 = _block_idx_x();
-                        let block_dim: i32 = _block_dim_x();
-                        let grid_dim: i32 = _grid_dim_x();
+                #[no_mangle]
+                pub unsafe extern "ptx-kernel" fn #kernel_name(slice: *mut #union_name, size: i32) {
+                    let thread_id: i32 = _thread_idx_x();
+                    let block_id: i32 = _block_idx_x();
+                    let block_dim: i32 = _block_dim_x();
+                    let grid_dim: i32 = _grid_dim_x();
 
-                        let n_threads: i32 = block_dim * grid_dim;
-                        let thread_index: i32 =  thread_id + block_id * block_dim;
+                    let n_threads: i32 = block_dim * grid_dim;
+                    let thread_index: i32 =  thread_id + block_id * block_dim;
 
-                        let mut i: i32 = thread_index;
-                        while i < size {
-                            let u: &mut #union_name = &mut *slice.offset(i as isize);
-                            u.#fn_name();
-                            i = i.wrapping_add(n_threads);
-                        }
+                    let mut i: i32 = thread_index;
+                    while i < size {
+                        let u: &mut #union_name = &mut *slice.offset(i as isize);
+                        u.#fn_name();
+                        i = i.wrapping_add(n_threads);
                     }
+                }
             }
         };
 

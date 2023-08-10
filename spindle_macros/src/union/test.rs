@@ -1,7 +1,7 @@
 use spindle_db::{TypeDb, union::DbUnion};
 use syn::parse_quote;
 
-use crate::union::{RawUnionInput, foo::UnionTokens};
+use crate::union::{RawUnionInput, tokens::UnionTokens};
 
 #[test]
 fn parse_a_new_union_of_primitives() {

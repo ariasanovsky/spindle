@@ -10,6 +10,7 @@ use in_out::InOut;
 mod display;
 pub(crate) mod in_out;
 mod parse;
+mod tokens;
 #[cfg(test)]
 mod test;
 
@@ -19,6 +20,14 @@ static MAP_PATH: &str = "target/spindle/map/";
 pub(crate) struct MapFn {
     pub(crate) item_fn: syn::ItemFn,
     pub(crate) in_outs: Vec<InOut>,
+}
+
+impl PartialEq for MapFn {
+    fn eq(&self, other: &Self) -> bool {
+        // todo! feels hacky
+        self.item_fn.to_token_stream().to_string()
+        == other.item_fn.to_token_stream().to_string()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -10,15 +10,15 @@ mod test;
 
 #[derive(Clone, Debug, Eq)]
 pub struct DbMap {
-    pub(crate) uuid: String,
-    pub(crate) content: String,
-    pub(crate) in_outs: Vec<DbInOut>,
+    pub uuid: String,
+    pub content: String,
+    pub in_outs: Vec<DbInOut>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DbInOut {
-    pub(crate) input: Option<DbPrimitive>,
-    pub(crate) output: Option<DbPrimitive>,
+    pub input: Option<DbPrimitive>,
+    pub output: Option<DbPrimitive>,
 }
 
 impl PartialEq for DbMap {

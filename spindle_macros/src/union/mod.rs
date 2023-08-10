@@ -1,6 +1,6 @@
 use crate::case::{UpperCamelIdent, PrimitiveIdent};
 
-mod foo;
+mod tokens;
 #[cfg(test)]
 mod test;
 
