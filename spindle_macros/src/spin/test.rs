@@ -123,8 +123,8 @@ fn get_an_old_union_from_the_db() {
     }
     exists in scope
     */
-    let uuid: String = db_union.uuid; // U::__UUID.to_string()
+    let uuid: String = db_union.uuid.clone(); // U::__UUID.to_string()
     dbg!(&uuid);
-    let db_uuid = db.get_union_from_uuid(uuid).unwrap().unwrap();
-    dbg!(&db_uuid);
+    let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, "U".to_string()).unwrap();
+    assert_eq!(db_union, db_uuid_2);
 }

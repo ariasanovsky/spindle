@@ -18,7 +18,7 @@ const CREATE_IN_OUTS: &str = "
     PRIMARY KEY (map_uuid, pos)
 )";
 
-const CREATE_TABLE: &str = "
+const CREATE_UNIONS: &str = "
     CREATE TABLE unions (
     uuid TEXT PRIMARY KEY,
     ident TEXT NOT NULL             -- not a unique identifier (there may be multiple unions `U`)
@@ -159,7 +159,7 @@ impl TypeDb {
     pub(crate) fn create_new_union_tables(&self) -> DbResult<()> {
         self.drop_union_tables()?;
         // self.create_new_primitive_table()?;
-        let _: usize = self.conn.execute(CREATE_TABLE, [])?;
+        let _: usize = self.conn.execute(CREATE_UNIONS, [])?;
         let _: usize = self.conn.execute(CREATE_JUNCTION, [])?;
         Ok(())
     }

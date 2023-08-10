@@ -83,20 +83,23 @@ impl TypeDb {
         })
     }
 
-    pub fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
+    // todo! ?seems buggy, this whole module needs a rewrite
+    pub(crate) fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
         let mut statement = self.conn.prepare(SELECT_UUID)?;
         let mut rows = statement.query([&uuid])?;
         // todo! `map` is more idiomatic
         if let Some(row) = rows.next()? {
+            dbg!(&row);
             let uuid: String = row.get(0)?; // todo! redundant
             let ident: String = row.get(1)?;
             self.get_union_from_uuid_and_ident(uuid, ident).map(Some)
         } else {
+            dbg!();
             Ok(None)
         }
     }
 
-    pub(crate) fn get_union_from_uuid_and_ident(
+    pub fn get_union_from_uuid_and_ident(
         &self,
         uuid: String,
         ident: String,
