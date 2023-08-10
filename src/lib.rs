@@ -6,6 +6,8 @@ pub mod spindle;
 
 use spindle::RawConvert;
 
+pub type Result<T> = std::result::Result<T, error::Error>;
+
 pub struct DevSpindle<U, X>(CudaSlice<U>, std::marker::PhantomData<X>)
 where
     U: RawConvert<X> + DeviceRepr,

@@ -34,7 +34,7 @@ impl Parse for RawUnionInput {
             RawUnionInput::NewUnion(ident, fields)
         } else {
             // we have parsed `V` and expect nothing more
-            RawUnionInput::OldUnion(ident)
+            RawUnionInput::UnionInScope(ident)
         })
     }
 }
