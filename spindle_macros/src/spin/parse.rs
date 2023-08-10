@@ -1,9 +1,8 @@
-use quote::ToTokens;
 use syn::parse::Parse;
 
 use crate::case::{UpperCamelIdent, PrimitiveIdent};
 
-use super::{RawSpinInput, RawSpinInputs, SpinInput};
+use super::{RawSpinInput, RawSpinInputs};
 
 impl Parse for RawSpinInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
@@ -12,7 +11,7 @@ impl Parse for RawSpinInput {
             `V` where `V` is a union in scope
         */
         let ident: UpperCamelIdent = input.parse()?;
-        dbg!(&ident);
+        // dbg!(&ident);
         // todo! check that `ident` is not a reserved word
         // peek the next token to see if it is an `=`
         let is_new_union = input.peek(syn::Token![=]);

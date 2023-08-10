@@ -8,9 +8,9 @@ mod test;
 
 #[derive(Clone, Debug, Eq)]
 pub struct DbUnion {
-    pub(crate) uuid: String,
-    pub(crate) ident: String,
-    pub(crate) fields: Vec<DbPrimitive>,
+    pub uuid: String,
+    pub ident: String,
+    pub fields: Vec<DbPrimitive>,
 }
 
 impl PartialEq for DbUnion {
@@ -83,7 +83,7 @@ impl TypeDb {
         })
     }
 
-    pub(crate) fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
+    pub fn get_union_from_uuid(&self, uuid: String) -> DbResult<Option<DbUnion>> {
         let mut statement = self.conn.prepare(SELECT_UUID)?;
         let mut rows = statement.query([&uuid])?;
         // todo! `map` is more idiomatic
@@ -104,7 +104,7 @@ impl TypeDb {
         let mut statement = self.conn.prepare(SELECT_FIELDS)?;
         let fields = statement
             .query_map([&uuid], |row| {
-                let pos: i64 = row.get(0)?;
+                let pos: usize = row.get(0)?;
                 let uuid: String = row.get(1)?;
                 let ident: String = row.get(2)?;
                 Ok((pos, DbPrimitive { uuid, ident }))
@@ -112,7 +112,7 @@ impl TypeDb {
             .enumerate()
             .map(|(i, x)| {
                 x.map(|(pos, x)| {
-                    assert_eq!(i as i64, pos); // todo! handle this error
+                    assert_eq!(i, pos); // todo! handle this error
                     x
                 })
             });
@@ -134,11 +134,11 @@ impl TypeDb {
         rows.collect::<DbResult<_>>()
     }
 
-    pub(crate) fn _get_union_fields(&self) -> DbResult<Vec<(String, i64, String)>> {
+    pub(crate) fn _get_union_fields(&self) -> DbResult<Vec<(String, usize, String)>> {
         let mut statement = self.conn.prepare(_SELECT_UNION_FIELDS)?;
         let rows = statement.query_map([], |row| {
             let union_uuid: String = row.get(0)?;
-            let pos: i64 = row.get(1)?;
+            let pos: usize = row.get(1)?;
             let field_uuid: String = row.get(2)?;
             Ok((union_uuid, pos, field_uuid))
         })?;

@@ -71,6 +71,7 @@ fn insert_a_new_union_to_the_db() {
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
     let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+    dbg!(&db_union);
 }
 
 #[test]
@@ -87,10 +88,43 @@ fn get_an_old_union_from_the_db() {
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
     let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+
+    struct U;
+    trait DbUuid {
+        const __UUID: &'static str;
+    }
+
+    impl DbUuid for U {
+        const __UUID: &'static str = "asdf";
+    }
+
     dbg!(&db_union);
 
     // parse the same union & get it from the db
     let input = quote::quote! { U };
-    let spin_input: RawSpinInput = parse_quote!(#input);
-    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+    let _spin_input: RawSpinInput = parse_quote!(#input);
+    /*
+    * we use small names for unions (e.g. `U`)
+        - `U` appears in the db frequently
+    * eliding the fields of a union is good ergonomics
+        - we need to find the fields of `U`
+    * the db doesn't encode scope
+    * as a compromise, get fields from scope,
+        - e.g., `let fields: Vec<_> = U::__fields();`
+        - this is mildly unsanitary
+        - possibly we can do a const eval macro hack
+    * syn has some dundermethods, we're in good company
+    * the previously parsed union is in the db
+    * so we can assume that
+    impl U {
+        fn __fields() -> Vec<String> {
+            vec!["f32", "u64"]
+        }
+    }
+    exists in scope
+    */
+    let uuid: String = db_union.uuid; // U::__UUID.to_string()
+    dbg!(&uuid);
+    let db_uuid = db.get_union_from_uuid(uuid).unwrap().unwrap();
+    dbg!(&db_uuid);
 }

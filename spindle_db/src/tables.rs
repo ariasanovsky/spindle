@@ -105,7 +105,7 @@ impl TypeDb {
     }
 
     pub(crate) fn drop_tables(&self) -> DbResult<()> {
-        dbg!();
+        // dbg!();
         // todo! ?tables in the right order
         const DROP_TABLES: &[&str] = &[
             DROP_CRATE_UNIONS,
@@ -120,7 +120,7 @@ impl TypeDb {
             DROP_PRIMITIVES,
         ];
         DROP_TABLES.iter().try_for_each(|&table| {
-            dbg!(table);
+            // dbg!(table);
             let _: usize = self.conn.execute(table, [])?;
             Ok(())
         })
@@ -142,14 +142,14 @@ impl TypeDb {
 
 impl TypeDb {
     pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
-        dbg!();
+        // dbg!();
         self.drop_primitive_table()?;
         let _: usize = self.conn.execute(CREATE_PRIMITIVES, [])?;
         Ok(())
     }
 
     pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
-        dbg!();
+        // dbg!();
         let _: usize = self.conn.execute(DROP_PRIMITIVES, [])?;
         Ok(())
     }

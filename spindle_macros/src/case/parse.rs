@@ -2,7 +2,7 @@ use syn::parse::Parse;
 
 use crate::camel_word;
 
-use super::{UpperCamelIdent, LowerSnakeIdent, PrimitiveIdent};
+use super::{UpperCamelIdent, PrimitiveIdent};
 
 impl Parse for UpperCamelIdent {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
