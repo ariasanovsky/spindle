@@ -7,35 +7,14 @@ use crate::{
     error::NaivelyTokenize,
     file_strings::{CARGO_TOML, CONFIG_TOML, RUST_TOOLCHAIN_TOML},
     map::{MapFn, MapFnStrings},
-    snake_to_camel, TokenResult, case::{UpperCamelIdent, PrimitiveIdent},
+    snake_to_camel, TokenResult, union::RawUnionInput,
 };
 
 mod parse;
 #[cfg(test)]
 mod test;
 
-pub(crate) enum RawSpinInput {
-    OldUnion(UpperCamelIdent),
-    NewUnion(UpperCamelIdent, Vec<PrimitiveIdent>),
-}
-
-impl RawSpinInput {
-    pub(crate) fn ident(&self) -> &UpperCamelIdent {
-        match self {
-            Self::OldUnion(ident) => ident,
-            Self::NewUnion(ident, _) => ident,
-        }
-    }
-
-    pub(crate) fn fields(&self) -> Option<&Vec<PrimitiveIdent>> {
-        match self {
-            Self::OldUnion(_) => None,
-            Self::NewUnion(_, fields) => Some(fields),
-        }
-    }
-}
-
-pub(crate) struct RawSpinInputs(Vec<RawSpinInput>);
+pub(crate) struct RawSpinInputs(pub Vec<RawUnionInput>);
 
 
 

@@ -6,7 +6,7 @@ use spindle_db::{
 
 use crate::{
     map::{in_out::InOut, MapFn},
-    primitives::_Primitive, spin::RawSpinInput, case::PrimitiveIdent,
+    primitives::_Primitive, case::PrimitiveIdent, union::RawUnionInput,
 };
 
 impl AsDbPrimitive for _Primitive {
@@ -35,7 +35,7 @@ impl AsDbMap for MapFn {
     }
 }
 
-impl AsDbUnion for RawSpinInput {
+impl AsDbUnion for RawUnionInput {
     type Primitive = PrimitiveIdent;
 
     fn db_ident(&self) -> String {

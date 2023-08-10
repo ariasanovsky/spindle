@@ -72,7 +72,7 @@ impl TypeDb {
             let path = home.join(name).with_extension(DB);
             // dbg!(&path);
             let db = Some(Connection::open(path).map(|conn| Self { conn }));
-            dbg!(&db);
+            // dbg!(&db);
             db
         } else {
             None

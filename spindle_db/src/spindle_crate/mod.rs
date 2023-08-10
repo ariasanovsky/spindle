@@ -37,9 +37,9 @@ use crate::{map::DbMap, union::DbUnion, DbResult, TypeDb};
 */
 #[derive(Clone, Debug)]
 pub struct DbCrate {
-    pub(crate) uuid: String,
-    pub(crate) unions: Vec<DbUnion>,          // [U_1, ..., U_m]
-    pub(crate) lifts: Vec<DbLiftGivenUnions>, // vec of [f: (X_1, ..., X_m) -> (Y_1, ..., Y_m)]
+    pub uuid: String,
+    pub unions: Vec<DbUnion>,          // [U_1, ..., U_m]
+    pub lifts: Vec<DbLiftGivenUnions>, // vec of [f: (X_1, ..., X_m) -> (Y_1, ..., Y_m)]
 }
 
 impl DbCrate {

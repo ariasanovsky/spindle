@@ -14,6 +14,7 @@ pub(crate) mod map;
 pub(crate) mod regulate;
 pub(crate) mod spin;
 
+pub(crate) mod union;
 // pub(crate) mod unions;
 pub(crate) mod primitives;
 // pub(crate) mod maps;

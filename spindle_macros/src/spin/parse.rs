@@ -2,9 +2,9 @@ use syn::parse::Parse;
 
 use crate::case::{UpperCamelIdent, PrimitiveIdent};
 
-use super::{RawSpinInput, RawSpinInputs};
+use super::{RawUnionInput, RawSpinInputs};
 
-impl Parse for RawSpinInput {
+impl Parse for RawUnionInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         /* grammar:
             `U = p | q | ... | r` where `p`, `q`, ..., `r` are primitives
@@ -31,10 +31,10 @@ impl Parse for RawSpinInput {
                 fields.push(field);
             }
             // now we have parsed `U = p | q | ... r` and did not find another `|`
-            RawSpinInput::NewUnion(ident, fields)
+            RawUnionInput::NewUnion(ident, fields)
         } else {
             // we have parsed `V` and expect nothing more
-            RawSpinInput::OldUnion(ident)
+            RawUnionInput::OldUnion(ident)
         })
     }
 }
@@ -42,8 +42,8 @@ impl Parse for RawSpinInput {
 impl Parse for RawSpinInputs {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         // we expect at least one comma-separated `RawSpinInput`s
-        let spin_input: RawSpinInput = input.parse()?;
-        let mut inputs: Vec<RawSpinInput> = vec![spin_input];
+        let spin_input: RawUnionInput = input.parse()?;
+        let mut inputs: Vec<RawUnionInput> = vec![spin_input];
         // now we have parsed `U = p | q | ... r` and did not check for a comma
         while input.peek(syn::Token![,]) {
             // consume the `,` token and parse the next `RawSpinInput`
@@ -52,7 +52,7 @@ impl Parse for RawSpinInputs {
             if input.is_empty() {
                 break;
             }
-            let spin_input: RawSpinInput = input.parse()?;
+            let spin_input: RawUnionInput = input.parse()?;
             inputs.push(spin_input);
         }
         Ok(RawSpinInputs(inputs))

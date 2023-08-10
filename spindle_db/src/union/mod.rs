@@ -150,7 +150,7 @@ impl TypeDb {
 
     fn get_union_uuid(&self, ident: &str, fields: &Vec<DbPrimitive>) -> DbResult<Option<String>> {
         // todo! ?overkill
-        dbg!(&ident);
+        // dbg!(&ident);
         let mut statement = self.conn.prepare(SELECT_UUID)?;
         let rows = statement.query_map([&ident], |row| {
             dbg!(&row);

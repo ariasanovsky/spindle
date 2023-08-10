@@ -1,37 +1,7 @@
 use spindle_db::{TypeDb, union::DbUnion};
 use syn::parse_quote;
 
-use super::{RawSpinInput, RawSpinInputs};
-
-#[test]
-fn parse_a_new_union_of_primitives() {
-    let input = quote::quote! {
-        U = f32 | u64
-    };
-    let spin_input: RawSpinInput = parse_quote!(#input);
-    let ident = spin_input.ident();
-    assert_eq!(ident.0.to_string(), "U");
-    let fields: Vec<String> =
-        spin_input
-        .fields()
-        .unwrap()
-        .iter()
-        .map(|field| field.0.to_string())
-        .collect();
-    assert_eq!(fields, vec!["f32", "u64"]);
-}
-
-#[test]
-fn parse_an_old_union() {
-    let input = quote::quote! {
-        V
-    };
-    let spin_input: RawSpinInput = parse_quote!(#input);
-    let ident = spin_input.ident();
-    assert_eq!(ident.0.to_string(), "V");
-    let fields = spin_input.fields();
-    assert!(fields.is_none());
-}
+use crate::{map::MapFn, spin::{RawUnionInput, RawSpinInputs}};
 
 #[test]
 fn parse_an_old_union_and_a_new_union_of_primitives() {
@@ -58,73 +28,34 @@ fn parse_an_old_union_and_a_new_union_of_primitives() {
 }
 
 #[test]
-fn insert_a_new_union_to_the_db() {
+fn get_crate_from_one_union_and_one_map() {
     // connect to database
     // add function to database
-    const DB_NAME: &str = "insert_a_new_union_to_the_db";
+    const DB_NAME: &str = "get_crate_from_one_union_and_one_map";
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
-    
-    // parse a union & insert it into the db
-    let input = quote::quote! {
-        U = f32 | u64
-    };
-    let spin_input: RawSpinInput = parse_quote!(#input);
-    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
-    dbg!(&db_union);
-}
 
-#[test]
-fn get_an_old_union_from_the_db() {
-    // connect to database
-    // add function to database
-    const DB_NAME: &str = "get_an_old_union_from_the_db";
-    const DB_PATH: &str = "target/spindle/db/";
-    let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
-    
-    // parse a union & insert it into the db
-    let input = quote::quote! {
-        U = f32 | u64
-    };
-    let spin_input: RawSpinInput = parse_quote!(#input);
-    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
-
-    struct U;
-    trait DbUuid {
-        const __UUID: &'static str;
-    }
-
-    impl DbUuid for U {
-        const __UUID: &'static str = "asdf";
-    }
-
-    dbg!(&db_union);
-
-    // parse the same union & get it from the db
-    let input = quote::quote! { U };
-    let spin_input: RawSpinInput = parse_quote!(#input);
-    /*
-    * we use small names for unions (e.g. `U`)
-        - `U` appears in the db frequently
-    * eliding the fields of a union is good ergonomics
-        - we need to find the fields of `U`
-    * the db doesn't encode scope
-    * as a compromise, get fields from scope,
-        - e.g., `let fields: Vec<_> = U::__fields();`
-        - this is mildly unsanitary
-        - possibly we can do a const eval macro hack
-    * syn has some dundermethods, we're in good company
-    * the previously parsed union is in the db
-    * so we can assume that
-    impl U {
-        fn __fields() -> Vec<String> {
-            vec!["f32", "u64"]
+    // parse and insert a map into the db
+    let map = quote::quote! {
+        fn foo(x: u64) -> f32 {
+            x as f32
         }
-    }
-    exists in scope
-    */
-    let uuid: String = db_union.uuid.clone(); // U::__UUID.to_string()
-    dbg!(&uuid);
-    let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, spin_input.ident().0.to_string()).unwrap();
-    assert_eq!(db_union, db_uuid_2);
+    };
+    let map: MapFn = parse_quote!(#map);
+    dbg!(&map);
+    let db_map = db.get_or_insert_map(&map).unwrap();
+    dbg!(&db_map);
+
+    // parse and insert a union into the db
+    let union = quote::quote! {
+        U = f32 | u64
+    };
+    let spin_input: RawUnionInput = parse_quote!(#union);
+    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+    dbg!(&db_union);
+
+    // get the crate
+    let db_crate = db.get_or_insert_crate_from_unions(vec![db_union]).unwrap();
+    dbg!(&db_crate);
+    assert_eq!(db_crate.unions.len(), 1);
 }
