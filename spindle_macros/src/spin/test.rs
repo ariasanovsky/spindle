@@ -1,12 +1,12 @@
 use spindle_db::{TypeDb, union::DbUnion};
 use syn::parse_quote;
 
-use crate::{map::MapFn, spin::{RawUnionInput, RawSpinInputs}};
+use crate::{map::MapFn, spin::{RawSpinInput, RawSpinInputs}};
 
 #[test]
-fn parse_an_old_union_and_a_new_union_of_primitives() {
+fn spin_parses_union_in_scope_and_new_and_a_map_in_scope() {
     let input = quote::quote! {
-        U = f32 | u64, V
+        U = f32 | u64, V, foo,
     };
     let spin_inputs: RawSpinInputs = parse_quote!(#input);
     let u = spin_inputs.0.get(0).unwrap();
@@ -28,34 +28,44 @@ fn parse_an_old_union_and_a_new_union_of_primitives() {
 }
 
 #[test]
-fn get_crate_from_one_union_and_one_map() {
+fn spin_gets_existing_map_from_db() {
     // connect to database
     // add function to database
-    const DB_NAME: &str = "get_crate_from_one_union_and_one_map";
+    const DB_NAME: &str = "get_existing_map_from_db";
     const DB_PATH: &str = "target/spindle/db/";
-    let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
+    todo!();
+}
 
-    // parse and insert a map into the db
-    let map = quote::quote! {
-        fn foo(x: u64) -> f32 {
-            x as f32
-        }
-    };
-    let map: MapFn = parse_quote!(#map);
-    dbg!(&map);
-    let db_map = db.get_or_insert_map(&map).unwrap();
-    dbg!(&db_map);
+#[test]
+fn spin_gets_crate_from_one_union_and_one_map() {
+    todo!("we're now adding maps to the spin syntax");
+    // // connect to database
+    // // add function to database
+    // const DB_NAME: &str = "spin_gets_crate_from_one_union_and_one_map";
+    // const DB_PATH: &str = "target/spindle/db/";
+    // let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
 
-    // parse and insert a union into the db
-    let union = quote::quote! {
-        U = f32 | u64
-    };
-    let spin_input: RawUnionInput = parse_quote!(#union);
-    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
-    dbg!(&db_union);
+    // // parse and insert a map into the db
+    // let map = quote::quote! {
+    //     fn foo(x: u64) -> f32 {
+    //         x as f32
+    //     }
+    // };
+    // let map: MapFn = parse_quote!(#map);
+    // dbg!(&map);
+    // let db_map = db.get_or_insert_map(&map).unwrap();
+    // dbg!(&db_map);
 
-    // get the crate
-    let db_crate = db.get_or_insert_crate_from_unions(vec![db_union]).unwrap();
-    dbg!(&db_crate);
-    assert_eq!(db_crate.unions.len(), 1);
+    // // parse and insert a union into the db
+    // let union = quote::quote! {
+    //     U = f32 | u64
+    // };
+    // let spin_input: RawSpinInput = parse_quote!(#union);
+    // let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+    // dbg!(&db_union);
+
+    // // get the crate
+    // let db_crate = db.get_or_insert_crate_from_unions(vec![db_union]).unwrap();
+    // dbg!(&db_crate);
+    // assert_eq!(db_crate.unions.len(), 1);
 }

@@ -1,21 +1,42 @@
 use spindle_db::TypeDb;
 
-use crate::union::RawUnionInput;
+use crate::union::RawSpinInput;
 
 mod parse;
 #[cfg(test)]
 mod test;
 
 #[derive(Debug)]
-pub(crate) struct RawSpinInputs(pub Vec<RawUnionInput>);
+pub(crate) struct RawSpinInputs(pub Vec<RawSpinInput>);
 
 pub(crate) fn _spin(inputs: RawSpinInputs) -> proc_macro::TokenStream {
+    /* `spindle::spin!(U = i32 | f64, V, foo);`
+    * `U` (new union):
+        - get or insert
+        - declare
+        - impl device repr
+        - impl raw converts
+    * `V` (union in scope):
+        - get (no decl or impls)
+    * `foo` (map fn in scope):
+        - e.g., `fn foo(x: i32, y: f32) -> (f64, f32) { ... }`
+        - get
+            (!) this requires a UUID
+            (!) use the trait `__Foo` to encode the UUID
+        - declare in ptx crate
+            `fn foo(x: i32, y: f32) -> (f64, f32) { ... }`
+        - method in ptx crate on (U, V),
+            `impl (U, V) { fn foo(&mut self) { ... } }`
+        - kernel in ptx crate on (U, V),
+            `... foo_kernel(u_ptr: *mut U, v_ptr: *mut V, n: i32) { ... }`
+    */
     const NAME: &str = "typess";
     const HOME: &str = "target/spindle/";
     let db = TypeDb::open_or_create(NAME, HOME).unwrap();
     let new_unions = inputs.0.iter().map(|input| match input {
-        RawUnionInput::UnionInScope(_) => todo!(),
-        RawUnionInput::NewUnion(_, _) => todo!(),
+        RawSpinInput::UnionInScope(_) => todo!(),
+        RawSpinInput::NewUnion(_, _) => todo!(),
+        RawSpinInput::MapFnInScope(_) => todo!(),
     });
     todo!()
 }

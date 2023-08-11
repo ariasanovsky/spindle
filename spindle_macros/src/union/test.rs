@@ -1,14 +1,14 @@
 use spindle_db::{TypeDb, union::DbUnion};
 use syn::parse_quote;
 
-use crate::union::{RawUnionInput, tokens::UnionTokens};
+use crate::union::{RawSpinInput, tokens::UnionTokens};
 
 #[test]
 fn parse_a_new_union_of_primitives() {
     let input = quote::quote! {
         U = f32 | u64
     };
-    let spin_input: RawUnionInput = parse_quote!(#input);
+    let spin_input: RawSpinInput = parse_quote!(#input);
     let ident = spin_input.ident();
     assert_eq!(ident.0.to_string(), "U");
     let fields: Vec<String> =
@@ -26,7 +26,7 @@ fn parse_an_old_union() {
     let input = quote::quote! {
         V
     };
-    let spin_input: RawUnionInput = parse_quote!(#input);
+    let spin_input: RawSpinInput = parse_quote!(#input);
     let ident = spin_input.ident();
     assert_eq!(ident.0.to_string(), "V");
     let fields = spin_input.fields();
@@ -45,7 +45,7 @@ fn insert_a_new_union_to_the_db() {
     let input = quote::quote! {
         U = f32 | u64
     };
-    let spin_input: RawUnionInput = parse_quote!(#input);
+    let spin_input: RawSpinInput = parse_quote!(#input);
     let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
     dbg!(&db_union);
 }
@@ -62,7 +62,7 @@ fn get_an_old_union_from_the_db() {
     let input = quote::quote! {
         U = f32 | u64
     };
-    let spin_input: RawUnionInput = parse_quote!(#input);
+    let spin_input: RawSpinInput = parse_quote!(#input);
     let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
 
     struct U;
@@ -78,7 +78,7 @@ fn get_an_old_union_from_the_db() {
 
     // parse the same union & get it from the db
     let input = quote::quote! { U };
-    let spin_input: RawUnionInput = parse_quote!(#input);
+    let spin_input: RawSpinInput = parse_quote!(#input);
     /*
     * we use small names for unions (e.g. `U`)
         - `U` appears in the db frequently
@@ -116,7 +116,7 @@ fn emit_tokens_from_new_union() {
     let input = quote::quote! {
         U = f32 | u64
     };
-    let spin_input: RawUnionInput = parse_quote!(#input);
+    let spin_input: RawSpinInput = parse_quote!(#input);
     let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
     dbg!(&db_union);
     let decl = db_union.declaration();

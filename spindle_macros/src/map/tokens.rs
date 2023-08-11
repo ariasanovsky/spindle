@@ -5,7 +5,7 @@ use crate::{case::UpperCamelIdent, map::MapFn, snake_to_camel};
 
 pub(crate) trait MapTokens {
     fn user_crate_declaration(&self) -> TokenStream;
-    fn user_crate_trait(&self) -> TokenStream;
+    fn user_crate_trait(&self, uuid: &str) -> TokenStream;
     fn ptx_crate_method(&self, u: &UpperCamelIdent) -> TokenStream;
     fn ptx_crate_declaration(&self) -> TokenStream;
     fn ptx_crate_kernel(&self, u: &UpperCamelIdent) -> TokenStream;
@@ -17,7 +17,7 @@ impl MapTokens for MapFn {
         self.into_token_stream()
     }
 
-    fn user_crate_trait(&self) -> TokenStream {
+    fn user_crate_trait(&self, uuid: &str) -> TokenStream {
         let dunder_mod_ident = Ident::new(format!("__{}", self.item_fn.sig.ident).as_str(), self.item_fn.sig.ident.span());
         dbg!(&dunder_mod_ident);
         let dunder_camel_trait_ident = Ident::new(format!("__{}", snake_to_camel(&self.item_fn.sig.ident.to_string())).as_str(), self.item_fn.sig.ident.span());
