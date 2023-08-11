@@ -9,12 +9,16 @@ fn parse_a_new_union_of_primitives() {
         U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let ident = spin_input.ident();
+    let spin_input = if let RawSpinInput::NewUnion(spin_input) = spin_input {
+        spin_input
+    } else {
+        panic!("expected a new union");
+    };
+    let ident = spin_input.0.0;
     assert_eq!(ident.to_string(), "U");
     let fields: Vec<String> =
         spin_input
-        .fields()
-        .unwrap()
+        .1
         .iter()
         .map(|field| field.0.to_string())
         .collect();
@@ -27,10 +31,9 @@ fn parse_an_old_union() {
         V
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let ident = spin_input.ident();
+    let spin_input = spin_input.union_in_scope().unwrap();
+    let ident = &spin_input.0.0;
     assert_eq!(ident.to_string(), "V");
-    let fields = spin_input.fields();
-    assert!(fields.is_none());
 }
 
 #[test]
@@ -46,7 +49,8 @@ fn insert_a_new_union_to_the_db() {
         U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+    let spin_input = spin_input.new_union().unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
     dbg!(&db_union);
 }
 
@@ -63,7 +67,8 @@ fn get_an_old_union_from_the_db() {
         U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+    let spin_input = spin_input.new_union().unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
 
     struct U;
     trait DbUuid {
@@ -117,7 +122,8 @@ fn emit_tokens_from_new_union() {
         U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let db_union: DbUnion = db.get_or_insert_union(&spin_input).unwrap();
+    let spin_input = spin_input.new_union().unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
     dbg!(&db_union);
     let decl = db_union.declaration();
     let decl_2 = quote::quote! {

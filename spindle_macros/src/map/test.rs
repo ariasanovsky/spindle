@@ -62,7 +62,7 @@ fn emit_tokens_from_new_map() {
     let map_2: MapFn = syn::parse_str::<MapFn>(&db_map.content).unwrap();
     assert_eq!(map, map_2);
 
-    let decl = map_2.user_crate_declaration();
+    let decl = map_2.user_declaration();
     let decl_2 = quote::quote! {
         fn foo(x: i32) -> f64 {
             x as f64
@@ -70,7 +70,7 @@ fn emit_tokens_from_new_map() {
     };
     assert_eq!(decl.to_string(), decl_2.to_string());
 
-    let map_trait = map_2.user_crate_trait("foo_uuid");
+    let map_trait = map_2.user_trait("foo_uuid");
     let map_trait_2 = quote::quote! {
         mod __foo {
             const __UUID: &str = "foo_uuid";
@@ -94,7 +94,7 @@ fn emit_tokens_from_new_map() {
                 type U;
                 type Return;
                 const PTX_PATH: &'static str;
-                fn foo(&self, n: u32) -> spindle::Result<Self::Return> {
+                fn foo(&self, n: i32) -> spindle::Result<Self::Return> {
                     let mut slice: __CudaSlice<Self::U> = self.into();
                     let device: std::sync::Arc<__CudaDevice> = slice.device();
                     let ptx: __Ptx = __Ptx::from_file(Self::PTX_PATH);
@@ -103,7 +103,7 @@ fn emit_tokens_from_new_map() {
                         device.get_function("foo_kernel")
                         .ok_or(spindle::Error::FunctionNotFound)?;
                     let config: __LaunchConfig = __LaunchConfig::for_num_elems(n as u32);
-                    unsafe { f.launch(config, (&mut slice, n as i32)) }?;
+                    unsafe { f.launch(config, (&mut slice, n)) }?;
                     Ok(slice.into())
                 }
             }

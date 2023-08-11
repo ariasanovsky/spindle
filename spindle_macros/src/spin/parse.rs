@@ -1,7 +1,7 @@
 use proc_macro2::Ident;
 use syn::parse::Parse;
 
-use crate::case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased};
+use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, map::MapFn, union::{MapFnInScope, NewUnion, UnionInScope}};
 
 use super::{RawSpinInput, RawSpinInputs};
 
@@ -16,7 +16,7 @@ impl Parse for RawSpinInput {
         let ident: Ident = input.parse()?;
         use crate::case::Case;
         let u = match ident.to_string().as_str().case() {
-            Case::LowerSnake => return Ok(Self::MapFnInScope(LowerSnakeIdent(ident))),
+            Case::LowerSnake => return Ok(Self::MapFnInScope(MapFnInScope(LowerSnakeIdent(ident)))),
             Case::UpperCamel => ident,
             Case::SupportedPrimitive | Case::UnsupportedPrimitive => return Err(syn::Error::new_spanned(ident, "primitive types are not supported here")),
             Case::Unknown => return Err(syn::Error::new_spanned(ident, "expected a union (`U`), map (`foo`), or primitive (`f32`)")),
@@ -42,10 +42,10 @@ impl Parse for RawSpinInput {
                 fields.push(field);
             }
             // now we have parsed `U = p | q | ... r` and did not find another `|`
-            RawSpinInput::NewUnion(ident, fields)
+            RawSpinInput::NewUnion(NewUnion(ident, fields))
         } else {
             // we have parsed `V` and expect nothing more
-            RawSpinInput::UnionInScope(ident)
+            RawSpinInput::UnionInScope(UnionInScope(ident))
         })
         // todo!()
     }
@@ -55,7 +55,14 @@ impl Parse for RawSpinInputs {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         // we expect at least one comma-separated `RawSpinInput`s
         let spin_input: RawSpinInput = input.parse()?;
-        let mut inputs: Vec<RawSpinInput> = vec![spin_input];
+        let mut unions_in_scope = Vec::new();
+        let mut new_unions = Vec::new();
+        let mut map_fns_in_scope = Vec::new();
+        match spin_input {
+            RawSpinInput::UnionInScope(u) => unions_in_scope.push(u),
+            RawSpinInput::NewUnion(u) => new_unions.push(u),
+            RawSpinInput::MapFnInScope(f) => map_fns_in_scope.push(f),
+        }
         // now we have parsed `U = p | q | ... r` and did not check for a comma
         while input.peek(syn::Token![,]) {
             // consume the `,` token and parse the next `RawSpinInput`
@@ -65,8 +72,16 @@ impl Parse for RawSpinInputs {
                 break;
             }
             let spin_input: RawSpinInput = input.parse()?;
-            inputs.push(spin_input);
+            match spin_input {
+                RawSpinInput::UnionInScope(u) => unions_in_scope.push(u),
+                RawSpinInput::NewUnion(u) => new_unions.push(u),
+                RawSpinInput::MapFnInScope(f) => map_fns_in_scope.push(f),
+            }
         }
-        Ok(RawSpinInputs(inputs))
+        Ok(RawSpinInputs {
+            unions_in_scope,
+            new_unions,
+            map_fns_in_scope,
+        })
     }
 }

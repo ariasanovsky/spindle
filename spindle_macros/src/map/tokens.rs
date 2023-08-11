@@ -4,8 +4,11 @@ use quote::ToTokens;
 use crate::{case::UpperCamelIdent, map::MapFn, snake_to_camel};
 
 pub(crate) trait MapTokens {
-    fn user_crate_declaration(&self) -> TokenStream;
-    fn user_crate_trait(&self, uuid: &str) -> TokenStream;
+    fn trait_ident(&self) -> Ident;
+    fn mod_ident(&self) -> Ident;
+    fn kernel_ident(&self) -> Ident;
+    fn user_declaration(&self) -> TokenStream;
+    fn user_trait(&self, uuid: &str) -> TokenStream;
     fn ptx_crate_method(&self, u: &UpperCamelIdent) -> TokenStream;
     fn ptx_crate_declaration(&self) -> TokenStream;
     fn ptx_crate_kernel(&self, u: &UpperCamelIdent) -> TokenStream;
@@ -13,17 +16,38 @@ pub(crate) trait MapTokens {
 
 // todo! actually, let's convert the DbMap back into a MapFn outside
 impl MapTokens for MapFn {
-    fn user_crate_declaration(&self) -> TokenStream {
+    fn trait_ident(&self) -> Ident {
+        Ident::new(
+            format!("__{}", snake_to_camel(&self.item_fn.sig.ident.to_string())).as_str(),
+            self.item_fn.sig.ident.span()
+        )
+    }
+    
+    fn mod_ident(&self) -> Ident {
+        Ident::new(
+            format!("__{}", self.item_fn.sig.ident).as_str(),
+            self.item_fn.sig.ident.span()
+        )
+    }
+
+    fn kernel_ident(&self) -> Ident {
+        Ident::new(
+            format!("{}_kernel", self.item_fn.sig.ident).as_str(),
+            self.item_fn.sig.ident.span()
+        )
+    }
+    
+    fn user_declaration(&self) -> TokenStream {
         self.into_token_stream()
     }
 
-    fn user_crate_trait(&self, uuid: &str) -> TokenStream {
-        let dunder_mod_ident = Ident::new(format!("__{}", self.item_fn.sig.ident).as_str(), self.item_fn.sig.ident.span());
+    fn user_trait(&self, uuid: &str) -> TokenStream {
+        let dunder_mod_ident = self.mod_ident();
         dbg!(&dunder_mod_ident);
-        let dunder_camel_trait_ident = Ident::new(format!("__{}", snake_to_camel(&self.item_fn.sig.ident.to_string())).as_str(), self.item_fn.sig.ident.span());
+        let dunder_camel_trait_ident = self.trait_ident();
         dbg!(&dunder_camel_trait_ident);
         let method_ident = &self.item_fn.sig.ident;
-        let kernel_name_string = format!("{}_kernel", self.item_fn.sig.ident);
+        let kernel_name_string = self.kernel_ident().to_string();
         quote::quote! {
             mod #dunder_mod_ident {
                 const __UUID: &str = #uuid;
@@ -47,7 +71,7 @@ impl MapTokens for MapFn {
                     type U;
                     type Return;
                     const PTX_PATH: &'static str;
-                    fn #method_ident(&self, n: u32) -> spindle::Result<Self::Return> {
+                    fn #method_ident(&self, n: i32) -> spindle::Result<Self::Return> {
                         let mut slice: __CudaSlice<Self::U> = self.into();
                         let device: std::sync::Arc<__CudaDevice> = slice.device();
                         let ptx: __Ptx = __Ptx::from_file(Self::PTX_PATH);
@@ -56,7 +80,7 @@ impl MapTokens for MapFn {
                             device.get_function(#kernel_name_string)
                             .ok_or(spindle::Error::FunctionNotFound)?;
                         let config: __LaunchConfig = __LaunchConfig::for_num_elems(n as u32);
-                        unsafe { f.launch(config, (&mut slice, n as i32)) }?;
+                        unsafe { f.launch(config, (&mut slice, n)) }?;
                         Ok(slice.into())
                     }
                 }

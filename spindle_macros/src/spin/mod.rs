@@ -1,13 +1,17 @@
 use spindle_db::TypeDb;
 
-use crate::union::RawSpinInput;
+use crate::union::{RawSpinInput, UnionInScope, NewUnion, MapFnInScope};
 
 mod parse;
 #[cfg(test)]
 mod test;
 
 #[derive(Debug)]
-pub(crate) struct RawSpinInputs(pub Vec<RawSpinInput>);
+pub(crate) struct RawSpinInputs {
+    pub unions_in_scope: Vec<UnionInScope>,
+    pub new_unions: Vec<NewUnion>,
+    pub map_fns_in_scope: Vec<MapFnInScope>,
+}
 
 pub(crate) fn _spin(inputs: RawSpinInputs) -> proc_macro::TokenStream {
     /* `spindle::spin!(U = i32 | f64, V, foo);`
@@ -33,11 +37,11 @@ pub(crate) fn _spin(inputs: RawSpinInputs) -> proc_macro::TokenStream {
     const NAME: &str = "types";
     const HOME: &str = "target/spindle/";
     let db = TypeDb::open_or_create(NAME, HOME).unwrap();
-    let new_unions = inputs.0.iter().map(|input| match input {
-        RawSpinInput::UnionInScope(_) => todo!(),
-        RawSpinInput::NewUnion(_, _) => todo!(),
-        RawSpinInput::MapFnInScope(_) => todo!(),
-    });
+    // let new_unions = inputs.0.iter().map(|input| match input {
+    //     RawSpinInput::UnionInScope(_) => todo!(),
+    //     RawSpinInput::NewUnion(_, _) => todo!(),
+    //     RawSpinInput::MapFnInScope(_) => todo!(),
+    // });
     todo!()
 }
 
