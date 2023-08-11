@@ -70,7 +70,7 @@ fn emit_tokens_from_new_map() {
     };
     assert_eq!(decl.to_string(), decl_2.to_string());
 
-    let map_trait = map_2.user_crate_trait("uuid");
+    let map_trait = map_2.user_crate_trait("foo_uuid");
     let map_trait_2 = quote::quote! {
         mod __foo {
             const __UUID: &str = "foo_uuid";

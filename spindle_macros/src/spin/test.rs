@@ -11,7 +11,7 @@ fn spin_parses_union_in_scope_and_new_and_a_map_in_scope() {
     let spin_inputs: RawSpinInputs = parse_quote!(#input);
     let u = spin_inputs.0.get(0).unwrap();
     let ident = u.ident();
-    assert_eq!(ident.0.to_string(), "U");
+    assert_eq!(ident.to_string(), "U");
     let fields: Vec<String> =
         u
         .fields()
@@ -22,9 +22,12 @@ fn spin_parses_union_in_scope_and_new_and_a_map_in_scope() {
     assert_eq!(fields, vec!["f32", "u64"]);
     let v = spin_inputs.0.get(1).unwrap();
     let ident = v.ident();
-    assert_eq!(ident.0.to_string(), "V");
+    assert_eq!(ident.to_string(), "V");
     let fields = v.fields();
     assert!(fields.is_none());
+    let foo = spin_inputs.0.get(2).unwrap();
+    let ident = foo.ident();
+    assert_eq!(ident.to_string(), "foo");
 }
 
 #[test]

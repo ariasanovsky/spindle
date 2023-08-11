@@ -28,8 +28,8 @@ impl Parse for PrimitiveIdent {
         // then we check that it's lower_snake_case
         let s: String = ident.to_string();
         const PRIMITIVES: &[&str] = &[
-            "bool", "char", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "isize", "str", "u8",
-            "u16", "u32", "u64", "u128", "usize",
+            "bool", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "str", "u8",
+            "u16", "u32", "u64", "u128", // "usize" , "isize", "char",
         ];
         if !PRIMITIVES.contains(&s.as_str()) {
             return Err(syn::Error::new_spanned(

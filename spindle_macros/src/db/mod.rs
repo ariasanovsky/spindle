@@ -39,7 +39,7 @@ impl AsDbUnion for RawSpinInput {
     type Primitive = PrimitiveIdent;
 
     fn db_ident(&self) -> String {
-        self.ident().0.to_string()
+        self.ident().to_string()
     }
 
     fn db_fields(&self) -> Vec<Self::Primitive> {

@@ -30,7 +30,7 @@ pub(crate) fn _spin(inputs: RawSpinInputs) -> proc_macro::TokenStream {
         - kernel in ptx crate on (U, V),
             `... foo_kernel(u_ptr: *mut U, v_ptr: *mut V, n: i32) { ... }`
     */
-    const NAME: &str = "typess";
+    const NAME: &str = "types";
     const HOME: &str = "target/spindle/";
     let db = TypeDb::open_or_create(NAME, HOME).unwrap();
     let new_unions = inputs.0.iter().map(|input| match input {

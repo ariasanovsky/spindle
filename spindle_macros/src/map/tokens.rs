@@ -26,6 +26,7 @@ impl MapTokens for MapFn {
         let kernel_name_string = format!("{}_kernel", self.item_fn.sig.ident);
         quote::quote! {
             mod #dunder_mod_ident {
+                const __UUID: &str = #uuid;
                 use spindle::__cudarc::{
                     CudaDevice as __CudaDevice,
                     CudaFunction as __CudaFunction,

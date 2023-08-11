@@ -10,7 +10,7 @@ fn parse_a_new_union_of_primitives() {
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
     let ident = spin_input.ident();
-    assert_eq!(ident.0.to_string(), "U");
+    assert_eq!(ident.to_string(), "U");
     let fields: Vec<String> =
         spin_input
         .fields()
@@ -28,7 +28,7 @@ fn parse_an_old_union() {
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
     let ident = spin_input.ident();
-    assert_eq!(ident.0.to_string(), "V");
+    assert_eq!(ident.to_string(), "V");
     let fields = spin_input.fields();
     assert!(fields.is_none());
 }
@@ -101,7 +101,7 @@ fn get_an_old_union_from_the_db() {
     */
     let uuid: String = db_union.uuid.clone(); // U::__UUID.to_string()
     dbg!(&uuid);
-    let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, spin_input.ident().0.to_string()).unwrap();
+    let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, spin_input.ident().to_string()).unwrap();
     assert_eq!(db_union, db_uuid_2);
 }
 
