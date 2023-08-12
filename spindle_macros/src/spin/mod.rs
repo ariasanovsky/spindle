@@ -1,6 +1,6 @@
 use spindle_db::TypeDb;
 
-use crate::union::{RawSpinInput, UnionInScope, NewUnion, MapFnInScope};
+use crate::{union::{RawSpinInput, UnionInScope, NewUnion, MapFnInScope}, map::CrateTag};
 
 mod parse;
 #[cfg(test)]
@@ -8,6 +8,7 @@ mod test;
 
 #[derive(Debug)]
 pub(crate) struct RawSpinInputs {
+    pub crate_tag: CrateTag,
     pub unions_in_scope: Vec<UnionInScope>,
     pub new_unions: Vec<NewUnion>,
     pub map_fns_in_scope: Vec<MapFnInScope>,

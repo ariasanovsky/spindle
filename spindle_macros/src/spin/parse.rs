@@ -1,7 +1,7 @@
 use proc_macro2::Ident;
 use syn::parse::Parse;
 
-use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, map::MapFn, union::{MapFnInScope, NewUnion, UnionInScope}};
+use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, map::{MapFn, CrateTag}, union::{MapFnInScope, NewUnion, UnionInScope}};
 
 use super::{RawSpinInput, RawSpinInputs};
 
@@ -53,6 +53,9 @@ impl Parse for RawSpinInput {
 
 impl Parse for RawSpinInputs {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        // we expect exactly one crate tag, followed by a comma
+        let crate_tag: CrateTag = input.parse()?;
+        let _ = input.parse::<syn::Token![,]>()?;
         // we expect at least one comma-separated `RawSpinInput`s
         let spin_input: RawSpinInput = input.parse()?;
         let mut unions_in_scope = Vec::new();
@@ -79,6 +82,7 @@ impl Parse for RawSpinInputs {
             }
         }
         Ok(RawSpinInputs {
+            crate_tag,
             unions_in_scope,
             new_unions,
             map_fns_in_scope,

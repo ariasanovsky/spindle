@@ -2,7 +2,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    ItemFn, PatType, Result, Signature, parse_macro_input,
+    ItemFn, PatType, Result, Signature,
 };
 
 use crate::{
@@ -12,11 +12,20 @@ use crate::{
     regulate::{
         item_fn::RegulateItemFn, pat_type::RegulatePatTypes, return_type::RegulateReturnType,
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
-        EXPECTED_RETURN_PRIMITIVE, UNEXPECTED_ATTRIBUTES,
+        EXPECTED_RETURN_PRIMITIVE,
     },
 };
 
 use super::{MapFn, MapAttrs, CrateTag};
+
+impl Parse for CrateTag {
+    fn parse(input: ParseStream) -> Result<Self> {
+        // # followed by a lower_snake_ident
+        let _ = input.parse::<syn::Token![#]>()?;
+        let ident: LowerSnakeIdent = input.parse()?;
+        Ok(Self(ident))
+    }
+}
 
 impl Parse for MapAttrs {
     fn parse(input: ParseStream) -> Result<Self> {

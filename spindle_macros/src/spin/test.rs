@@ -4,11 +4,14 @@ use syn::parse_quote;
 use crate::{map::MapFn, spin::{RawSpinInput, RawSpinInputs}};
 
 #[test]
-fn spin_parses_union_in_scope_and_new_union_and_map_in_scope() {
+fn spin_parses_crate_tag_and_union_in_scope_and_new_union_and_map_in_scope() {
+    let pound = syn::token::Pound::default();
     let input = quote::quote! {
-        U = f32 | u64, V, foo,
+        #pound example, U = f32 | u64, V, foo,
     };
     let spin_inputs: RawSpinInputs = parse_quote!(#input);
+    let crate_tag = &spin_inputs.crate_tag;
+    assert_eq!(&crate_tag.0.0.to_string(), "example");
     let u = spin_inputs.new_unions.get(0).unwrap();
     assert_eq!(&u.0.0.to_string(), "U");
     let fields: Vec<String> = u.1
@@ -53,8 +56,9 @@ fn spin_gets_existing_map_from_db() {
     }
 
     // we will also parse and add a union to the db
+    let pound = syn::token::Pound::default();
     let spin_input = quote::quote! {
-        U = f32 | u64, foo
+        #pound example, U = f32 | u64, foo
     };
     let spin_input: RawSpinInputs = parse_quote!(#spin_input);
     let u = spin_input.new_unions.get(0).unwrap();

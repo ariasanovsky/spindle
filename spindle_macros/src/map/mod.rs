@@ -28,7 +28,7 @@ pub(crate) struct MapAttrs {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct CrateTag(LowerSnakeIdent);
+pub(crate) struct CrateTag(pub LowerSnakeIdent);
 
 impl PartialEq for MapFn {
     fn eq(&self, other: &Self) -> bool {
