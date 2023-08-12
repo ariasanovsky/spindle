@@ -1,4 +1,4 @@
-use crate::{DbResult, TypeDb};
+use crate::{DbResult, TypeDb, tag::AsDbTag};
 
 use super::DbMap;
 
@@ -37,3 +37,14 @@ impl Iterator for MapIter {
         self.maps.pop()
     }
 }
+
+// impl TypeDb {
+//     pub fn maps_from_tag<T: AsDbTag>(&self, tag: T) -> DbResult<Vec<DbMap>> {
+//         let mut stmt = self.conn.prepare("SELECT uuid FROM maps WHERE content = ?")?;
+//         let uuids = stmt.query_map([tag.db_tag()], |row| row.get(0))?;
+//         uuids.map(|uuid| {
+//             let uuid: String = uuid?;
+//             self.get_map_from_uuid(uuid)
+//         }).collect::<DbResult<_>>()
+//     }
+// }

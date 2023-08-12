@@ -58,9 +58,6 @@ const _SELECT_UNION_FIELDS: &str = "
 
 impl TypeDb {
     pub fn get_or_insert_union<U: AsDbUnion, T: AsDbTag>(&self, union: &U, tags: &Vec<T>) -> DbResult<DbUnion> {
-        if !tags.is_empty() {
-            todo!()
-        }
         let ident = union.db_ident();
         // dbg!(&ident);
         let fields = union.db_fields();
@@ -71,7 +68,10 @@ impl TypeDb {
         // dbg!(&fields);
         let uuid = self.get_union_uuid(&ident, &fields)?;
         // todo! unwrap_or* is more idiomatic
-        Ok(if let Some(uuid) = uuid {
+        if !tags.is_empty() {
+            todo!()
+        }
+        let db_union = if let Some(uuid) = uuid {
             // dbg!(&uuid);
             DbUnion {
                 uuid,
@@ -83,7 +83,8 @@ impl TypeDb {
             // dbg!(&union);
             self.insert_union(&union)?;
             union
-        })
+        };
+        Ok(db_union)
     }
 
     // todo! ?seems buggy, this whole module needs a rewrite

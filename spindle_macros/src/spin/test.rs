@@ -1,7 +1,7 @@
-use spindle_db::{TypeDb, union::DbUnion};
+use spindle_db::TypeDb;
 use syn::parse_quote;
 
-use crate::{map::MapFn, spin::{RawSpinInput, RawSpinInputs}};
+use crate::{map::MapFn, spin::RawSpinInputs};
 
 #[test]
 fn spin_parses_crate_tag_and_union_in_scope_and_new_union_and_map_in_scope() {
@@ -29,6 +29,7 @@ fn spin_parses_crate_tag_and_union_in_scope_and_new_union_and_map_in_scope() {
     assert_eq!(ident.to_string(), "foo");
 }
 
+#[allow(unused)]
 #[test]
 fn spin_gets_existing_map_from_db() {
     // connect to database

@@ -1,7 +1,7 @@
 use proc_macro2::Ident;
 use syn::parse::Parse;
 
-use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, map::{MapFn, CrateTag}, union::{MapFnInScope, NewUnion, UnionInScope}};
+use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, map::CrateTag, union::{MapFnInScope, NewUnion, UnionInScope}};
 
 use super::{RawSpinInput, RawSpinInputs};
 

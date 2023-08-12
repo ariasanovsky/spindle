@@ -11,6 +11,7 @@ mod test;
 #[derive(Clone, Debug, Eq)]
 pub struct DbMap {
     pub uuid: String,
+    pub ident: String,
     pub content: String,
     pub in_outs: Vec<DbInOut>,
 }
@@ -28,10 +29,11 @@ impl PartialEq for DbMap {
 }
 
 impl DbMap {
-    pub(crate) fn new(ident: String, in_outs: Vec<DbInOut>) -> Self {
+    pub(crate) fn new(ident: String, content: String, in_outs: Vec<DbInOut>) -> Self {
         Self {
             uuid: TypeDb::new_uuid(),
-            content: ident,
+            ident,
+            content,
             in_outs,
         }
     }
@@ -44,6 +46,7 @@ pub trait AsDbInOut {
 
 pub trait AsDbMap {
     type InOut: AsDbInOut;
+    fn db_ident(&self) -> String;
     fn db_content(&self) -> String;
     fn db_inout_pairs(&self) -> Vec<Self::InOut>;
 }
@@ -61,12 +64,17 @@ impl TypeDb {
     }
 
     pub(crate) fn get_map_from_uuid(&self, uuid: String) -> DbResult<DbMap> {
-        let mut stmt = self.conn.prepare("SELECT ident FROM maps WHERE uuid = ?")?;
-        let ident: String = stmt.query_row([&uuid], |row| row.get(0))?;
+        let mut stmt = self.conn.prepare("SELECT ident, content FROM maps WHERE uuid = ?")?;
+        let (ident, content): (String, String) = stmt.query_row([&uuid], |row| {
+            let ident: String = row.get(0)?;
+            let content: String = row.get(1)?;
+            Ok((ident, content))
+        })?;
         let in_outs = self.get_in_outs_from_uuid(&uuid)?;
         Ok(DbMap {
             uuid,
-            content: ident,
+            ident,
+            content,
             in_outs,
         })
     }
@@ -113,9 +121,7 @@ impl TypeDb {
 
     // todo! put all your code into 1 function with this neat trick doctors don't want you to know
     pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(&self, map: &M, tags: &Vec<T>) -> DbResult<DbMap> {
-        if !tags.is_empty() {
-            todo!()
-        }
+        let ident = map.db_ident();
         let content = map.db_content();
         dbg!(&content);
         let in_outs = self.get_or_insert_in_outs(map.db_inout_pairs())?;
@@ -171,6 +177,7 @@ impl TypeDb {
 
                 let map = DbMap {
                     uuid,
+                    ident: ident.clone(),
                     content: content.clone(),
                     in_outs,
                 };
@@ -186,13 +193,15 @@ impl TypeDb {
             "more than one map with the same ident and in_outs"
         );
         // todo! unwrap_or*
-        Ok(if let Some(map) = maps.into_iter().next() {
+        let map = if let Some(map) = maps.into_iter().next() {
             map
         } else {
-            let map = DbMap::new(content.clone(), in_outs);
+            let map = DbMap::new(ident.clone(), content.clone(), in_outs);
             self.insert_map(&map)?;
             map
-        })
+        };
+        self.tag_map(&map, tags)?;
+        Ok(map)
     }
 
     fn get_or_insert_in_outs<InOut: AsDbInOut>(

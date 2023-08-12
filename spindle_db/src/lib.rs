@@ -21,6 +21,7 @@ pub(crate) const _LIFTS: &str = "lifts";
 pub(crate) const _LIFT_ENTRIES: &str = "lift_entries";
 pub(crate) const _MAPS: &str = "maps";
 pub(crate) const _PRIMITIVES: &str = "primitives";
+pub(crate) const _TAGS: &str = "tags";
 pub(crate) const _UNIONS: &str = "unions";
 pub(crate) const _UNION_FIELDS: &str = "union_fields"; // todo! ?leaving space for non-primitive fields
                                                        // const PROJECT: &str = "types";

@@ -1,4 +1,4 @@
-use crate::{DbResult, TypeDb};
+use crate::{DbResult, TypeDb, _TAGS};
 
 impl TypeDb {
     fn new_crates_test_db(test_name: &str) -> DbResult<TypeDb> {
@@ -8,6 +8,7 @@ impl TypeDb {
         db.create_new_union_tables()?;
         db.create_new_map_tables()?;
         db.create_new_crate_tables()?;
+        // db.create_new_tag_table()?;
         Ok(db)
     }
 }
@@ -33,6 +34,7 @@ fn spindle_crate_new_db_has_correct_table_names() {
             _LIFTS.to_string(),
             _MAPS.to_string(),
             _PRIMITIVES.to_string(),
+            _TAGS.to_string(),
             _UNION_FIELDS.to_string(),
             _UNIONS.to_string(),
         ]
@@ -49,10 +51,11 @@ fn can_form_a_crate_from_unions() {
     let v = db.get_or_insert_union(&("V", vec!["f32", "u64"]), &tags).unwrap();
     assert_eq!(db._get_unions().unwrap().len(), 2);
     let m = db
-        .get_or_insert_map(&("pub fn foo(u64) -> f32;", vec![(Some("u64"), Some("f32"))]), &tags)
+        .get_or_insert_map(&("foo", "pub fn foo(u64) -> f32;", vec![(Some("u64"), Some("f32"))]), &tags)
         .unwrap();
     let n = db
         .get_or_insert_map(&(
+            "bar",
             "pub fn bar(f32, u64) -> (f32, ());",
             vec![(Some("f32"), Some("f32")), (Some("u64"), None)],
         ), &tags)
@@ -66,7 +69,7 @@ fn can_form_a_crate_from_unions() {
     // assert_eq!(d.lifters.len(), 1);
     let p = db
         .get_or_insert_map(&(
-            "pub fn baz(f32, u64) -> ((), f32);",
+            "baz", "pub fn baz(f32, u64) -> ((), f32);",
             vec![(Some("f32"), None), (Some("u64"), Some("f32"))],
         ), &tags)
         .unwrap();
