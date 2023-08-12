@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 
-use crate::{error::NaivelyTokenize, MapAttrs, TokenResult};
+use crate::{error::NaivelyTokenize, TokenResult, case::LowerSnakeIdent};
 
 use in_out::InOut;
 
@@ -21,6 +21,14 @@ pub(crate) struct MapFn {
     pub(crate) item_fn: syn::ItemFn,
     pub(crate) in_outs: Vec<InOut>,
 }
+
+#[derive(Clone, Debug)]
+pub(crate) struct MapAttrs {
+    pub tags: Vec<CrateTag>,
+}
+
+#[derive(Clone, Debug)]
+pub(crate) struct CrateTag(LowerSnakeIdent);
 
 impl PartialEq for MapFn {
     fn eq(&self, other: &Self) -> bool {

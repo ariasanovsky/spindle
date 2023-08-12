@@ -1,6 +1,6 @@
 use crate::{
     primitive::{AsDbPrimitive, DbPrimitive},
-    DbResult, TypeDb,
+    DbResult, TypeDb, tag::AsDbTag,
 };
 
 #[cfg(test)]
@@ -57,7 +57,10 @@ const _SELECT_UNION_FIELDS: &str = "
 ";
 
 impl TypeDb {
-    pub fn get_or_insert_union<U: AsDbUnion>(&self, union: &U) -> DbResult<DbUnion> {
+    pub fn get_or_insert_union<U: AsDbUnion, T: AsDbTag>(&self, union: &U, tags: &Vec<T>) -> DbResult<DbUnion> {
+        if !tags.is_empty() {
+            todo!()
+        }
         let ident = union.db_ident();
         // dbg!(&ident);
         let fields = union.db_fields();

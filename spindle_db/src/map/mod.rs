@@ -1,6 +1,6 @@
 use crate::{
     primitive::{AsDbPrimitive, DbPrimitive},
-    DbResult, TypeDb,
+    DbResult, TypeDb, tag::AsDbTag,
 };
 
 pub mod iter;
@@ -112,7 +112,10 @@ impl TypeDb {
     }
 
     // todo! put all your code into 1 function with this neat trick doctors don't want you to know
-    pub fn get_or_insert_map<M: AsDbMap>(&self, map: &M) -> DbResult<DbMap> {
+    pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(&self, map: &M, tags: &Vec<T>) -> DbResult<DbMap> {
+        if !tags.is_empty() {
+            todo!()
+        }
         let content = map.db_content();
         dbg!(&content);
         let in_outs = self.get_or_insert_in_outs(map.db_inout_pairs())?;

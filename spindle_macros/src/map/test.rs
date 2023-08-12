@@ -1,10 +1,11 @@
 use proc_macro2::{TokenStream, Ident, Span};
-use spindle_db::{TypeDb, map::DbMap};
+use spindle_db::{TypeDb, map::DbMap, tag::AsDbTag};
 use syn::parse_quote;
 
 use crate::{map::{MapFn, tokens::MapTokens}, case::UpperCamelIdent};
 
-// this works once, then not a 2nd time
+use super::MapAttrs;
+
 #[test]
 #[allow(unused)]
 fn add_univariate_pure_function_to_db() {
@@ -32,7 +33,8 @@ fn add_univariate_pure_function_to_db() {
     dbg!(&map);
     let map: MapFn = parse_quote!(#map);
     dbg!(&map);
-    let map = db.get_or_insert_map(&map).unwrap();
+    let tags: Vec<&str> = Vec::new();
+    let map = db.get_or_insert_map(&map, &tags).unwrap();
 
     let maps = db.map_iter().unwrap();
     maps.for_each(|map| {
@@ -56,8 +58,11 @@ fn emit_tokens_from_new_map() {
             x as f64
         }
     };
+
+    let tags: Vec<&str> = vec![];
+
     let map: MapFn = parse_quote!(#map);
-    let db_map: DbMap = db.get_or_insert_map(&map).unwrap();
+    let db_map: DbMap = db.get_or_insert_map(&map, &tags).unwrap();
     dbg!(&db_map);
     let map_2: MapFn = syn::parse_str::<MapFn>(&db_map.content).unwrap();
     assert_eq!(map, map_2);
@@ -154,4 +159,26 @@ fn emit_tokens_from_new_map() {
         }
     };
     assert_eq!(crate_decl.to_string(), crate_decl_2.to_string());
+}
+
+#[test]
+fn parse_tags_from_map_macro_attrs() {
+    /* we want the user to be able to write
+        #[spindle::map(#example, #other)]
+        fn foo(x: i32) -> f64 {
+            x as f64
+        }
+    and associate the tags to the MapFn
+    */
+    let pound = syn::token::Pound::default();
+    let input = quote::quote! {
+        #pound example, #pound other
+    };
+    dbg!(input.to_string());
+    let output: MapAttrs = parse_quote! { #input };
+    let example = output.tags.get(0).unwrap();
+    assert_eq!(example.0.0.to_string(), "example");
+    let other = output.tags.get(1).unwrap();
+    assert_eq!(other.0.0.to_string(), "other");
+    assert!(output.tags.get(2).is_none());
 }

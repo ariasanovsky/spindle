@@ -52,20 +52,22 @@ fn maps_new_db_has_correct_table_names() {
 #[test]
 #[allow(unused)]
 fn maps_are_inserted_uniquely() {
+    let tags: Vec<&str> = vec![];
+
     let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![]);
     dbg!(db.get_maps().unwrap());
     let m = db
-        .get_or_insert_map(&("pub fn foo(...)", vec![(Some("f32"), Some("f32"))]))
+        .get_or_insert_map(&("pub fn foo(...)", vec![(Some("f32"), Some("f32"))]), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
     let n = db
-        .get_or_insert_map(&("pub fn foo(...)", vec![(Some("f32"), Some("f32"))]))
+        .get_or_insert_map(&("pub fn foo(...)", vec![(Some("f32"), Some("f32"))]), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
     assert_eq!(m, n);
     let o = db
-        .get_or_insert_map(&("unsafe fn bar(...)", vec![(Some("f32"), Some("f32"))]))
+        .get_or_insert_map(&("unsafe fn bar(...)", vec![(Some("f32"), Some("f32"))]), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 2);
     assert_ne!(m, o);
@@ -73,12 +75,12 @@ fn maps_are_inserted_uniquely() {
         .get_or_insert_map(&(
             "pub fn foo(...)",
             vec![(Some("f32"), Some("f32")), (Some("u64"), Some("u64"))],
-        ))
+        ), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 3);
     // insert a previous element
     let q = db
-        .get_or_insert_map(&("pub fn foo(...)", vec![(Some("f32"), Some("f32"))]))
+        .get_or_insert_map(&("pub fn foo(...)", vec![(Some("f32"), Some("f32"))]), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 3);
     // and make sure to test `None` examples, too
@@ -86,7 +88,7 @@ fn maps_are_inserted_uniquely() {
         .get_or_insert_map(&(
             "pub fn foo(...)",
             vec![(Some("f32"), Some("f32")), (None, Some("u64"))],
-        ))
+        ), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 4);
     assert_ne!(m, r);
@@ -95,7 +97,7 @@ fn maps_are_inserted_uniquely() {
         .get_or_insert_map(&(
             "pub fn foo(...)",
             vec![(Some("f32"), Some("f32")), (None, Some("u64"))],
-        ))
+        ), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 4);
 }

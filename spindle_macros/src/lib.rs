@@ -1,5 +1,5 @@
 use basic_range::emit_range_kernel;
-use map::{serialize_map, MapFn};
+use map::{serialize_map, MapFn, MapAttrs};
 use proc_macro2::TokenStream;
 use serde::{Deserialize, Serialize};
 use spin::{RawSpinInputs, _spin};
@@ -25,9 +25,6 @@ type TokenResult = Result<TokenStream, TokenStream>;
 
 #[derive(Clone)]
 struct BasicRangeAttrs;
-
-#[derive(Clone)]
-struct MapAttrs;
 
 #[derive(Clone)]
 struct BasicRangeFn(syn::ItemFn);

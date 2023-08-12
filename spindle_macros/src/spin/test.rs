@@ -41,9 +41,11 @@ fn spin_gets_existing_map_from_db() {
         }
     };
 
+    let tags: Vec<&str> = vec![];
+
     let map: MapFn = parse_quote!(#map);
     dbg!(&map);
-    let db_map = db.get_or_insert_map(&map).unwrap();
+    let db_map = db.get_or_insert_map(&map, &tags).unwrap();
     dbg!(&db_map);
     // after the parse and insert, we also write the trait module which also contains the uuid
     mod __foo {

@@ -7,6 +7,7 @@ pub mod map;
 pub mod primitive;
 pub mod spindle_crate;
 pub mod tables;
+pub mod tag;
 pub mod union;
 
 pub(crate) const _DEFAULT_HOME: &str = "target/spindle/db/";

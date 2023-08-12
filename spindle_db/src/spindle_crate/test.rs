@@ -42,18 +42,20 @@ fn spindle_crate_new_db_has_correct_table_names() {
 #[test]
 #[allow(unused)]
 fn can_form_a_crate_from_unions() {
+    let tags: Vec<&str> = vec![];
+
     let db = TypeDb::new_crates_test_db("can_form_a_crate_from_unions").unwrap();
-    let u = db.get_or_insert_union(&("U", vec!["f32"])).unwrap();
-    let v = db.get_or_insert_union(&("V", vec!["f32", "u64"])).unwrap();
+    let u = db.get_or_insert_union(&("U", vec!["f32"]), &tags).unwrap();
+    let v = db.get_or_insert_union(&("V", vec!["f32", "u64"]), &tags).unwrap();
     assert_eq!(db._get_unions().unwrap().len(), 2);
     let m = db
-        .get_or_insert_map(&("pub fn foo(u64) -> f32;", vec![(Some("u64"), Some("f32"))]))
+        .get_or_insert_map(&("pub fn foo(u64) -> f32;", vec![(Some("u64"), Some("f32"))]), &tags)
         .unwrap();
     let n = db
         .get_or_insert_map(&(
             "pub fn bar(f32, u64) -> (f32, ());",
             vec![(Some("f32"), Some("f32")), (Some("u64"), None)],
-        ))
+        ), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 2);
     // let c = db.get_or_insert_crate_from_unions(vec![u.clone()]).unwrap();
@@ -66,7 +68,7 @@ fn can_form_a_crate_from_unions() {
         .get_or_insert_map(&(
             "pub fn baz(f32, u64) -> ((), f32);",
             vec![(Some("f32"), None), (Some("u64"), Some("f32"))],
-        ))
+        ), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 3);
 

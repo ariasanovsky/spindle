@@ -2,7 +2,7 @@ use syn::parse::Parse;
 
 use crate::camel_word;
 
-use super::{UpperCamelIdent, PrimitiveIdent};
+use super::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent};
 
 impl Parse for UpperCamelIdent {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
@@ -38,5 +38,22 @@ impl Parse for PrimitiveIdent {
             ));
         }
         Ok(PrimitiveIdent(ident))
+    }
+}
+
+impl Parse for LowerSnakeIdent {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        // first we parse as an `Ident`
+        let ident: syn::Ident = input.parse()?;
+        // then we check that it's lower_snake_case
+        let s: String = ident.to_string();
+        let snake = s.to_lowercase();
+        if s != snake {
+            return Err(syn::Error::new_spanned(
+                ident,
+                format!("expected lower_snake_case, found {s}"),
+            ));
+        }
+        Ok(LowerSnakeIdent(ident))
     }
 }

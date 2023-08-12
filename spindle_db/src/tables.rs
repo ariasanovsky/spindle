@@ -23,6 +23,7 @@ const CREATE_UNIONS: &str = "
     uuid TEXT PRIMARY KEY,
     ident TEXT NOT NULL             -- not a unique identifier (there may be multiple unions `U`)
 )";
+
 const CREATE_JUNCTION: &str = "
     CREATE TABLE union_fields (
     union_uuid TEXT NOT NULL,
@@ -83,6 +84,33 @@ const CREATE_CRATE_UNIONS: &str = "
     PRIMARY KEY (crate_uuid, pos)    -- each crate has at most one associated union
 )";
 
+const CREATE_TAGS: &str = "
+    CREATE TABLE tags (
+    tag TEXT PRIMARY KEY,
+)";
+
+const CREAT_UNION_TAGS: &str = "
+    CREATE TABLE union_tags (
+    union_uuid TEXT NOT NULL,
+    union_ident TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    FOREIGN KEY (union_uuid) REFERENCES unions (uuid),
+    FOREIGN KEY (union_ident) REFERENCES unions (ident),
+    FOREIGN KEY (tag) REFERENCES tags (tag),
+    PRIMARY KEY (union_ident, tag)
+)";
+
+const CREATE_MAP_TAGS: &str = "
+    CREATE TABLE map_tags (
+    map_uuid TEXT NOT NULL,
+    map_ident TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    FOREIGN KEY (map_uuid) REFERENCES maps (uuid),
+    FOREIGN KEY (map_ident) REFERENCES maps (ident),
+    FOREIGN KEY (tag) REFERENCES tags (tag),
+    PRIMARY KEY (map_ident, tag)
+)"; 
+
 // caconst DROP: &str = "DROP TABLE IF EXISTS ?";
 const DROP_PRIMITIVES: &str = "DROP TABLE IF EXISTS primitives";
 const DROP_UNIONS: &str = "DROP TABLE IF EXISTS unions";
@@ -94,6 +122,7 @@ const DROP_LIFTS: &str = "DROP TABLE IF EXISTS lifts";
 const DROP_LIFT_ENTRIES: &str = "DROP TABLE IF EXISTS lift_entries";
 const DROP_LIFT_CRATES: &str = "DROP TABLE IF EXISTS lift_crates";
 const DROP_CRATE_UNIONS: &str = "DROP TABLE IF EXISTS crate_unions";
+const DROP_TAGS: &str = "DROP TABLE IF EXISTS tags";
 
 impl TypeDb {
     pub(crate) fn create_tables(&self) -> DbResult<()> {

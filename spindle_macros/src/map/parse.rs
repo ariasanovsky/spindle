@@ -2,7 +2,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    ItemFn, PatType, Result, Signature,
+    ItemFn, PatType, Result, Signature, parse_macro_input,
 };
 
 use crate::{
@@ -14,18 +14,38 @@ use crate::{
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
         EXPECTED_RETURN_PRIMITIVE, UNEXPECTED_ATTRIBUTES,
     },
-    MapAttrs,
 };
 
-use super::MapFn;
+use super::{MapFn, MapAttrs, CrateTag};
 
 impl Parse for MapAttrs {
     fn parse(input: ParseStream) -> Result<Self> {
+        // supported attrs:
+        // - tags: `#example` -> CrateTag(LowerSnakeIdent)
+        // for now, attrs are separated by commas
+        // 0 attrs is allowed
+
+        // recursively look for the # token followed by a lower snake ident
+        let mut tags = Vec::new();
         if input.is_empty() {
-            Ok(Self)
-        } else {
-            Err(input.error(UNEXPECTED_ATTRIBUTES))
+            return Ok(Self { tags });
         }
+        loop {
+            dbg!(input.to_string());
+            let _ = input.parse::<syn::Token![#]>()?;
+            dbg!(input.to_string());
+            let ident: LowerSnakeIdent = input.parse()?;
+            dbg!(input.to_string());
+            tags.push(CrateTag(ident));
+            dbg!(input.to_string());
+            // if the input is noempty, we expect a comma
+            if !input.is_empty() {
+                let _ = input.parse::<syn::Token![,]>()?;
+            } else {
+                break;
+            }
+        }
+        Ok(Self { tags })
     }
 }
 

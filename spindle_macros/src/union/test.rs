@@ -43,14 +43,15 @@ fn insert_a_new_union_to_the_db() {
     const DB_NAME: &str = "insert_a_new_union_to_the_db";
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
-    
+    let tags: Vec<&str> = vec![];
+
     // parse a union & insert it into the db
     let input = quote::quote! {
         U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
     let spin_input = spin_input.new_union().unwrap();
-    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input, &tags).unwrap();
     dbg!(&db_union);
 }
 
@@ -61,6 +62,8 @@ fn get_an_old_union_from_the_db() {
     const DB_NAME: &str = "get_an_old_union_from_the_db";
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
+
+    let tags: Vec<&str> = vec![];
     
     // parse a union & insert it into the db
     let input = quote::quote! {
@@ -68,7 +71,7 @@ fn get_an_old_union_from_the_db() {
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
     let spin_input = spin_input.new_union().unwrap();
-    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input, &tags).unwrap();
 
     struct U;
     trait DbUuid {
@@ -121,9 +124,12 @@ fn emit_tokens_from_new_union() {
     let input = quote::quote! {
         U = f32 | u64
     };
+
+    let tags: Vec<&str> = vec![];
+    
     let spin_input: RawSpinInput = parse_quote!(#input);
     let spin_input = spin_input.new_union().unwrap();
-    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input, &tags).unwrap();
     dbg!(&db_union);
     let decl = db_union.declaration();
     let decl_2 = quote::quote! {
