@@ -4,7 +4,7 @@ fn _i32_to_f64(x: i32) -> f64 {
 }
 
 fn main() -> spindle::Result<()> {
-    spindle::spin!(U = i32 | f64);
+    spindle::spin!(#example_1, U = i32 | f64);
     let nums: Vec<i32> = (0..10).collect();
     let spindle: spindle::DevSpindle<U, i32> = nums.try_into()?;
     let spindle: spindle::DevSpindle<U, f64> = unsafe { spindle.i32_to_f64() }?;

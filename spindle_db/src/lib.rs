@@ -22,6 +22,8 @@ pub(crate) const _LIFT_ENTRIES: &str = "lift_entries";
 pub(crate) const _MAPS: &str = "maps";
 pub(crate) const _PRIMITIVES: &str = "primitives";
 pub(crate) const _TAGS: &str = "tags";
+pub(crate) const _UNION_TAGS: &str = "union_tags";
+pub(crate) const _MAP_TAGS: &str = "map_tags";
 pub(crate) const _UNIONS: &str = "unions";
 pub(crate) const _UNION_FIELDS: &str = "union_fields"; // todo! ?leaving space for non-primitive fields
                                                        // const PROJECT: &str = "types";
@@ -37,7 +39,6 @@ impl TypeDb {
         name: &str,
         home: P,
     ) -> DbResult<Self> {
-        dbg!();
         Self::open(name, &home).unwrap_or(Self::create(&home, name))
     }
 
@@ -85,14 +86,12 @@ impl TypeDb {
         home: &P,
         name: &str,
     ) -> DbResult<Self> {
-        dbg!();
         // create the home directory
         let home = PathBuf::from(home);
         std::fs::create_dir_all(&home).expect("could not create home directory");
         let db = home.join(name).with_extension(DB);
         // create an empty file
         std::fs::File::create(&db).expect("could not create db file");
-        dbg!(&db);
         let db = Connection::open(db).map(|conn| Self { conn })?;
         // create the tables
         db.create_tables()?;
@@ -102,9 +101,7 @@ impl TypeDb {
 
 impl TypeDb {
     pub(crate) fn _new_test_db(test_name: &str) -> DbResult<Self> {
-        dbg!();
         let path = PathBuf::from(_DEFAULT_HOME).join(_TEST);
-        dbg!(&path);
         TypeDb::open_or_create(test_name, path)
     }
 }

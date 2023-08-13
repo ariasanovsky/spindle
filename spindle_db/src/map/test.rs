@@ -1,4 +1,4 @@
-use crate::{DbResult, TypeDb, _TAGS};
+use crate::{DbResult, TypeDb, _TAGS, _MAP_TAGS};
 
 impl TypeDb {
     fn new_maps_test_db(test_name: &str) -> DbResult<TypeDb> {
@@ -49,6 +49,7 @@ fn maps_new_db_has_correct_table_names() {
         &names,
         &[
             _IN_OUTS.to_string(),
+            _MAP_TAGS.to_string(),
             _MAPS.to_string(),
             _PRIMITIVES.to_string(),
             _TAGS.to_string(),
@@ -63,8 +64,7 @@ fn maps_are_inserted_uniquely() {
 
     let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![]);
-    dbg!(db.get_maps().unwrap());
-    let m = db
+    let m: crate::map::DbMap = db
         .get_or_insert_map(&("foo", "pub fn foo(...)", vec![(Some("f32"), Some("f32"))]), &tags)
         .unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
@@ -73,6 +73,7 @@ fn maps_are_inserted_uniquely() {
         .unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
     assert_eq!(m, n);
+    panic!();
     let o = db
         .get_or_insert_map(&("bar", "unsafe fn bar(...)", vec![(Some("f32"), Some("f32"))]), &tags)
         .unwrap();

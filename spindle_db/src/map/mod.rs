@@ -123,14 +123,11 @@ impl TypeDb {
     pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(&self, map: &M, tags: &Vec<T>) -> DbResult<DbMap> {
         let ident = map.db_ident();
         let content = map.db_content();
-        dbg!(&content);
         let in_outs = self.get_or_insert_in_outs(map.db_inout_pairs())?;
-        dbg!();
         let mut statement = self.conn.prepare("SELECT uuid FROM maps WHERE ident = ?")?;
         let uuids = statement.query_map([&content], |row| row.get::<_, String>(0))?;
         // todo! `filter`
         let uuids: Vec<String> = uuids.collect::<Result<_, _>>()?;
-        dbg!(&uuids);
         let mut maps: Vec<DbMap> = uuids
             .into_iter()
             .map(|uuid| {
@@ -184,9 +181,7 @@ impl TypeDb {
                 Ok(map)
             })
             .collect::<DbResult<_>>()?;
-        dbg!(&maps);
         maps.retain(|map| map.in_outs == in_outs);
-
         // todo! crashes on fatal error, db malformed
         assert!(
             maps.len() <= 1,
@@ -194,6 +189,7 @@ impl TypeDb {
         );
         // todo! unwrap_or*
         let map = if let Some(map) = maps.into_iter().next() {
+            dbg!(&map);
             map
         } else {
             let map = DbMap::new(ident.clone(), content.clone(), in_outs);
@@ -208,12 +204,10 @@ impl TypeDb {
         &self,
         in_outs: Vec<InOut>,
     ) -> DbResult<Vec<DbInOut>> {
-        dbg!();
         in_outs
             .into_iter()
             .map(|in_out| in_out.db_inout())
             .map(|in_out| {
-                dbg!();
                 let input = in_out
                     .0
                     .map(|input| self.get_or_insert_primitive(&input))
@@ -234,13 +228,12 @@ impl TypeDb {
     pub(crate) fn insert_map(&self, map: &DbMap) -> DbResult<()> {
         let mut statement = self
             .conn
-            .prepare("INSERT INTO maps (uuid, ident) VALUES (?, ?)")?;
-        statement.execute([map.uuid.clone(), map.content.clone()])?;
+            .prepare("INSERT INTO maps (uuid, ident, content) VALUES (?, ?, ?)")?;
+        let _: usize = statement.execute([map.uuid.clone(), map.ident.clone(), map.content.clone()])?;
         let mut statement = self.conn.prepare(
             "INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)",
         )?;
         for (i, in_out) in map.in_outs.iter().enumerate() {
-            dbg!();
             let input_uuid = in_out.input.as_ref().map(|x| x.uuid.clone());
             let output_uuid = in_out.output.as_ref().map(|x| x.uuid.clone());
             // let input_uuid = input.as_ref().map(|x| x.uuid.clone());

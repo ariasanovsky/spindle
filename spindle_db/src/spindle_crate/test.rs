@@ -1,4 +1,4 @@
-use crate::{DbResult, TypeDb, _TAGS};
+use crate::{DbResult, TypeDb, _TAGS, _MAP_TAGS, _UNION_TAGS};
 
 impl TypeDb {
     fn new_crates_test_db(test_name: &str) -> DbResult<TypeDb> {
@@ -7,8 +7,14 @@ impl TypeDb {
         db.create_new_primitive_table()?;
         db.create_new_union_tables()?;
         db.create_new_map_tables()?;
+        dbg!(db.table_names()?);
         db.create_new_crate_tables()?;
-        // db.create_new_tag_table()?;
+        db.create_new_tag_table()?;
+        dbg!(db.table_names()?);
+        db.create_new_map_tag_table()?;
+        dbg!(db.table_names()?);
+        db.create_new_union_tag_table()?;
+        dbg!(db.table_names()?);
         Ok(db)
     }
 }
@@ -32,10 +38,12 @@ fn spindle_crate_new_db_has_correct_table_names() {
             _LIFT_CRATES.to_string(),
             _LIFT_ENTRIES.to_string(),
             _LIFTS.to_string(),
+            _MAP_TAGS.to_string(),
             _MAPS.to_string(),
             _PRIMITIVES.to_string(),
             _TAGS.to_string(),
             _UNION_FIELDS.to_string(),
+            _UNION_TAGS.to_string(),
             _UNIONS.to_string(),
         ]
     );

@@ -1,4 +1,4 @@
-use crate::{DbResult, TypeDb, tag::AsDbTag};
+use crate::{DbResult, TypeDb};
 
 use super::DbMap;
 

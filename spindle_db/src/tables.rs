@@ -3,7 +3,8 @@ use crate::{DbResult, TypeDb};
 const CREATE_MAPS: &str = "
     CREATE TABLE maps (
     uuid TEXT PRIMARY KEY,
-    ident TEXT NOT NULL         -- not a unique identifier
+    ident TEXT NOT NULL,        -- not a unique identifier
+    content TEXT NOT NULL       -- todo! ?what uniqueness do we want here
 )";
 
 const CREATE_IN_OUTS: &str = "
@@ -103,12 +104,10 @@ const CREATE_UNION_TAGS: &str = "
 const CREATE_MAP_TAGS: &str = "
     CREATE TABLE map_tags (
     map_uuid TEXT NOT NULL,
-    map_ident TEXT NOT NULL,
     tag TEXT NOT NULL,
     FOREIGN KEY (map_uuid) REFERENCES maps (uuid),
-    FOREIGN KEY (map_ident) REFERENCES maps (ident),
     FOREIGN KEY (tag) REFERENCES tags (tag),
-    PRIMARY KEY (map_ident, tag)
+    PRIMARY KEY (map_uuid, tag)
 )"; 
 
 // caconst DROP: &str = "DROP TABLE IF EXISTS ?";
@@ -248,7 +247,7 @@ impl TypeDb {
     }
 
     pub(crate) fn drop_union_tag_table(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute(CREATE_UNION_TAGS, [])?;
+        let _: usize = self.conn.execute(DROP_UNION_TAGS, [])?;
         Ok(())
     }
 }
