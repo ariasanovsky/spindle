@@ -176,9 +176,9 @@ fn parse_tags_from_map_macro_attrs() {
     };
     dbg!(input.to_string());
     let output: MapAttrs = parse_quote! { #input };
-    let example = output.tags.get(0).unwrap();
+    let example = output._tags.get(0).unwrap();
     assert_eq!(example.0.0.to_string(), "example");
-    let other = output.tags.get(1).unwrap();
+    let other = output._tags.get(1).unwrap();
     assert_eq!(other.0.0.to_string(), "other");
-    assert!(output.tags.get(2).is_none());
+    assert!(output._tags.get(2).is_none());
 }

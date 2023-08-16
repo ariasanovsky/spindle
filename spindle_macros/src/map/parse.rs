@@ -37,7 +37,7 @@ impl Parse for MapAttrs {
         // recursively look for the # token followed by a lower snake ident
         let mut tags = Vec::new();
         if input.is_empty() {
-            return Ok(Self { tags });
+            return Ok(Self { _tags: tags });
         }
         loop {
             dbg!(input.to_string());
@@ -54,7 +54,7 @@ impl Parse for MapAttrs {
                 break;
             }
         }
-        Ok(Self { tags })
+        Ok(Self { _tags: tags })
     }
 }
 

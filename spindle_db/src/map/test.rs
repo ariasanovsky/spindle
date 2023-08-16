@@ -6,8 +6,8 @@ impl TypeDb {
         db.drop_tables()?;
         db.create_new_primitive_table()?;
         db.create_new_map_tables()?;
-        db.create_new_tag_table()?;
-        db.create_new_map_tag_table()?;
+        db._create_new_tag_table()?;
+        db._create_new_map_tag_table()?;
         Ok(db)
     }
 }

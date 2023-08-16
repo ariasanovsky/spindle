@@ -53,7 +53,7 @@ pub trait AsDbMap {
 
 impl TypeDb {
     // todo! refactor with collect
-    pub(crate) fn get_maps(&self) -> DbResult<Vec<DbMap>> {
+    pub fn get_maps(&self) -> DbResult<Vec<DbMap>> {
         let mut stmt = self.conn.prepare("SELECT uuid FROM maps")?;
         let uuids = stmt.query_map([], |row| row.get(0))?;
         let mut maps = Vec::new();
@@ -81,6 +81,7 @@ impl TypeDb {
     }
 
     fn get_in_outs_from_uuid(&self, uuid: &str) -> DbResult<Vec<DbInOut>> {
+        // todo! seems way too verbose...
         let mut stmt = self.conn.prepare(
             "SELECT pos, input_uuid, output_uuid FROM in_outs WHERE map_uuid = ? ORDER BY pos",
         )?;
@@ -120,12 +121,7 @@ impl TypeDb {
     }
 
     pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(&self, map: &M, tags: &Vec<T>) -> DbResult<DbMap> {
-        // todo! more idiomatic
-        let db_map = self.get_map(map)?;
-        let db_map = match db_map {
-            Some(map) => map,
-            None => self.insert_map(map)?,
-        };
+        let db_map = self.get_map(map).transpose().unwrap_or_else(|| self.insert_map(map))?;
         self.tag_map(&db_map, tags)?;
         Ok(db_map)
     }
@@ -160,22 +156,13 @@ impl TypeDb {
     }
 
     fn insert_db_map(&self, map: &DbMap) -> DbResult<()> {
-        let mut statement = self
-            .conn
-            .prepare("INSERT INTO maps (uuid, ident, content) VALUES (?, ?, ?)")?;
+        let mut statement = self.conn.prepare("INSERT INTO maps (uuid, ident, content) VALUES (?, ?, ?)")?;
         let _: usize = statement.execute([map.uuid.clone(), map.ident.clone(), map.content.clone()])?;
-        let mut statement = self.conn.prepare(
-            "INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)",
-        )?;
+        let mut statement = self.conn.prepare("INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)")?;
         for (i, in_out) in map.in_outs.iter().enumerate() {
             let input_uuid = in_out.input.as_ref().map(|x| &x.uuid);
             let output_uuid = in_out.output.as_ref().map(|x| &x.uuid);
-            statement.execute(rusqlite::params![
-                &map.uuid,
-                i as usize,
-                input_uuid,
-                output_uuid
-            ])?;
+            let _: usize = statement.execute(rusqlite::params![&map.uuid, i, input_uuid, output_uuid])?;
         }
         Ok(())
     }

@@ -85,23 +85,23 @@ const CREATE_CRATE_UNIONS: &str = "
     PRIMARY KEY (crate_uuid, pos)    -- each crate has at most one associated union
 )";
 
-const CREATE_TAGS: &str = "
+const _CREATE_TAGS: &str = "
     CREATE TABLE tags (
     tag TEXT NOT NULL PRIMARY KEY
 )";
 
-const CREATE_UNION_TAGS: &str = "
-    CREATE TABLE union_tags (
-    union_uuid TEXT NOT NULL,
-    union_ident TEXT NOT NULL,
-    tag TEXT NOT NULL,
-    FOREIGN KEY (union_uuid) REFERENCES unions (uuid),
-    FOREIGN KEY (union_ident) REFERENCES unions (ident),
-    FOREIGN KEY (tag) REFERENCES tags (tag),
-    PRIMARY KEY (union_ident, tag)
-)";
+// const CREATE_UNION_TAGS: &str = "
+//     CREATE TABLE union_tags (
+//     union_uuid TEXT NOT NULL,
+//     union_ident TEXT NOT NULL,
+//     tag TEXT NOT NULL,
+//     FOREIGN KEY (union_uuid) REFERENCES unions (uuid),
+//     FOREIGN KEY (union_ident) REFERENCES unions (ident),
+//     FOREIGN KEY (tag) REFERENCES tags (tag),
+//     PRIMARY KEY (union_ident, tag)
+// )";
 
-const CREATE_MAP_TAGS: &str = "
+const _CREATE_MAP_TAGS: &str = "
     CREATE TABLE map_tags (
     map_uuid TEXT NOT NULL,
     tag TEXT NOT NULL,
@@ -122,8 +122,8 @@ const DROP_LIFT_ENTRIES: &str = "DROP TABLE IF EXISTS lift_entries";
 const DROP_LIFT_CRATES: &str = "DROP TABLE IF EXISTS lift_crates";
 const DROP_CRATE_UNIONS: &str = "DROP TABLE IF EXISTS crate_unions";
 const DROP_TAGS: &str = "DROP TABLE IF EXISTS tags";
-const DROP_UNION_TAGS: &str = "DROP TABLE IF EXISTS union_tags";
-const DROP_MAP_TAGS: &str = "DROP TABLE IF EXISTS map_tags";
+// const DROP_UNION_TAGS: &str = "DROP TABLE IF EXISTS union_tags";
+const _DROP_MAP_TAGS: &str = "DROP TABLE IF EXISTS map_tags";
 
 impl TypeDb {
     pub(crate) fn create_tables(&self) -> DbResult<()> {
@@ -218,38 +218,38 @@ impl TypeDb {
 }
 
 impl TypeDb {
-    pub(crate) fn create_new_tag_table(&self) -> DbResult<()> {
-        self.drop_tag_table()?;
-        let _: usize = self.conn.execute(CREATE_TAGS, [])?;
+    pub(crate) fn _create_new_tag_table(&self) -> DbResult<()> {
+        self._drop_tag_table()?;
+        let _: usize = self.conn.execute(_CREATE_TAGS, [])?;
         Ok(())
     }
 
-    pub(crate) fn drop_tag_table(&self) -> DbResult<()> {
+    pub(crate) fn _drop_tag_table(&self) -> DbResult<()> {
         let _: usize = self.conn.execute(DROP_TAGS, [])?;
         Ok(())
     }
 
-    pub(crate) fn create_new_map_tag_table(&self) -> DbResult<()> {
-        self.drop_map_tag_table()?;
-        let _: usize = self.conn.execute(CREATE_MAP_TAGS, [])?;
+    pub(crate) fn _create_new_map_tag_table(&self) -> DbResult<()> {
+        self._drop_map_tag_table()?;
+        let _: usize = self.conn.execute(_CREATE_MAP_TAGS, [])?;
         Ok(())
     }
 
-    pub(crate) fn drop_map_tag_table(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute(DROP_MAP_TAGS, [])?;
+    pub(crate) fn _drop_map_tag_table(&self) -> DbResult<()> {
+        let _: usize = self.conn.execute(_DROP_MAP_TAGS, [])?;
         Ok(())
     }
 
-    pub(crate) fn create_new_union_tag_table(&self) -> DbResult<()> {
-        self.drop_union_tag_table()?;
-        let _: usize = self.conn.execute(CREATE_UNION_TAGS, [])?;
-        Ok(())
-    }
+    // pub(crate) fn create_new_union_tag_table(&self) -> DbResult<()> {
+    //     self.drop_union_tag_table()?;
+    //     let _: usize = self.conn.execute(CREATE_UNION_TAGS, [])?;
+    //     Ok(())
+    // }
 
-    pub(crate) fn drop_union_tag_table(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute(DROP_UNION_TAGS, [])?;
-        Ok(())
-    }
+    // pub(crate) fn drop_union_tag_table(&self) -> DbResult<()> {
+    //     let _: usize = self.conn.execute(DROP_UNION_TAGS, [])?;
+    //     Ok(())
+    // }
 }
 
 impl TypeDb {

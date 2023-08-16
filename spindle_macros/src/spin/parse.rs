@@ -82,10 +82,10 @@ impl Parse for RawSpinInputs {
             }
         }
         Ok(RawSpinInputs {
-            crate_tag,
-            unions_in_scope,
-            new_unions,
-            map_fns_in_scope,
+            _crate_tag: crate_tag,
+            _unions_in_scope: unions_in_scope,
+            _new_unions: new_unions,
+            _map_fns_in_scope: map_fns_in_scope,
         })
     }
 }

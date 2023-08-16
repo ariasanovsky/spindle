@@ -8,13 +8,13 @@ mod test;
 
 #[derive(Debug)]
 pub(crate) struct RawSpinInputs {
-    pub crate_tag: CrateTag,
-    pub unions_in_scope: Vec<UnionInScope>,
-    pub new_unions: Vec<NewUnion>,
-    pub map_fns_in_scope: Vec<MapFnInScope>,
+    pub _crate_tag: CrateTag,
+    pub _unions_in_scope: Vec<UnionInScope>,
+    pub _new_unions: Vec<NewUnion>,
+    pub _map_fns_in_scope: Vec<MapFnInScope>,
 }
 
-pub(crate) fn _spin(inputs: RawSpinInputs) -> proc_macro::TokenStream {
+pub(crate) fn _spin(_inputs: RawSpinInputs) -> proc_macro::TokenStream {
     /* `spindle::spin!(U = i32 | f64, V, foo);`
     * `U` (new union):
         - get or insert
@@ -37,7 +37,7 @@ pub(crate) fn _spin(inputs: RawSpinInputs) -> proc_macro::TokenStream {
     */
     const NAME: &str = "types";
     const HOME: &str = "target/spindle/";
-    let db = TypeDb::open_or_create(NAME, HOME).unwrap();
+    let _db = TypeDb::open_or_create(NAME, HOME).unwrap();
     // let new_unions = inputs.0.iter().map(|input| match input {
     //     RawSpinInput::UnionInScope(_) => todo!(),
     //     RawSpinInput::NewUnion(_, _) => todo!(),

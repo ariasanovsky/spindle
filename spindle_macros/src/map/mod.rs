@@ -24,7 +24,7 @@ pub(crate) struct MapFn {
 
 #[derive(Clone, Debug)]
 pub(crate) struct MapAttrs {
-    pub tags: Vec<CrateTag>,
+    pub _tags: Vec<CrateTag>,
 }
 
 #[derive(Clone, Debug)]

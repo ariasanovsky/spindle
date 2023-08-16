@@ -7,7 +7,7 @@ impl TypeDb {
         uuids.map(|uuid| self.get_map_from_uuid(uuid?)).collect::<DbResult<_>>()
     }
 
-    pub fn tag_map<T: AsDbTag>(&self, map: &DbMap, tags: &[T]) -> DbResult<()> {
+    pub(crate) fn tag_map<T: AsDbTag>(&self, map: &DbMap, tags: &[T]) -> DbResult<()> {
         for tag in tags {
             // first, insert the tag if it does not exist
             self.insert_or_ignore_tag(tag)?;

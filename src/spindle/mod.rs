@@ -1,6 +1,4 @@
-use cudarc::driver::DeviceRepr;
-
-use crate::{DevSpindle, HostSpindle};
+use crate::{DevSlice, HostSlice};
 
 pub mod try_from;
 
@@ -13,36 +11,9 @@ pub mod try_from;
         tuples of union fields
         arrays of union fields
 */
-pub unsafe trait RawConvert<X>
+impl<X, U> DevSlice<U, X>
 where
-    Self: Sized,
-    X: Copy,
-{
-    // todo! ?relax Copy once we stabilize numeric primitives
-    // todo! compile_error! if size_of<X> > size_of<Self>
-    // todo! compile_error! if align_of<X> > align_of<Self>
-    // todo! this is ugly, is it correct?
-    unsafe fn from_raw(raw: X) -> Self {
-        // todo! mut?
-        let /* mut */ y = core::mem::MaybeUninit::<Self>::uninit().as_mut_ptr();
-        core::ptr::copy_nonoverlapping(&raw as *const X as *const Self, y, 1);
-        y.read()
-    }
-
-    // todo! seems okay
-    unsafe fn ref_raw(&self) -> &X {
-        &*(self as *const Self as *const X)
-    }
-
-    unsafe fn as_raw(&self) -> X {
-        // self.ref_raw().clone()  // Copy -> Clone
-        *(self as *const Self as *const X)
-    }
-}
-
-impl<X, U> DevSpindle<U, X>
-where
-    U: RawConvert<X> + DeviceRepr,
+    U: crate::__union::RawConvert<X> + crate::__cudarc::DeviceRepr,
     X: Copy, // todo! relax once we stabilize numeric primitives
 {
     // X marks the current state of the union
@@ -54,14 +25,14 @@ where
     // which we impl for Self so that
     // self.foo() is a DevSpindle<U, Y>
 
-    pub fn try_to_host(self) -> Result<HostSpindle<U, X>, super::error::Error> {
+    pub fn try_to_host(self) -> Result<HostSlice<U, X>, super::error::Error> {
         self.try_into()
     }
 }
 
-impl<X, U> HostSpindle<U, X>
+impl<X, U> HostSlice<U, X>
 where
-    U: RawConvert<X>,
+    U: crate::__union::RawConvert<X>,
     X: Copy, // todo! relax once we stabilize numeric primitives
 {
     // see above
@@ -90,9 +61,9 @@ mod test_union_from_raw {
             _1: bool,
             _2: u32,
         }
-        unsafe impl RawConvert<f64> for U {}
-        unsafe impl RawConvert<bool> for U {}
-        unsafe impl RawConvert<u32> for U {}
+        unsafe impl crate::__union::RawConvert<f64> for U {}
+        unsafe impl crate::__union::RawConvert<bool> for U {}
+        unsafe impl crate::__union::RawConvert<u32> for U {}
 
         let u = U { _0: 1.0 };
         let f: f64 = unsafe { *u.ref_raw() };

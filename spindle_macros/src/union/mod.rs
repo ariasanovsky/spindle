@@ -23,7 +23,7 @@ pub(crate) struct NewUnion(pub UpperCamelIdent, pub Vec<PrimitiveIdent>);
 pub(crate) struct MapFnInScope(pub LowerSnakeIdent);
 
 impl RawSpinInput {
-    pub(crate) fn ident(&self) -> &Ident {
+    pub(crate) fn _ident(&self) -> &Ident {
         match self {
             Self::UnionInScope(ident) => &ident.0.0,
             Self::NewUnion(ident) => &ident.0.0,
@@ -31,21 +31,21 @@ impl RawSpinInput {
         }
     }
 
-    pub(crate) fn new_union(&self) -> Option<&NewUnion> {
+    pub(crate) fn _new_union(&self) -> Option<&NewUnion> {
         match self {
             Self::NewUnion(new_union) => Some(new_union),
             _ => None,
         }
     }
 
-    pub(crate) fn union_in_scope(&self) -> Option<&UnionInScope> {
+    pub(crate) fn _union_in_scope(&self) -> Option<&UnionInScope> {
         match self {
             Self::UnionInScope(union_in_scope) => Some(union_in_scope),
             _ => None,
         }
     }
 
-    pub(crate) fn map_fn_in_scope(&self) -> Option<&MapFnInScope> {
+    pub(crate) fn _map_fn_in_scope(&self) -> Option<&MapFnInScope> {
         match self {
             Self::MapFnInScope(map_fn_in_scope) => Some(map_fn_in_scope),
             _ => None,

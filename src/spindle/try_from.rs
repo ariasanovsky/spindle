@@ -1,21 +1,19 @@
 use std::sync::Arc;
 
-use crate::error::Error;
-use cudarc::driver::{CudaDevice, CudaSlice, DeviceRepr};
+use crate::{error::Error, __union::RawConvert, __cudarc::{CudaSlice, DeviceRepr, CudaDevice}};
+use super::{DevSlice, HostSlice};
 
-use super::{DevSpindle, HostSpindle, RawConvert};
-
-impl<U, X> From<DevSpindle<U, X>> for CudaSlice<U>
+impl<U, X> From<DevSlice<U, X>> for CudaSlice<U>
 where
-    U: RawConvert<X> + DeviceRepr,
+    U: crate::__union::RawConvert<X> + DeviceRepr,
     X: Copy,
 {
-    fn from(value: DevSpindle<U, X>) -> Self {
+    fn from(value: DevSlice<U, X>) -> Self {
         value.0
     }
 }
 
-impl<U, X> From<CudaSlice<U>> for DevSpindle<U, X>
+impl<U, X> From<CudaSlice<U>> for DevSlice<U, X>
 where
     U: RawConvert<X> + DeviceRepr,
     X: Copy,
@@ -25,7 +23,7 @@ where
     }
 }
 
-impl<U, X> TryFrom<Vec<X>> for DevSpindle<U, X>
+impl<U, X> TryFrom<Vec<X>> for DevSlice<U, X>
 where
     U: RawConvert<X> + DeviceRepr,
     X: Copy,
@@ -46,14 +44,14 @@ where
     }
 }
 
-impl<U, X> TryFrom<DevSpindle<U, X>> for HostSpindle<U, X>
+impl<U, X> TryFrom<DevSlice<U, X>> for HostSlice<U, X>
 where
     U: RawConvert<X> + DeviceRepr,
     X: Copy,
 {
     type Error = Error;
 
-    fn try_from(value: DevSpindle<U, X>) -> Result<Self, Self::Error> {
+    fn try_from(value: DevSlice<U, X>) -> Result<Self, Self::Error> {
         let value: CudaSlice<U> = value.into();
         let dev: Arc<CudaDevice> = value.device();
         let value: Vec<U> = dev.dtoh_sync_copy(&value)?;
@@ -61,14 +59,14 @@ where
     }
 }
 
-impl<U, X> TryFrom<HostSpindle<U, X>> for DevSpindle<U, X>
+impl<U, X> TryFrom<HostSlice<U, X>> for DevSlice<U, X>
 where
     U: RawConvert<X> + DeviceRepr,
     X: Copy,
 {
     type Error = Error;
 
-    fn try_from(value: HostSpindle<U, X>) -> Result<Self, Self::Error> {
+    fn try_from(value: HostSlice<U, X>) -> Result<Self, Self::Error> {
         let dev: Arc<CudaDevice> = CudaDevice::new(0)?;
         let slice: CudaSlice<U> = dev.htod_sync_copy(&value.0)?;
         Ok(Self(slice, std::marker::PhantomData))
@@ -93,9 +91,9 @@ mod test_conversions {
 
         let host: Vec<f64> = vec![1.0, 2.0, 3.0];
         dbg!(&host);
-        let spindle: DevSpindle<MyUnion, f64> = host.try_into().unwrap();
+        let spindle: DevSlice<MyUnion, f64> = host.try_into().unwrap();
         println!("spindle");
-        let host: HostSpindle<MyUnion, f64> = spindle.try_into().unwrap();
+        let host: HostSlice<MyUnion, f64> = spindle.try_into().unwrap();
         println!("host");
         for u in host.0.iter() {
             println!("u: {:?}", unsafe { u.f64 });

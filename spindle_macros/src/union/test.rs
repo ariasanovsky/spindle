@@ -31,7 +31,7 @@ fn parse_an_old_union() {
         V
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let spin_input = spin_input.union_in_scope().unwrap();
+    let spin_input = spin_input._union_in_scope().unwrap();
     let ident = &spin_input.0.0;
     assert_eq!(ident.to_string(), "V");
 }
@@ -43,15 +43,14 @@ fn insert_a_new_union_to_the_db() {
     const DB_NAME: &str = "insert_a_new_union_to_the_db";
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
-    let tags: Vec<&str> = vec![];
-
+    
     // parse a union & insert it into the db
     let input = quote::quote! {
         U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let spin_input = spin_input.new_union().unwrap();
-    let db_union: DbUnion = db.get_or_insert_union(spin_input, &tags).unwrap();
+    let spin_input = spin_input._new_union().unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
     dbg!(&db_union);
 }
 
@@ -63,15 +62,14 @@ fn get_an_old_union_from_the_db() {
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
 
-    let tags: Vec<&str> = vec![];
-    
     // parse a union & insert it into the db
+    let pound: syn::Token![#] = Default::default();
     let input = quote::quote! {
-        U = f32 | u64
+        #pound example, U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let spin_input = spin_input.new_union().unwrap();
-    let db_union: DbUnion = db.get_or_insert_union(spin_input, &tags).unwrap();
+    let spin_input = spin_input._new_union().unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
 
     struct U;
     trait DbUuid {
@@ -107,10 +105,11 @@ fn get_an_old_union_from_the_db() {
     }
     exists in scope
     */
-    let uuid: String = db_union.uuid.clone(); // U::__UUID.to_string()
-    dbg!(&uuid);
-    let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, spin_input.ident().to_string()).unwrap();
-    assert_eq!(db_union, db_uuid_2);
+    // let uuid: String = db_union.uuid.clone(); // U::__UUID.to_string()
+    // dbg!(&uuid);
+    // let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, spin_input.ident().to_string()).unwrap();
+    // assert_eq!(db_union, db_uuid_2);
+    todo!()
 }
 
 #[test]
@@ -128,8 +127,8 @@ fn emit_tokens_from_new_union() {
     let tags: Vec<&str> = vec![];
     
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let spin_input = spin_input.new_union().unwrap();
-    let db_union: DbUnion = db.get_or_insert_union(spin_input, &tags).unwrap();
+    let spin_input = spin_input._new_union().unwrap();
+    let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
     dbg!(&db_union);
     let decl = db_union.declaration();
     let decl_2 = quote::quote! {
