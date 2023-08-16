@@ -10,7 +10,7 @@ impl TypeDb {
     pub fn tag_map<T: AsDbTag>(&self, map: &DbMap, tags: &[T]) -> DbResult<()> {
         for tag in tags {
             // first, insert the tag if it does not exist
-            self.insert_tag(tag)?;
+            self.insert_or_ignore_tag(tag)?;
             // first, we collect all maps with this tag and ident
             let mut maps = self.get_maps_from_tag(tag)?;
             maps.retain(|m| m.ident == map.ident);
@@ -30,9 +30,9 @@ impl TypeDb {
                         tag.db_tag(),
                         map.ident,
                         map,
-                        old_map
+                        old_map,
                     );
-                    todo!()
+                    // dbg!(tag.db_tag(), &map, &old_map);
                 },
                 _ => {
                     // if there are multiple maps with this tag and ident, the data is inconsistent, fatal error
@@ -49,7 +49,7 @@ impl TypeDb {
         Ok(())
     }
 
-    pub(crate) fn insert_tag<T: AsDbTag>(&self, tag: &T) -> DbResult<()> {
+    pub(crate) fn insert_or_ignore_tag<T: AsDbTag>(&self, tag: &T) -> DbResult<()> {
         // insert the tag if it does not exist
         let mut stmt = self.conn.prepare("INSERT OR IGNORE INTO tags (tag) VALUES (?)")?;
         let _: usize = stmt.execute([tag.db_tag()])?;

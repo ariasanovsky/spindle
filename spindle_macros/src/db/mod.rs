@@ -34,7 +34,7 @@ impl AsDbMap for MapFn {
         self.item_fn.clone().to_token_stream().to_string()
     }
 
-    fn db_inout_pairs(&self) -> Vec<Self::InOut> {
+    fn db_inouts(&self) -> Vec<Self::InOut> {
         self.in_outs.clone()
     }
 }
