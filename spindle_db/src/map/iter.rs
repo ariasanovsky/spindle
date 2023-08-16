@@ -2,6 +2,7 @@ use crate::{DbResult, TypeDb};
 
 use super::DbMap;
 
+// todo! no iter, only vec
 // iter over all DbMaps in the db
 impl TypeDb {
     // fallible function to iterate over all DbMaps

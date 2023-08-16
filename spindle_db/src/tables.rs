@@ -25,7 +25,7 @@ const CREATE_UNIONS: &str = "
     ident TEXT NOT NULL             -- not a unique identifier (there may be multiple unions `U`)
 )";
 
-const CREATE_JUNCTION: &str = "
+const CREATE_UNION_FIELDS: &str = "
     CREATE TABLE union_fields (
     union_uuid TEXT NOT NULL,
     pos INTEGER NOT NULL,
@@ -191,7 +191,7 @@ impl TypeDb {
         self.drop_union_tables()?;
         // self.create_new_primitive_table()?;
         let _: usize = self.conn.execute(CREATE_UNIONS, [])?;
-        let _: usize = self.conn.execute(CREATE_JUNCTION, [])?;
+        let _: usize = self.conn.execute(CREATE_UNION_FIELDS, [])?;
         Ok(())
     }
 

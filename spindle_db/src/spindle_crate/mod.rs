@@ -124,10 +124,7 @@ impl TypeDb {
         let unions = statement.query_map([&uuid], |row| {
             let pos: usize = row.get(0)?;
             let union_uuid: String = row.get(1)?;
-            let db_union: DbResult<DbUnion> = self
-                .get_union_from_uuid(union_uuid)
-                .transpose()
-                .expect("union not found");
+            let db_union: DbResult<DbUnion> = self.get_union_from_uuid(union_uuid);
             db_union.map(|db_union| (pos, db_union))
         })?;
         let unions: DbResult<Vec<DbUnion>> = unions

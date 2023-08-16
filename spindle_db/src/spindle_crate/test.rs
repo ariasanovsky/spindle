@@ -57,7 +57,7 @@ fn can_form_a_crate_from_unions() {
     let db = TypeDb::new_crates_test_db("can_form_a_crate_from_unions").unwrap();
     let u = db.get_or_insert_union(&("U", vec!["f32"]), &tags).unwrap();
     let v = db.get_or_insert_union(&("V", vec!["f32", "u64"]), &tags).unwrap();
-    assert_eq!(db._get_unions().unwrap().len(), 2);
+    assert_eq!(db.get_unions().unwrap().len(), 2);
     let m = db
         .get_or_insert_map(&("foo", "pub fn foo(u64) -> f32;", vec![(Some("u64"), Some("f32"))]), &tags)
         .unwrap();

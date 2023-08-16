@@ -52,6 +52,7 @@ pub trait AsDbMap {
 }
 
 impl TypeDb {
+    // todo! refactor with collect
     pub(crate) fn get_maps(&self) -> DbResult<Vec<DbMap>> {
         let mut stmt = self.conn.prepare("SELECT uuid FROM maps")?;
         let uuids = stmt.query_map([], |row| row.get(0))?;
@@ -119,21 +120,14 @@ impl TypeDb {
     }
 
     pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(&self, map: &M, tags: &Vec<T>) -> DbResult<DbMap> {
-        let db_map: Option<DbMap> = self.get_map(map)?;
-        match db_map {
-            Some(map) => {
-                // the map is in the db, now just update the tags
-                self.tag_map(&map, tags)?;
-                Ok(map)
-            },
-            None => {
-                // the map is not in the db, so insert it
-                let map = self.insert_map(map)?;
-                // and tag it
-                self.tag_map(&map, tags)?;
-                Ok(map)
-            },
-        }
+        // todo! more idiomatic
+        let db_map = self.get_map(map)?;
+        let db_map = match db_map {
+            Some(map) => map,
+            None => self.insert_map(map)?,
+        };
+        self.tag_map(&db_map, tags)?;
+        Ok(db_map)
     }
 
     pub(crate) fn get_map<M: AsDbMap>(&self, map: &M) -> DbResult<Option<DbMap>> {
