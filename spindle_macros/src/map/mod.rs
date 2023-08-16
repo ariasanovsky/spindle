@@ -1,11 +1,12 @@
-use std::path::PathBuf;
-
+use proc_macro2::Span;
 use quote::ToTokens;
-use serde::{Deserialize, Serialize};
+use spindle_db::{TypeDb, tag::AsDbTag};
 
-use crate::{error::NaivelyTokenize, TokenResult, case::LowerSnakeIdent};
+use crate::case::LowerSnakeIdent;
 
 use in_out::InOut;
+
+use self::tokens::MapTokens;
 
 mod display;
 pub(crate) mod in_out;
@@ -14,7 +15,8 @@ mod tokens;
 #[cfg(test)]
 mod test;
 
-static MAP_PATH: &str = "target/spindle/map/";
+const MAP_PATH: &str = "target/spindle/db/";
+const DB_NAME: &str = "map";
 
 #[derive(Clone)]
 pub(crate) struct MapFn {
@@ -30,6 +32,12 @@ pub(crate) struct MapAttrs {
 #[derive(Clone, Debug)]
 pub(crate) struct CrateTag(pub LowerSnakeIdent);
 
+impl AsDbTag for CrateTag {
+    fn db_tag(&self) -> String {
+        self.0.0.to_string()
+    }
+}
+
 impl PartialEq for MapFn {
     fn eq(&self, other: &Self) -> bool {
         // todo! feels hacky
@@ -38,21 +46,18 @@ impl PartialEq for MapFn {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct MapFnStrings(pub(crate) String, pub(crate) String);
 
-pub(crate) fn serialize_map(_attr: MapAttrs, item: MapFn) -> TokenResult {
-    let map_dir = PathBuf::from(MAP_PATH);
-    std::fs::create_dir_all(&map_dir).map_err(NaivelyTokenize::naively_tokenize)?;
-    let map_fn_strings = MapFnStrings("".into(), item.item_fn.to_token_stream().to_string());
-    let map_fn_strings =
-        serde_json::to_string(&map_fn_strings).map_err(NaivelyTokenize::naively_tokenize)?;
-    let map_path = map_dir
-        .join(item.item_fn.sig.ident.to_string())
-        .with_extension("json");
-    std::fs::write(map_path, map_fn_strings).map_err(NaivelyTokenize::naively_tokenize)?;
-    Ok(quote::quote! {
-        // #_attr todo! traits for MapAttrs (currently requiried to be empty)
-        #item
+pub(crate) fn map(attrs: MapAttrs, map_fn: MapFn, db_name: &str)
+-> syn::Result<proc_macro2::TokenStream> {
+    // add map to database
+    // tag in database with #example_01
+    // emit map & map trait
+    let db = TypeDb::open_or_create(db_name, MAP_PATH).unwrap();
+    dbg!(db.table_names().unwrap());
+    let _map = db.get_or_insert_map(&map_fn, &attrs._tags).unwrap();
+    let map_trait = map_fn.map_trait();
+    Ok(quote::quote_spanned! { Span::mixed_site() =>
+        #map_fn
+        #map_trait
     })
 }

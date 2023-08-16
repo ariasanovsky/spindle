@@ -53,6 +53,8 @@ where
 #[allow(unused)]
 #[cfg(test)]
 mod test_union_from_raw {
+    use crate::__union::RawConvert;
+
     use super::*;
     #[test]
     fn test_f64_bool_u32_union_from_raw() {
@@ -61,9 +63,9 @@ mod test_union_from_raw {
             _1: bool,
             _2: u32,
         }
-        unsafe impl crate::__union::RawConvert<f64> for U {}
-        unsafe impl crate::__union::RawConvert<bool> for U {}
-        unsafe impl crate::__union::RawConvert<u32> for U {}
+        unsafe impl RawConvert<f64> for U {}
+        unsafe impl RawConvert<bool> for U {}
+        unsafe impl RawConvert<u32> for U {}
 
         let u = U { _0: 1.0 };
         let f: f64 = unsafe { *u.ref_raw() };

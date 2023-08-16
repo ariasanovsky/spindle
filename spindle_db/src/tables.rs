@@ -131,6 +131,8 @@ impl TypeDb {
         self.create_new_union_tables()?;
         self.create_new_primitive_table()?;
         self.create_new_crate_tables()?;
+        self.create_new_tag_table()?;
+        self.create_new_map_tag_table()?;
         Ok(())
     }
 
@@ -157,7 +159,7 @@ impl TypeDb {
         })
     }
 
-    pub(crate) fn table_names(&self) -> DbResult<Vec<String>> {
+    pub fn table_names(&self) -> DbResult<Vec<String>> {
         const TABLES: &str =
             "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
         let mut statement = self.conn.prepare(TABLES)?;
@@ -218,7 +220,7 @@ impl TypeDb {
 }
 
 impl TypeDb {
-    pub(crate) fn _create_new_tag_table(&self) -> DbResult<()> {
+    pub(crate) fn create_new_tag_table(&self) -> DbResult<()> {
         self._drop_tag_table()?;
         let _: usize = self.conn.execute(_CREATE_TAGS, [])?;
         Ok(())
@@ -229,7 +231,7 @@ impl TypeDb {
         Ok(())
     }
 
-    pub(crate) fn _create_new_map_tag_table(&self) -> DbResult<()> {
+    pub(crate) fn create_new_map_tag_table(&self) -> DbResult<()> {
         self._drop_map_tag_table()?;
         let _: usize = self.conn.execute(_CREATE_MAP_TAGS, [])?;
         Ok(())

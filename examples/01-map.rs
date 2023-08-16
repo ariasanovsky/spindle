@@ -1,12 +1,12 @@
-#[spindle::map(#example_01)]
-fn i32_to_f64(x: i32) -> f64 {
-    x as f64
-}
-
-// write fn to examples/01-map.rs
+// #[spindle::map(#example_01)]
 // fn i32_to_f64(x: i32) -> f64 {
 //     x as f64
 // }
+
+// write fn to examples/01-map.rs
+fn i32_to_f64(x: i32) -> f64 {
+    x as f64
+}
 
 // write trait to examples/01-map.rs
 mod __i32_to_f64 {
@@ -47,7 +47,7 @@ pub use __i32_to_f64::__I32ToF64;
 // add fn as a [i32,] -> [f64,] to database
 // tag in database with #example_01
 
-spindle::spin!(#example_01, U = i32 | f64);
+// spindle::spin!(#example_01, U = i32 | f64);
 
 // write new union to examples/01-map.rs
 #[repr(C)]
@@ -62,6 +62,7 @@ unsafe impl spindle::__union::RawConvert<i32> for U {}
 unsafe impl spindle::__union::RawConvert<f64> for U {}
 
 // get the only #example_01 map from the database
+// assemble the example_01 crate
 // and implement the method on spindle::DevSlice<U, i32>
 unsafe impl __i32_to_f64::__I32ToF64 for spindle::DevSlice<U, i32> {
     type U = U;

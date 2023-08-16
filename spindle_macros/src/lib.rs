@@ -1,5 +1,5 @@
 use basic_range::emit_range_kernel;
-use map::{serialize_map, MapFn, MapAttrs};
+use map::{MapFn, MapAttrs};
 use proc_macro2::TokenStream;
 use serde::{Deserialize, Serialize};
 use spin::{RawSpinInputs, _spin};
@@ -63,9 +63,8 @@ pub fn map(
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let attr = parse_macro_input!(attr as MapAttrs);
-    let item = parse_macro_input!(item as MapFn);
-    let result = serialize_map(attr, item);
-    into_token_stream(result)
+    let map_fn = parse_macro_input!(item as MapFn);
+    map::map(attr, map_fn, "types").unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {

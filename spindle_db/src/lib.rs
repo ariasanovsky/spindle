@@ -39,22 +39,16 @@ impl TypeDb {
         name: &str,
         home: P,
     ) -> DbResult<Self> {
-        Self::open(name, &home).unwrap_or(Self::create(&home, name))
+        Self::open(name, &home).unwrap_or_else(|| Self::create(&home, name))
     }
 
     pub fn new<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: P) -> DbResult<Self> {
-        // connect if it exists
         let db = Self::open(name, &home).transpose()?;
         if let Some(db) = db {
-            // drop tables and recreate
-            // dbg!(&db);
             db.drop_tables()?;
-            // dbg!(&db);
             db.create_tables()?;
-            // dbg!(&db);
             Ok(db)
         } else {
-            // create
             Self::create(&home, name)
         }
     }
@@ -68,15 +62,10 @@ impl TypeDb {
         name: &str,
         home: &P,
     ) -> Option<DbResult<Self>> {
-        // if the home exists, open the db
         let home = PathBuf::from(home);
-        // dbg!(&home);
         if home.exists() {
             let path = home.join(name).with_extension(DB);
-            // dbg!(&path);
-            let db = Some(Connection::open(path).map(|conn| Self { conn }));
-            // dbg!(&db);
-            db
+            Some(Connection::open(path).map(|conn| Self { conn }))
         } else {
             None
         }

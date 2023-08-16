@@ -1,10 +1,71 @@
 use proc_macro2::{TokenStream, Ident, Span};
-use spindle_db::{TypeDb, map::DbMap, tag::AsDbTag};
+use quote::ToTokens;
+use spindle_db::{TypeDb, map::DbMap};
 use syn::parse_quote;
 
 use crate::{map::{MapFn, tokens::MapTokens}, case::UpperCamelIdent};
 
 use super::MapAttrs;
+
+#[test]
+fn example_01_map() {
+    let pound = syn::token::Pound::default();
+    let map_attr_input = quote::quote! {
+        #pound example_01
+    };
+    let attrs: MapAttrs = parse_quote!(#map_attr_input);
+    let expected_tags = vec!["example_01"];
+    assert_eq!(attrs._tags.iter().map(|attr| attr.0.0.to_string()).collect::<Vec<_>>(), expected_tags);
+
+    let map_fn_input = quote::quote! {
+        fn i32_to_f64(x: i32) -> f64 {
+            x as f64
+        }
+    };
+    let map: MapFn = parse_quote!(#map_fn_input);
+    let map_host_crate_tokens = crate::map::map(attrs, map, "example_01_map_test").unwrap();
+    let expected_map_host_crate_tokens = quote::quote! {
+        fn i32_to_f64(x: i32) -> f64 {
+            x as f64
+        }
+        mod __i32_to_f64 {
+            use spindle::__cudarc::{
+                CudaDevice as __CudaDevice,
+                CudaFunction as __CudaFunction,
+                CudaSlice as __CudaSlice,
+                DeviceRepr as __DeviceRepr,
+                LaunchAsync as __LaunchAsync,
+                LaunchConfig as __LaunchConfig,
+                Ptx as __Ptx,
+            };
+            pub unsafe trait __I32ToF64
+            where
+                <Self as __I32ToF64>::U: __DeviceRepr,
+                Self: Into<__CudaSlice<<Self as __I32ToF64>::U>>,
+                __CudaSlice<<Self as __I32ToF64>::U>: Into<<Self as __I32ToF64>::Return>,
+            {
+                type U;
+                type Return;
+                const PTX_PATH: &'static str;
+                fn i32_to_f64(self, n: i32) -> spindle::Result<Self::Return> {
+                    let mut slice: __CudaSlice<Self::U> = self.into();
+                    let device: std::sync::Arc<__CudaDevice> = slice.device();
+                    let ptx: __Ptx = __Ptx::from_file(Self::PTX_PATH);
+                    device.load_ptx(ptx, "kernels", &["i32_to_f64_kernel"])?;
+                    let f: __CudaFunction =
+                        device.get_func("kernels", "i32_to_f64_kernel")
+                        .ok_or(spindle::error::function_not_found(Self::PTX_PATH, "i32_to_f64_kernel"))?;
+                    let config: __LaunchConfig = __LaunchConfig::for_num_elems(n as u32);
+                    unsafe { f.launch(config, (&mut slice, n)) }?;
+                    Ok(slice.into())
+                }
+            }
+        }
+    };
+    assert_eq!(map_host_crate_tokens.to_string(), expected_map_host_crate_tokens.to_string());
+
+    // now we verify that the MapFn will write the correct tokens to the ptx crate
+}
 
 #[test]
 #[allow(unused)]
@@ -67,7 +128,7 @@ fn emit_tokens_from_new_map() {
     let map_2: MapFn = syn::parse_str::<MapFn>(&db_map.content).unwrap();
     assert_eq!(map, map_2);
 
-    let decl = map_2.user_declaration();
+    let decl = map_2.to_token_stream();
     let decl_2 = quote::quote! {
         fn foo(x: i32) -> f64 {
             x as f64
@@ -75,10 +136,9 @@ fn emit_tokens_from_new_map() {
     };
     assert_eq!(decl.to_string(), decl_2.to_string());
 
-    let map_trait = map_2.user_trait("foo_uuid");
+    let map_trait = map_2.map_trait();
     let map_trait_2 = quote::quote! {
         mod __foo {
-            const __UUID: &str = "foo_uuid";
             use spindle::__cudarc::{
                 CudaDevice as __CudaDevice,
                 CudaFunction as __CudaFunction,

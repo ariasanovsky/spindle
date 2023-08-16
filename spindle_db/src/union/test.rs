@@ -54,7 +54,7 @@ let db = TypeDb::new_unions_test_db("unions_are_added_uniquely").unwrap();
             vec![DbPrimitive::new("f32".to_string())]
         )]
     );
-    let v = db.get_union_from_uuid(u.uuid.clone()).unwrap();
+    let _v = db.get_union_from_uuid(u.uuid.clone()).unwrap();
     assert_eq!(
         db.get_unions().unwrap(),
         vec![DbUnion::new(

@@ -1,4 +1,4 @@
-use crate::{DbResult, TypeDb, _TAGS, _MAP_TAGS, _UNION_TAGS};
+use crate::{DbResult, TypeDb, _TAGS, _MAP_TAGS};
 
 impl TypeDb {
     fn new_crates_test_db(test_name: &str) -> DbResult<TypeDb> {
@@ -9,9 +9,9 @@ impl TypeDb {
         db.create_new_map_tables()?;
         dbg!(db.table_names()?);
         db.create_new_crate_tables()?;
-        db._create_new_tag_table()?;
+        db.create_new_tag_table()?;
         dbg!(db.table_names()?);
-        db._create_new_map_tag_table()?;
+        db.create_new_map_tag_table()?;
         dbg!(db.table_names()?);
         // db.create_new_union_tag_table()?;
         // dbg!(db.table_names()?);
