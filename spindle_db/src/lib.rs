@@ -32,6 +32,7 @@ pub struct TypeDb {
     pub(crate) conn: Connection,
 }
 
+pub type Error = rusqlite::Error;
 pub type DbResult<T> = Result<T>;
 
 impl TypeDb {

@@ -123,7 +123,7 @@ const DROP_LIFT_CRATES: &str = "DROP TABLE IF EXISTS lift_crates";
 const DROP_CRATE_UNIONS: &str = "DROP TABLE IF EXISTS crate_unions";
 const DROP_TAGS: &str = "DROP TABLE IF EXISTS tags";
 // const DROP_UNION_TAGS: &str = "DROP TABLE IF EXISTS union_tags";
-const _DROP_MAP_TAGS: &str = "DROP TABLE IF EXISTS map_tags";
+const DROP_MAP_TAGS: &str = "DROP TABLE IF EXISTS map_tags";
 
 impl TypeDb {
     pub(crate) fn create_tables(&self) -> DbResult<()> {
@@ -140,6 +140,7 @@ impl TypeDb {
         // dbg!();
         // todo! ?tables in the right order
         const DROP_TABLES: &[&str] = &[
+            DROP_MAP_TAGS,
             DROP_TAGS,
             DROP_CRATE_UNIONS,
             DROP_LIFT_CRATES,
@@ -153,7 +154,6 @@ impl TypeDb {
             DROP_PRIMITIVES,
         ];
         DROP_TABLES.iter().try_for_each(|&table| {
-            // dbg!(table);
             let _: usize = self.conn.execute(table, [])?;
             Ok(())
         })
@@ -238,7 +238,7 @@ impl TypeDb {
     }
 
     pub(crate) fn _drop_map_tag_table(&self) -> DbResult<()> {
-        let _: usize = self.conn.execute(_DROP_MAP_TAGS, [])?;
+        let _: usize = self.conn.execute(DROP_MAP_TAGS, [])?;
         Ok(())
     }
 

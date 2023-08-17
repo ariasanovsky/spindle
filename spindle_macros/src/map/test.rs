@@ -61,6 +61,7 @@ fn example_01_map() {
                 }
             }
         }
+        pub use __i32_to_f64::__I32ToF64;
     };
     assert_eq!(map_host_crate_tokens.to_string(), expected_map_host_crate_tokens.to_string());
 
@@ -144,10 +145,11 @@ fn emit_tokens_from_new_map() {
                 CudaFunction as __CudaFunction,
                 CudaSlice as __CudaSlice,
                 DeviceRepr as __DeviceRepr,
+                LaunchAsync as __LaunchAsync,
                 LaunchConfig as __LaunchConfig,
                 Ptx as __Ptx,
             };
-            unsafe trait __Foo
+            pub unsafe trait __Foo
             where
                 <Self as __Foo>::U:
                     __DeviceRepr,
@@ -159,20 +161,21 @@ fn emit_tokens_from_new_map() {
                 type U;
                 type Return;
                 const PTX_PATH: &'static str;
-                fn foo(&self, n: i32) -> spindle::Result<Self::Return> {
+                fn foo(self, n: i32) -> spindle::Result<Self::Return> {
                     let mut slice: __CudaSlice<Self::U> = self.into();
                     let device: std::sync::Arc<__CudaDevice> = slice.device();
                     let ptx: __Ptx = __Ptx::from_file(Self::PTX_PATH);
                     device.load_ptx(ptx, "kernels", &["foo_kernel"])?;
                     let f: __CudaFunction =
-                        device.get_function("foo_kernel")
-                        .ok_or(spindle::Error::FunctionNotFound)?;
+                        device.get_func("kernels", "foo_kernel")
+                        .ok_or(spindle::error::function_not_found(Self::PTX_PATH, "foo_kernel"))?;
                     let config: __LaunchConfig = __LaunchConfig::for_num_elems(n as u32);
                     unsafe { f.launch(config, (&mut slice, n)) }?;
                     Ok(slice.into())
                 }
             }
         }
+        pub use __foo::__Foo;
     };
     assert_eq!(map_trait.to_string(), map_trait_2.to_string());
 

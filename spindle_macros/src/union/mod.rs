@@ -14,10 +14,10 @@ pub(crate) enum RawSpinInput {
 }
 
 #[derive(Debug)]
-pub(crate) struct UnionInScope(pub UpperCamelIdent);
+pub struct UnionInScope(pub UpperCamelIdent);
 
 #[derive(Debug)]
-pub(crate) struct NewUnion(pub UpperCamelIdent, pub Vec<PrimitiveIdent>);
+pub struct NewUnion(pub UpperCamelIdent, pub Vec<PrimitiveIdent>);
 
 #[derive(Debug)]
 pub(crate) struct MapFnInScope(pub LowerSnakeIdent);

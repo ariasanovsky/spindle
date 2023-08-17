@@ -80,6 +80,7 @@ impl MapTokens for MapFn {
                     }
                 }
             }
+            pub use #dunder_mod_ident::#dunder_camel_trait_ident;
         }
     }
 

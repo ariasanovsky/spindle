@@ -1,10 +1,80 @@
-use spindle_db::TypeDb;
+use proc_macro2::Span;
+use quote::ToTokens;
+use spindle_db::{TypeDb, map::DbMap};
 
-use crate::{union::{RawSpinInput, UnionInScope, NewUnion, MapFnInScope}, map::CrateTag};
+use crate::{union::{RawSpinInput, UnionInScope, NewUnion, MapFnInScope}, tag::CrateTag, case::{UpperCamelIdent, PrimitiveIdent}};
 
+mod spindle_crate;
+mod error;
 mod parse;
 #[cfg(test)]
 mod test;
+mod tokens;
+
+#[derive(Debug)]
+pub struct SpinInputs {
+    pub tag: CrateTag,
+    pub unions: Vec<UnionInput>,
+}
+
+#[derive(Debug)]
+pub enum UnionInput {
+    New(UpperCamelIdent, Vec<PrimitiveIdent>),
+    InScope(UpperCamelIdent),
+}
+
+#[derive(Debug)]
+pub struct SpindleCrate {
+    pub home: std::path::PathBuf,
+    pub maps: Vec<DbMap>,
+    pub tag: CrateTag,
+    pub unions: Vec<UnionInput>,
+}
+
+pub fn spin(inputs: SpinInputs, db_name: &str) -> syn::Result<proc_macro2::TokenStream> {
+    // map any conversion errors to the call site
+    let spindle_crate: SpindleCrate = (inputs, db_name).try_into().map_err(|err| syn::Error::new(
+        Span::call_site(),
+        format!("{err:#?}"),
+    ))?;
+    if !spindle_crate.exists() {
+        let _: () = spindle_crate.populate()?;
+        let _: () = spindle_crate.compile()?;
+    }
+    // let _: () = spindle_crate.write_toml_files().map_err(|err| syn::Error::new(
+    //     Span::call_site(),
+    //     format!("{err:#?}"),
+    // ))?;
+    // let _: () = spindle_crate.write_lib_rs().map_err(|err| syn::Error::new(
+    //     Span::call_site(),
+    //     format!("{err:#?}"),
+    // ))?;
+    // let _: () = spindle_crate.write_device_rs().map_err(|err| syn::Error::new(
+    //     Span::call_site(),
+    //     format!("{err:#?}"),
+    // ))?;
+    Ok(spindle_crate.to_token_stream())
+}
+
+impl TryFrom<(SpinInputs, &str)> for SpindleCrate {
+    type Error = spindle_db::Error;
+
+    fn try_from((inputs, db_name): (SpinInputs, &str)) -> Result<Self, Self::Error> {
+        let SpinInputs {
+            tag,
+            unions,
+        } = inputs;
+        let db = TypeDb::open_or_create(db_name, "target/spindle/db/")?;
+        let maps = db.get_maps_from_tag(&tag)?;
+        let home = std::path::PathBuf::from("target/spindle/crates/").join(tag.to_string());
+        Ok(Self {
+            home,
+            maps,
+            tag,
+            unions,
+        })
+    }
+}
 
 #[derive(Debug)]
 pub(crate) struct RawSpinInputs {
@@ -14,37 +84,37 @@ pub(crate) struct RawSpinInputs {
     pub _map_fns_in_scope: Vec<MapFnInScope>,
 }
 
-pub(crate) fn _spin(_inputs: RawSpinInputs) -> proc_macro::TokenStream {
-    /* `spindle::spin!(U = i32 | f64, V, foo);`
-    * `U` (new union):
-        - get or insert
-        - declare
-        - impl device repr
-        - impl raw converts
-    * `V` (union in scope):
-        - get (no decl or impls)
-    * `foo` (map fn in scope):
-        - e.g., `fn foo(x: i32, y: f32) -> (f64, f32) { ... }`
-        - get
-            (!) this requires a UUID
-            (!) use the trait `__Foo` to encode the UUID
-        - declare in ptx crate
-            `fn foo(x: i32, y: f32) -> (f64, f32) { ... }`
-        - method in ptx crate on (U, V),
-            `impl (U, V) { fn foo(&mut self) { ... } }`
-        - kernel in ptx crate on (U, V),
-            `... foo_kernel(u_ptr: *mut U, v_ptr: *mut V, n: i32) { ... }`
-    */
-    const NAME: &str = "types";
-    const HOME: &str = "target/spindle/";
-    let _db = TypeDb::open_or_create(NAME, HOME).unwrap();
-    // let new_unions = inputs.0.iter().map(|input| match input {
-    //     RawSpinInput::UnionInScope(_) => todo!(),
-    //     RawSpinInput::NewUnion(_, _) => todo!(),
-    //     RawSpinInput::MapFnInScope(_) => todo!(),
-    // });
-    todo!()
-}
+// pub(crate) fn _spin(_inputs: RawSpinInputs) -> proc_macro::TokenStream {
+//     /* `spindle::spin!(U = i32 | f64, V, foo);`
+//     * `U` (new union):
+//         - get or insert
+//         - declare
+//         - impl device repr
+//         - impl raw converts
+//     * `V` (union in scope):
+//         - get (no decl or impls)
+//     * `foo` (map fn in scope):
+//         - e.g., `fn foo(x: i32, y: f32) -> (f64, f32) { ... }`
+//         - get
+//             (!) this requires a UUID
+//             (!) use the trait `__Foo` to encode the UUID
+//         - declare in ptx crate
+//             `fn foo(x: i32, y: f32) -> (f64, f32) { ... }`
+//         - method in ptx crate on (U, V),
+//             `impl (U, V) { fn foo(&mut self) { ... } }`
+//         - kernel in ptx crate on (U, V),
+//             `... foo_kernel(u_ptr: *mut U, v_ptr: *mut V, n: i32) { ... }`
+//     */
+//     const NAME: &str = "types";
+//     const HOME: &str = "target/spindle/";
+//     let _db = TypeDb::open_or_create(NAME, HOME).unwrap();
+//     // let new_unions = inputs.0.iter().map(|input| match input {
+//     //     RawSpinInput::UnionInScope(_) => todo!(),
+//     //     RawSpinInput::NewUnion(_, _) => todo!(),
+//     //     RawSpinInput::MapFnInScope(_) => todo!(),
+//     // });
+//     todo!()
+// }
 
 // // todo! deprecated
 // pub(crate) struct SpinInput {

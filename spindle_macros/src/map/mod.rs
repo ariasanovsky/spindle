@@ -1,8 +1,8 @@
 use proc_macro2::Span;
 use quote::ToTokens;
-use spindle_db::{TypeDb, tag::AsDbTag};
+use spindle_db::TypeDb;
 
-use crate::case::LowerSnakeIdent;
+use crate::tag::CrateTag;
 
 use in_out::InOut;
 
@@ -19,23 +19,14 @@ const MAP_PATH: &str = "target/spindle/db/";
 const DB_NAME: &str = "map";
 
 #[derive(Clone)]
-pub(crate) struct MapFn {
-    pub(crate) item_fn: syn::ItemFn,
-    pub(crate) in_outs: Vec<InOut>,
+pub struct MapFn {
+    pub item_fn: syn::ItemFn,
+    pub in_outs: Vec<InOut>,
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct MapAttrs {
+pub struct MapAttrs {
     pub _tags: Vec<CrateTag>,
-}
-
-#[derive(Clone, Debug)]
-pub(crate) struct CrateTag(pub LowerSnakeIdent);
-
-impl AsDbTag for CrateTag {
-    fn db_tag(&self) -> String {
-        self.0.0.to_string()
-    }
 }
 
 impl PartialEq for MapFn {
@@ -52,6 +43,7 @@ pub(crate) fn map(attrs: MapAttrs, map_fn: MapFn, db_name: &str)
     // add map to database
     // tag in database with #example_01
     // emit map & map trait
+    dbg!(&map_fn);
     let db = TypeDb::open_or_create(db_name, MAP_PATH).unwrap();
     dbg!(db.table_names().unwrap());
     let _map = db.get_or_insert_map(&map_fn, &attrs._tags).unwrap();

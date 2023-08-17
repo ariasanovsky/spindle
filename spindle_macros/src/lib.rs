@@ -2,7 +2,7 @@ use basic_range::emit_range_kernel;
 use map::{MapFn, MapAttrs};
 use proc_macro2::TokenStream;
 use serde::{Deserialize, Serialize};
-use spin::{RawSpinInputs, _spin};
+use spin::SpinInputs;
 // use spin::SpinInput;
 use syn::parse_macro_input;
 
@@ -14,6 +14,7 @@ pub(crate) mod file_strings;
 pub(crate) mod map;
 pub(crate) mod regulate;
 pub(crate) mod spin;
+pub(crate) mod tag;
 
 pub(crate) mod union;
 // pub(crate) mod unions;
@@ -42,8 +43,8 @@ struct RangeSpindle {
 
 #[proc_macro]
 pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input: RawSpinInputs = parse_macro_input!(input as RawSpinInputs);
-    _spin(input)
+    let inputs: SpinInputs = syn::parse_macro_input!(input as SpinInputs);
+    spin::spin(inputs, "types").unwrap_or_else(syn::Error::into_compile_error).into()
 }
 
 #[proc_macro_attribute]

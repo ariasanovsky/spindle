@@ -1,9 +1,73 @@
 use proc_macro2::Ident;
-use syn::parse::Parse;
+use syn::parse::{Parse, ParseStream};
 
-use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, map::CrateTag, union::{MapFnInScope, NewUnion, UnionInScope}};
+use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, union::{MapFnInScope, NewUnion, UnionInScope}, tag::CrateTag};
 
-use super::{RawSpinInput, RawSpinInputs};
+use super::{RawSpinInput, RawSpinInputs, UnionInput, SpinInputs};
+
+impl Parse for SpinInputs {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // e.g., `#example_01, U = i32 | f64`
+        // always begin with exactly one crate tag
+        let tag: CrateTag = input.parse()?;
+        // consume a comma
+        let _: syn::Token![,] = input.parse()?;
+        // consume a union (there is always at least one)
+        let u: UnionInput = input.parse()?;
+        let mut unions: Vec<UnionInput> = vec![u];
+        while !input.is_empty() {
+            // consume a comma
+            let _: syn::Token![,] = input.parse()?;
+            if input.is_empty() {
+                break;
+            }
+            // consume a union
+            let u: UnionInput = input.parse()?;
+            unions.push(u);
+        }
+        Ok(SpinInputs {
+            tag,
+            unions,
+        })
+        // let err = syn::Error::new_spanned(
+        //     input.cursor().token_stream(),
+        //     format!("make SpinInputs from {input:#?}"),
+        // );
+        // Err(err)
+    }
+}
+
+impl Parse for UnionInput {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        // e.g., `U = i32 | f64`
+        // e.g., `V`
+        let ident: UpperCamelIdent = input.parse()?;
+        // peek for an `=`
+        Ok(if input.peek(syn::Token![=]) {
+            // consume the `=`
+            let _: syn::Token![=] = input.parse()?;
+            // consume a primitive
+            let p: PrimitiveIdent = input.parse()?;
+            let mut fields: Vec<PrimitiveIdent> = vec![p];
+            // while we see a `|`, consume it and a primitive
+            while input.peek(syn::Token![|]) {
+                // consume the `|`
+                let _: syn::Token![|] = input.parse()?;
+                // consume a primitive
+                let p: PrimitiveIdent = input.parse()?;
+                fields.push(p);
+            }
+            UnionInput::New(ident, fields)
+        } else {
+            UnionInput::InScope(ident)
+        })
+        // let err = syn::Error::new_spanned(
+        //     input.cursor().token_stream(),
+        //     format!("make UnionInput from {input:#?}"),
+        // );
+        // return Err(err);
+    }
+}
 
 impl Parse for RawSpinInput {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
