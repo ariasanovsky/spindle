@@ -1,7 +1,7 @@
 use crate::primitives::_Primitive;
 
 #[derive(Debug, Clone)]
-pub(crate) struct InOut {
-    pub(crate) input: Option<_Primitive>,
-    pub(crate) output: Option<_Primitive>,
+pub struct InOut {
+    pub input: Option<_Primitive>,
+    pub output: Option<_Primitive>,
 }

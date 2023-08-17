@@ -1,5 +1,6 @@
 use crate::{
     primitive::{AsDbPrimitive, DbPrimitive},
+    tag::AsDbTag,
     DbResult, TypeDb,
 };
 
@@ -10,15 +11,16 @@ mod test;
 
 #[derive(Clone, Debug, Eq)]
 pub struct DbMap {
-    pub(crate) uuid: String,
-    pub(crate) content: String,
-    pub(crate) in_outs: Vec<DbInOut>,
+    pub uuid: String,
+    pub ident: String,
+    pub content: String,
+    pub in_outs: Vec<DbInOut>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DbInOut {
-    pub(crate) input: Option<DbPrimitive>,
-    pub(crate) output: Option<DbPrimitive>,
+    pub input: Option<DbPrimitive>,
+    pub output: Option<DbPrimitive>,
 }
 
 impl PartialEq for DbMap {
@@ -28,10 +30,11 @@ impl PartialEq for DbMap {
 }
 
 impl DbMap {
-    pub(crate) fn new(ident: String, in_outs: Vec<DbInOut>) -> Self {
+    pub(crate) fn new(ident: String, content: String, in_outs: Vec<DbInOut>) -> Self {
         Self {
-            uuid: TypeDb::new_uuid(),
-            content: ident,
+            uuid: uuid::Uuid::new_v4().to_string(),
+            ident,
+            content,
             in_outs,
         }
     }
@@ -44,12 +47,14 @@ pub trait AsDbInOut {
 
 pub trait AsDbMap {
     type InOut: AsDbInOut;
+    fn db_ident(&self) -> String;
     fn db_content(&self) -> String;
-    fn db_inout_pairs(&self) -> Vec<Self::InOut>;
+    fn db_inouts(&self) -> Vec<Self::InOut>;
 }
 
 impl TypeDb {
-    pub(crate) fn get_maps(&self) -> DbResult<Vec<DbMap>> {
+    // todo! refactor with collect
+    pub fn get_maps(&self) -> DbResult<Vec<DbMap>> {
         let mut stmt = self.conn.prepare("SELECT uuid FROM maps")?;
         let uuids = stmt.query_map([], |row| row.get(0))?;
         let mut maps = Vec::new();
@@ -61,17 +66,25 @@ impl TypeDb {
     }
 
     pub(crate) fn get_map_from_uuid(&self, uuid: String) -> DbResult<DbMap> {
-        let mut stmt = self.conn.prepare("SELECT ident FROM maps WHERE uuid = ?")?;
-        let ident: String = stmt.query_row([&uuid], |row| row.get(0))?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT ident, content FROM maps WHERE uuid = ?")?;
+        let (ident, content): (String, String) = stmt.query_row([&uuid], |row| {
+            let ident: String = row.get(0)?;
+            let content: String = row.get(1)?;
+            Ok((ident, content))
+        })?;
         let in_outs = self.get_in_outs_from_uuid(&uuid)?;
         Ok(DbMap {
             uuid,
-            content: ident,
+            ident,
+            content,
             in_outs,
         })
     }
 
     fn get_in_outs_from_uuid(&self, uuid: &str) -> DbResult<Vec<DbInOut>> {
+        // todo! seems way too verbose...
         let mut stmt = self.conn.prepare(
             "SELECT pos, input_uuid, output_uuid FROM in_outs WHERE map_uuid = ? ORDER BY pos",
         )?;
@@ -108,137 +121,76 @@ impl TypeDb {
             .into_iter()
             .map(|(input, output)| DbInOut { input, output })
             .collect())
-        // todo!()
     }
 
-    // todo! put all your code into 1 function with this neat trick doctors don't want you to know
-    pub fn get_or_insert_map<M: AsDbMap>(&self, map: &M) -> DbResult<DbMap> {
-        let content = map.db_content();
-        dbg!(&content);
-        let in_outs = self.get_or_insert_in_outs(map.db_inout_pairs())?;
-        dbg!();
-        let mut statement = self.conn.prepare("SELECT uuid FROM maps WHERE ident = ?")?;
-        let uuids = statement.query_map([&content], |row| row.get::<_, String>(0))?;
-        // todo! `filter`
-        let uuids: Vec<String> = uuids.collect::<Result<_, _>>()?;
-        dbg!(&uuids);
-        let mut maps: Vec<DbMap> = uuids
-            .into_iter()
-            .map(|uuid| {
-                // get the position, input_uuid, and output_uuid but sort by position
-                dbg!(&uuid);
-                let mut statement = self.conn.prepare(
-                "SELECT pos, input_uuid, output_uuid FROM in_outs WHERE map_uuid = ? ORDER BY pos",
-            )?;
-                let in_outs = statement.query_map([&uuid], |row| {
-                    let pos: i64 = row.get(0)?;
-                    dbg!(&pos);
-                    let input_uuid: Option<String> = row.get(1)?;
-                    dbg!(&input_uuid);
-                    let output_uuid: Option<String> = row.get(2)?;
-                    dbg!(&output_uuid);
-                    Ok((pos, input_uuid, output_uuid))
-                })?;
-                let in_outs: Vec<_> = in_outs
-                    .enumerate()
-                    .map(|(i, x)| {
-                        dbg!(&i, &x);
-                        let (pos, input_uuid, output_uuid) = x?;
-                        dbg!(&pos, &input_uuid, &output_uuid);
-                        assert_eq!(i as i64, pos, "malformed db: in_outs.pos is not sorted");
-                        Ok((input_uuid, output_uuid))
-                    })
-                    .collect::<DbResult<Vec<_>>>()?;
-                let in_outs: Vec<_> = in_outs
-                    .into_iter()
-                    .map(|(input, output)| {
-                        let input: Option<DbPrimitive> = input
-                            .map(|uuid| self.get_primitive_from_uuid(uuid))
-                            .transpose()?
-                            .flatten(); // todo! ?unhandled error
-                        let output: Option<DbPrimitive> = output
-                            .map(|uuid| self.get_primitive_from_uuid(uuid))
-                            .transpose()?
-                            .flatten(); // todo! ?unhandled error
-                                        // Ok((input, output))
-                        Ok(DbInOut { input, output })
-                    })
-                    .collect::<DbResult<_>>()?;
-                dbg!();
-
-                let map = DbMap {
-                    uuid,
-                    content: content.clone(),
-                    in_outs,
-                };
-                Ok(map)
-            })
-            .collect::<DbResult<_>>()?;
-        dbg!(&maps);
-        maps.retain(|map| map.in_outs == in_outs);
-
-        // todo! crashes on fatal error, db malformed
-        assert!(
-            maps.len() <= 1,
-            "more than one map with the same ident and in_outs"
-        );
-        // todo! unwrap_or*
-        Ok(if let Some(map) = maps.into_iter().next() {
-            map
-        } else {
-            let map = DbMap::new(content.clone(), in_outs);
-            self.insert_map(&map)?;
-            map
-        })
-    }
-
-    fn get_or_insert_in_outs<InOut: AsDbInOut>(
+    pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(
         &self,
-        in_outs: Vec<InOut>,
-    ) -> DbResult<Vec<DbInOut>> {
-        dbg!();
-        in_outs
-            .into_iter()
-            .map(|in_out| in_out.db_inout())
-            .map(|in_out| {
-                dbg!();
-                let input = in_out
-                    .0
-                    .map(|input| self.get_or_insert_primitive(&input))
-                    .transpose()?;
-                let output = in_out
-                    .1
-                    .map(|output| self.get_or_insert_primitive(&output))
-                    .transpose()?;
-                // todo!()
-                // let input = input.map(|input| self.get_or_insert_primitive(&input)).transpose()?;
-                // let output = output.map(|output| self.get_or_insert_primitive(&output)).transpose()?;
-                Ok(DbInOut { input, output })
-            })
-            .collect::<DbResult<_>>()
-        // todo!()
+        map: &M,
+        tags: &[T],
+    ) -> DbResult<DbMap> {
+        let db_map = self
+            .get_map(map)
+            .transpose()
+            .unwrap_or_else(|| self.insert_map(map))?;
+        self.tag_map(&db_map, tags)?;
+        Ok(db_map)
     }
 
-    pub(crate) fn insert_map(&self, map: &DbMap) -> DbResult<()> {
+    pub(crate) fn get_map<M: AsDbMap>(&self, map: &M) -> DbResult<Option<DbMap>> {
+        // get all maps with the same ident & contents
         let mut statement = self
             .conn
-            .prepare("INSERT INTO maps (uuid, ident) VALUES (?, ?)")?;
-        statement.execute([map.uuid.clone(), map.content.clone()])?;
+            .prepare("SELECT uuid FROM maps WHERE ident = ? AND content = ?")?;
+        let mut maps = statement.query_map([&map.db_ident(), &map.db_content()], |row| {
+            let uuid: String = row.get(0)?;
+            self.get_map_from_uuid(uuid)
+        })?;
+        let first = maps.next().transpose()?;
+        let second = maps.next().transpose()?;
+        match (first, second) {
+            (None, _) => Ok(None),
+            (Some(db_map), None) => Ok(Some(db_map)),
+            (Some(db_map_1), Some(db_map_2)) => {
+                panic!("duplicate maps in db: {db_map_1:?} {db_map_2:?}")
+            }
+        }
+    }
+
+    pub(crate) fn insert_map<M: AsDbMap>(&self, map: &M) -> DbResult<DbMap> {
+        // get in_out pairs from map
+        let in_outs: Vec<DbInOut> = map
+            .db_inouts()
+            .into_iter()
+            .map(|in_out| {
+                let (input, output) = in_out.db_inout();
+                let input = input
+                    .map(|input| self.get_or_insert_primitive(&input))
+                    .transpose()?;
+                let output = output
+                    .map(|output| self.get_or_insert_primitive(&output))
+                    .transpose()?;
+                Ok(DbInOut { input, output })
+            })
+            .collect::<DbResult<_>>()?;
+        let map = DbMap::new(map.db_ident(), map.db_content(), in_outs);
+        self.insert_db_map(&map)?;
+        Ok(map)
+    }
+
+    fn insert_db_map(&self, map: &DbMap) -> DbResult<()> {
+        let mut statement = self
+            .conn
+            .prepare("INSERT INTO maps (uuid, ident, content) VALUES (?, ?, ?)")?;
+        let _: usize =
+            statement.execute([map.uuid.clone(), map.ident.clone(), map.content.clone()])?;
         let mut statement = self.conn.prepare(
             "INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)",
         )?;
         for (i, in_out) in map.in_outs.iter().enumerate() {
-            dbg!();
-            let input_uuid = in_out.input.as_ref().map(|x| x.uuid.clone());
-            let output_uuid = in_out.output.as_ref().map(|x| x.uuid.clone());
-            // let input_uuid = input.as_ref().map(|x| x.uuid.clone());
-            // let output_uuid = output.as_ref().map(|x| x.uuid.clone());
-            statement.execute(rusqlite::params![
-                &map.uuid,
-                i as i64,
-                input_uuid,
-                output_uuid
-            ])?;
+            let input_uuid = in_out.input.as_ref().map(|x| &x.uuid);
+            let output_uuid = in_out.output.as_ref().map(|x| &x.uuid);
+            let _: usize =
+                statement.execute(rusqlite::params![&map.uuid, i, input_uuid, output_uuid])?;
         }
         Ok(())
     }

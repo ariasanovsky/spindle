@@ -37,9 +37,9 @@ use crate::{map::DbMap, union::DbUnion, DbResult, TypeDb};
 */
 #[derive(Clone, Debug)]
 pub struct DbCrate {
-    pub(crate) uuid: String,
-    pub(crate) unions: Vec<DbUnion>,          // [U_1, ..., U_m]
-    pub(crate) lifts: Vec<DbLiftGivenUnions>, // vec of [f: (X_1, ..., X_m) -> (Y_1, ..., Y_m)]
+    pub uuid: String,
+    pub unions: Vec<DbUnion>,          // [U_1, ..., U_m]
+    pub lifts: Vec<DbLiftGivenUnions>, // vec of [f: (X_1, ..., X_m) -> (Y_1, ..., Y_m)]
 }
 
 impl DbCrate {
@@ -124,10 +124,7 @@ impl TypeDb {
         let unions = statement.query_map([&uuid], |row| {
             let pos: usize = row.get(0)?;
             let union_uuid: String = row.get(1)?;
-            let db_union: DbResult<DbUnion> = self
-                .get_union_from_uuid(union_uuid)
-                .transpose()
-                .expect("union not found");
+            let db_union: DbResult<DbUnion> = self.get_union_from_uuid(union_uuid);
             db_union.map(|db_union| (pos, db_union))
         })?;
         let unions: DbResult<Vec<DbUnion>> = unions
@@ -174,7 +171,6 @@ impl TypeDb {
     }
 
     fn get_lift_from_uuid(&self, uuid: String) -> DbResult<Option<DbLiftGivenUnions>> {
-        dbg!();
         // first we get the associated map
         let mut statement = self.conn.prepare(
             "
@@ -233,7 +229,6 @@ impl TypeDb {
     ) -> DbResult<DbCrate> {
         // create a new crate
         let db_crate = DbCrate::new(unions, lifts);
-        dbg!();
         // insert crate, then join with unions and lifts
         let mut statement = self.conn.prepare(
             "
@@ -241,7 +236,6 @@ impl TypeDb {
         ",
         )?;
         let _: usize = statement.execute([&db_crate.uuid])?;
-        dbg!();
         // insert unions
         let mut statement = self.conn.prepare(
             "
@@ -258,7 +252,6 @@ impl TypeDb {
                 let res: DbResult<()> = Ok(());
                 res
             })?;
-        dbg!();
         // insert lifts
         let mut statement = self.conn.prepare(
             "
@@ -275,7 +268,6 @@ impl TypeDb {
                 let res: DbResult<()> = Ok(());
                 res
             })?;
-        dbg!();
         // return the crate
         Ok(db_crate)
     }
@@ -417,7 +409,6 @@ impl TypeDb {
             .enumerate()
             .try_for_each::<_, DbResult<()>>(|(pos, ((in_pos, out_pos), union))| {
                 let union_uuid = &union.uuid;
-                // dbg!(&pos, &in_pos, &out_pos, &union_uuid);
                 // add (lift_uuid, pos, union_uuid, in_pos, out_pos) to the table
                 let mut statement = self.conn.prepare("
                     INSERT INTO lift_entries (lift_uuid, pos, union_uuid, in_pos, out_pos) VALUES (?, ?, ?, ?, ?)

@@ -45,19 +45,18 @@ fn unions_new_db_has_correct_table_names() {
 #[test]
 fn unions_are_added_uniquely() {
     let db = TypeDb::new_unions_test_db("unions_are_added_uniquely").unwrap();
-    assert_eq!(db._get_unions().unwrap(), vec![]);
+    assert_eq!(db.get_unions().unwrap(), vec![]);
     let u = db.get_or_insert_union(&("U", vec!["f32"])).unwrap();
     assert_eq!(
-        db._get_unions().unwrap(),
+        db.get_unions().unwrap(),
         vec![DbUnion::new(
             "U".to_string(),
             vec![DbPrimitive::new("f32".to_string())]
         )]
     );
-    let v = db.get_union_from_uuid_and_ident(u.uuid, u.ident).unwrap();
-    dbg!(&v);
+    let _v = db.get_union_from_uuid(u.uuid.clone()).unwrap();
     assert_eq!(
-        db._get_unions().unwrap(),
+        db.get_unions().unwrap(),
         vec![DbUnion::new(
             "U".to_string(),
             vec![DbPrimitive::new("f32".to_string())]
@@ -65,8 +64,8 @@ fn unions_are_added_uniquely() {
     );
     // same ident, different fields
     let _w = db.get_or_insert_union(&("U", vec!["u64"])).unwrap();
-    assert_eq!(db._get_unions().unwrap().len(), 2);
+    assert_eq!(db.get_unions().unwrap().len(), 2);
     // multiple fields
     let _x = db.get_or_insert_union(&("X", vec!["f32", "u64"])).unwrap();
-    assert_eq!(db._get_unions().unwrap().len(), 3);
+    assert_eq!(db.get_unions().unwrap().len(), 3);
 }

@@ -1,19 +1,21 @@
-use cudarc::driver::{CudaSlice, DeviceRepr};
 pub use spindle_macros::{basic_range, map, spin};
+
+pub mod __cudarc;
+pub mod __union;
 
 pub mod error;
 pub mod spindle;
 
-use spindle::RawConvert;
+pub type Result<T> = std::result::Result<T, error::Error>;
 
-pub struct DevSpindle<U, X>(CudaSlice<U>, std::marker::PhantomData<X>)
+pub struct DevSlice<U, X>(__cudarc::CudaSlice<U>, std::marker::PhantomData<X>)
 where
-    U: RawConvert<X> + DeviceRepr,
+    U: __union::RawConvert<X> + __cudarc::DeviceRepr,
     X: Copy;
 
-pub struct HostSpindle<U, X>(Vec<U>, std::marker::PhantomData<X>)
+pub struct HostSlice<U, X>(Vec<U>, std::marker::PhantomData<X>)
 where
-    U: RawConvert<X>,
+    U: __union::RawConvert<X>,
     X: Copy;
 
 pub mod range {

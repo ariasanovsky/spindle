@@ -1,6 +1,6 @@
 [package]
 name = "spindle"
-version = "0.1.7"
+version = "0.1.9"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "Ergonomic GPGPU data parallel in Rust."
@@ -18,7 +18,7 @@ rayon = "1.7.0"
 members = ["spindle_macros", "spindle_db"]
 
 [workspace.dependencies]
-spindle_macros = { version = "0.1.9", path = "spindle_macros" }
+spindle_macros = { version = "0.1.11", path = "spindle_macros" }
 
 [[bench]]
 name = "filling_boxed_array"

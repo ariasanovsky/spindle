@@ -5,8 +5,8 @@ mod test;
 
 #[derive(Clone, Debug, Eq)]
 pub struct DbPrimitive {
-    pub(crate) uuid: String,
-    pub(crate) ident: String,
+    pub uuid: String,
+    pub ident: String,
 }
 
 impl PartialEq for DbPrimitive {

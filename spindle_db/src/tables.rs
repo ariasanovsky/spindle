@@ -3,7 +3,8 @@ use crate::{DbResult, TypeDb};
 const CREATE_MAPS: &str = "
     CREATE TABLE maps (
     uuid TEXT PRIMARY KEY,
-    ident TEXT NOT NULL         -- not a unique identifier
+    ident TEXT NOT NULL,        -- not a unique identifier
+    content TEXT NOT NULL       -- todo! ?what uniqueness do we want here
 )";
 
 const CREATE_IN_OUTS: &str = "
@@ -18,12 +19,13 @@ const CREATE_IN_OUTS: &str = "
     PRIMARY KEY (map_uuid, pos)
 )";
 
-const CREATE_TABLE: &str = "
+const CREATE_UNIONS: &str = "
     CREATE TABLE unions (
     uuid TEXT PRIMARY KEY,
     ident TEXT NOT NULL             -- not a unique identifier (there may be multiple unions `U`)
 )";
-const CREATE_JUNCTION: &str = "
+
+const CREATE_UNION_FIELDS: &str = "
     CREATE TABLE union_fields (
     union_uuid TEXT NOT NULL,
     pos INTEGER NOT NULL,
@@ -83,6 +85,31 @@ const CREATE_CRATE_UNIONS: &str = "
     PRIMARY KEY (crate_uuid, pos)    -- each crate has at most one associated union
 )";
 
+const _CREATE_TAGS: &str = "
+    CREATE TABLE tags (
+    tag TEXT NOT NULL PRIMARY KEY
+)";
+
+// const CREATE_UNION_TAGS: &str = "
+//     CREATE TABLE union_tags (
+//     union_uuid TEXT NOT NULL,
+//     union_ident TEXT NOT NULL,
+//     tag TEXT NOT NULL,
+//     FOREIGN KEY (union_uuid) REFERENCES unions (uuid),
+//     FOREIGN KEY (union_ident) REFERENCES unions (ident),
+//     FOREIGN KEY (tag) REFERENCES tags (tag),
+//     PRIMARY KEY (union_ident, tag)
+// )";
+
+const _CREATE_MAP_TAGS: &str = "
+    CREATE TABLE map_tags (
+    map_uuid TEXT NOT NULL,
+    tag TEXT NOT NULL,
+    FOREIGN KEY (map_uuid) REFERENCES maps (uuid),
+    FOREIGN KEY (tag) REFERENCES tags (tag),
+    PRIMARY KEY (map_uuid, tag)
+)";
+
 // caconst DROP: &str = "DROP TABLE IF EXISTS ?";
 const DROP_PRIMITIVES: &str = "DROP TABLE IF EXISTS primitives";
 const DROP_UNIONS: &str = "DROP TABLE IF EXISTS unions";
@@ -94,6 +121,9 @@ const DROP_LIFTS: &str = "DROP TABLE IF EXISTS lifts";
 const DROP_LIFT_ENTRIES: &str = "DROP TABLE IF EXISTS lift_entries";
 const DROP_LIFT_CRATES: &str = "DROP TABLE IF EXISTS lift_crates";
 const DROP_CRATE_UNIONS: &str = "DROP TABLE IF EXISTS crate_unions";
+const DROP_TAGS: &str = "DROP TABLE IF EXISTS tags";
+// const DROP_UNION_TAGS: &str = "DROP TABLE IF EXISTS union_tags";
+const DROP_MAP_TAGS: &str = "DROP TABLE IF EXISTS map_tags";
 
 impl TypeDb {
     pub(crate) fn create_tables(&self) -> DbResult<()> {
@@ -101,13 +131,16 @@ impl TypeDb {
         self.create_new_union_tables()?;
         self.create_new_primitive_table()?;
         self.create_new_crate_tables()?;
+        self.create_new_tag_table()?;
+        self.create_new_map_tag_table()?;
         Ok(())
     }
 
     pub(crate) fn drop_tables(&self) -> DbResult<()> {
-        dbg!();
         // todo! ?tables in the right order
         const DROP_TABLES: &[&str] = &[
+            DROP_MAP_TAGS,
+            DROP_TAGS,
             DROP_CRATE_UNIONS,
             DROP_LIFT_CRATES,
             DROP_LIFT_ENTRIES,
@@ -120,13 +153,12 @@ impl TypeDb {
             DROP_PRIMITIVES,
         ];
         DROP_TABLES.iter().try_for_each(|&table| {
-            dbg!(table);
             let _: usize = self.conn.execute(table, [])?;
             Ok(())
         })
     }
 
-    pub(crate) fn table_names(&self) -> DbResult<Vec<String>> {
+    pub fn table_names(&self) -> DbResult<Vec<String>> {
         const TABLES: &str =
             "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
         let mut statement = self.conn.prepare(TABLES)?;
@@ -142,14 +174,12 @@ impl TypeDb {
 
 impl TypeDb {
     pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
-        dbg!();
         self.drop_primitive_table()?;
         let _: usize = self.conn.execute(CREATE_PRIMITIVES, [])?;
         Ok(())
     }
 
     pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
-        dbg!();
         let _: usize = self.conn.execute(DROP_PRIMITIVES, [])?;
         Ok(())
     }
@@ -159,8 +189,8 @@ impl TypeDb {
     pub(crate) fn create_new_union_tables(&self) -> DbResult<()> {
         self.drop_union_tables()?;
         // self.create_new_primitive_table()?;
-        let _: usize = self.conn.execute(CREATE_TABLE, [])?;
-        let _: usize = self.conn.execute(CREATE_JUNCTION, [])?;
+        let _: usize = self.conn.execute(CREATE_UNIONS, [])?;
+        let _: usize = self.conn.execute(CREATE_UNION_FIELDS, [])?;
         Ok(())
     }
 
@@ -187,6 +217,41 @@ impl TypeDb {
 }
 
 impl TypeDb {
+    pub(crate) fn create_new_tag_table(&self) -> DbResult<()> {
+        self._drop_tag_table()?;
+        let _: usize = self.conn.execute(_CREATE_TAGS, [])?;
+        Ok(())
+    }
+
+    pub(crate) fn _drop_tag_table(&self) -> DbResult<()> {
+        let _: usize = self.conn.execute(DROP_TAGS, [])?;
+        Ok(())
+    }
+
+    pub(crate) fn create_new_map_tag_table(&self) -> DbResult<()> {
+        self._drop_map_tag_table()?;
+        let _: usize = self.conn.execute(_CREATE_MAP_TAGS, [])?;
+        Ok(())
+    }
+
+    pub(crate) fn _drop_map_tag_table(&self) -> DbResult<()> {
+        let _: usize = self.conn.execute(DROP_MAP_TAGS, [])?;
+        Ok(())
+    }
+
+    // pub(crate) fn create_new_union_tag_table(&self) -> DbResult<()> {
+    //     self.drop_union_tag_table()?;
+    //     let _: usize = self.conn.execute(CREATE_UNION_TAGS, [])?;
+    //     Ok(())
+    // }
+
+    // pub(crate) fn drop_union_tag_table(&self) -> DbResult<()> {
+    //     let _: usize = self.conn.execute(DROP_UNION_TAGS, [])?;
+    //     Ok(())
+    // }
+}
+
+impl TypeDb {
     pub(crate) fn create_new_crate_tables(&self) -> DbResult<()> {
         self.drop_crate_tables()?;
         let _: usize = self.conn.execute(CREATE_CRATES, [])?;
@@ -198,11 +263,6 @@ impl TypeDb {
     }
 
     pub(crate) fn drop_crate_tables(&self) -> DbResult<()> {
-        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS crates", [])?;
-        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS lifts", [])?;
-        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS lift_entries", [])?;
-        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS lift_crates", [])?;
-        // let _: usize = self.conn.execute("DROP TABLE IF EXISTS crate_unions", [])?;
         let _: usize = self.conn.execute(DROP_CRATES, [])?;
         let _: usize = self.conn.execute(DROP_LIFTS, [])?;
         let _: usize = self.conn.execute(DROP_LIFT_ENTRIES, [])?;

@@ -1,10 +1,10 @@
 [package]
 name = "spindle_db"
-version = "0.1.2"
+version = "0.1.4"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "A db backend for `spindle`: ergonomic GPGPU data parallel computing in Rust."
-repository = "https://github.com/ariasanovsky/spindle/spindle_db/"
+repository = "https://github.com/ariasanovsky/spindle/"
 
 [dependencies]
 prettytable-rs = "0.10.0"

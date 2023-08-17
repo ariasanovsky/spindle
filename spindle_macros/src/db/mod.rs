@@ -2,11 +2,14 @@ use quote::ToTokens;
 use spindle_db::{
     map::{AsDbInOut, AsDbMap},
     primitive::AsDbPrimitive,
+    union::AsDbUnion,
 };
 
 use crate::{
+    case::PrimitiveIdent,
     map::{in_out::InOut, MapFn},
     primitives::_Primitive,
+    union::NewUnion,
 };
 
 impl AsDbPrimitive for _Primitive {
@@ -26,11 +29,33 @@ impl AsDbInOut for InOut {
 impl AsDbMap for MapFn {
     type InOut = InOut;
 
+    fn db_ident(&self) -> String {
+        self.item_fn.sig.ident.to_string()
+    }
+
     fn db_content(&self) -> String {
         self.item_fn.clone().to_token_stream().to_string()
     }
 
-    fn db_inout_pairs(&self) -> Vec<Self::InOut> {
+    fn db_inouts(&self) -> Vec<Self::InOut> {
         self.in_outs.clone()
+    }
+}
+
+impl AsDbUnion for NewUnion {
+    type Primitive = PrimitiveIdent;
+
+    fn db_ident(&self) -> String {
+        self.0 .0.to_string()
+    }
+
+    fn db_fields(&self) -> Vec<Self::Primitive> {
+        self.1.clone()
+    }
+}
+
+impl AsDbPrimitive for PrimitiveIdent {
+    fn db_ident(&self) -> String {
+        self.0.to_string()
     }
 }
