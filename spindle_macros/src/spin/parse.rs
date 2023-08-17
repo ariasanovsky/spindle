@@ -1,9 +1,13 @@
 use proc_macro2::Ident;
 use syn::parse::{Parse, ParseStream};
 
-use crate::{case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent, Cased}, union::{MapFnInScope, NewUnion, UnionInScope}, tag::CrateTag};
+use crate::{
+    case::{Cased, LowerSnakeIdent, PrimitiveIdent, UpperCamelIdent},
+    tag::CrateTag,
+    union::{MapFnInScope, NewUnion, UnionInScope},
+};
 
-use super::{RawSpinInput, RawSpinInputs, UnionInput, SpinInputs};
+use super::{RawSpinInput, RawSpinInputs, SpinInputs, UnionInput};
 
 impl Parse for SpinInputs {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -25,10 +29,7 @@ impl Parse for SpinInputs {
             let u: UnionInput = input.parse()?;
             unions.push(u);
         }
-        Ok(SpinInputs {
-            tag,
-            unions,
-        })
+        Ok(SpinInputs { tag, unions })
         // let err = syn::Error::new_spanned(
         //     input.cursor().token_stream(),
         //     format!("make SpinInputs from {input:#?}"),
@@ -80,10 +81,22 @@ impl Parse for RawSpinInput {
         let ident: Ident = input.parse()?;
         use crate::case::Case;
         let u = match ident.to_string().as_str().case() {
-            Case::LowerSnake => return Ok(Self::MapFnInScope(MapFnInScope(LowerSnakeIdent(ident)))),
+            Case::LowerSnake => {
+                return Ok(Self::MapFnInScope(MapFnInScope(LowerSnakeIdent(ident))))
+            }
             Case::UpperCamel => ident,
-            Case::SupportedPrimitive | Case::UnsupportedPrimitive => return Err(syn::Error::new_spanned(ident, "primitive types are not supported here")),
-            Case::Unknown => return Err(syn::Error::new_spanned(ident, "expected a union (`U`), map (`foo`), or primitive (`f32`)")),
+            Case::SupportedPrimitive | Case::UnsupportedPrimitive => {
+                return Err(syn::Error::new_spanned(
+                    ident,
+                    "primitive types are not supported here",
+                ))
+            }
+            Case::Unknown => {
+                return Err(syn::Error::new_spanned(
+                    ident,
+                    "expected a union (`U`), map (`foo`), or primitive (`f32`)",
+                ))
+            }
         };
         let ident = UpperCamelIdent(u);
         // todo! check that `ident` is not a reserved word

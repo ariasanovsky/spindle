@@ -16,7 +16,7 @@ use crate::{
     },
 };
 
-use super::{MapFn, MapAttrs, CrateTag};
+use super::{CrateTag, MapAttrs, MapFn};
 
 impl Parse for CrateTag {
     fn parse(input: ParseStream) -> Result<Self> {

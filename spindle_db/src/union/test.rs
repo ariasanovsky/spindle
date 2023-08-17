@@ -44,7 +44,7 @@ fn unions_new_db_has_correct_table_names() {
 
 #[test]
 fn unions_are_added_uniquely() {
-let db = TypeDb::new_unions_test_db("unions_are_added_uniquely").unwrap();
+    let db = TypeDb::new_unions_test_db("unions_are_added_uniquely").unwrap();
     assert_eq!(db.get_unions().unwrap(), vec![]);
     let u = db.get_or_insert_union(&("U", vec!["f32"])).unwrap();
     assert_eq!(

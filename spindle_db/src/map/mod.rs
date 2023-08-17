@@ -1,6 +1,7 @@
 use crate::{
     primitive::{AsDbPrimitive, DbPrimitive},
-    DbResult, TypeDb, tag::AsDbTag,
+    tag::AsDbTag,
+    DbResult, TypeDb,
 };
 
 pub mod iter;
@@ -65,7 +66,9 @@ impl TypeDb {
     }
 
     pub(crate) fn get_map_from_uuid(&self, uuid: String) -> DbResult<DbMap> {
-        let mut stmt = self.conn.prepare("SELECT ident, content FROM maps WHERE uuid = ?")?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT ident, content FROM maps WHERE uuid = ?")?;
         let (ident, content): (String, String) = stmt.query_row([&uuid], |row| {
             let ident: String = row.get(0)?;
             let content: String = row.get(1)?;
@@ -120,49 +123,74 @@ impl TypeDb {
             .collect())
     }
 
-    pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(&self, map: &M, tags: &Vec<T>) -> DbResult<DbMap> {
-        let db_map = self.get_map(map).transpose().unwrap_or_else(|| self.insert_map(map))?;
+    pub fn get_or_insert_map<M: AsDbMap, T: AsDbTag>(
+        &self,
+        map: &M,
+        tags: &[T],
+    ) -> DbResult<DbMap> {
+        let db_map = self
+            .get_map(map)
+            .transpose()
+            .unwrap_or_else(|| self.insert_map(map))?;
         self.tag_map(&db_map, tags)?;
         Ok(db_map)
     }
 
     pub(crate) fn get_map<M: AsDbMap>(&self, map: &M) -> DbResult<Option<DbMap>> {
         // get all maps with the same ident & contents
-        let mut statement = self.conn.prepare("SELECT uuid FROM maps WHERE ident = ? AND content = ?")?;
+        let mut statement = self
+            .conn
+            .prepare("SELECT uuid FROM maps WHERE ident = ? AND content = ?")?;
         let mut maps = statement.query_map([&map.db_ident(), &map.db_content()], |row| {
             let uuid: String = row.get(0)?;
             self.get_map_from_uuid(uuid)
-        })?.into_iter();
+        })?;
         let first = maps.next().transpose()?;
         let second = maps.next().transpose()?;
         match (first, second) {
             (None, _) => Ok(None),
             (Some(db_map), None) => Ok(Some(db_map)),
-            (Some(db_map_1), Some(db_map_2)) => panic!("duplicate maps in db: {db_map_1:?} {db_map_2:?}"),
+            (Some(db_map_1), Some(db_map_2)) => {
+                panic!("duplicate maps in db: {db_map_1:?} {db_map_2:?}")
+            }
         }
     }
 
     pub(crate) fn insert_map<M: AsDbMap>(&self, map: &M) -> DbResult<DbMap> {
         // get in_out pairs from map
-        let in_outs: Vec<DbInOut> = map.db_inouts().into_iter().map(|in_out| {
-            let (input, output) = in_out.db_inout();
-            let input = input.map(|input| self.get_or_insert_primitive(&input)).transpose()?;
-            let output = output.map(|output| self.get_or_insert_primitive(&output)).transpose()?;
-            Ok(DbInOut { input, output })
-        }).collect::<DbResult<_>>()?;
+        let in_outs: Vec<DbInOut> = map
+            .db_inouts()
+            .into_iter()
+            .map(|in_out| {
+                let (input, output) = in_out.db_inout();
+                let input = input
+                    .map(|input| self.get_or_insert_primitive(&input))
+                    .transpose()?;
+                let output = output
+                    .map(|output| self.get_or_insert_primitive(&output))
+                    .transpose()?;
+                Ok(DbInOut { input, output })
+            })
+            .collect::<DbResult<_>>()?;
         let map = DbMap::new(map.db_ident(), map.db_content(), in_outs);
         self.insert_db_map(&map)?;
         Ok(map)
     }
 
     fn insert_db_map(&self, map: &DbMap) -> DbResult<()> {
-        let mut statement = self.conn.prepare("INSERT INTO maps (uuid, ident, content) VALUES (?, ?, ?)")?;
-        let _: usize = statement.execute([map.uuid.clone(), map.ident.clone(), map.content.clone()])?;
-        let mut statement = self.conn.prepare("INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)")?;
+        let mut statement = self
+            .conn
+            .prepare("INSERT INTO maps (uuid, ident, content) VALUES (?, ?, ?)")?;
+        let _: usize =
+            statement.execute([map.uuid.clone(), map.ident.clone(), map.content.clone()])?;
+        let mut statement = self.conn.prepare(
+            "INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)",
+        )?;
         for (i, in_out) in map.in_outs.iter().enumerate() {
             let input_uuid = in_out.input.as_ref().map(|x| &x.uuid);
             let output_uuid = in_out.output.as_ref().map(|x| &x.uuid);
-            let _: usize = statement.execute(rusqlite::params![&map.uuid, i, input_uuid, output_uuid])?;
+            let _: usize =
+                statement.execute(rusqlite::params![&map.uuid, i, input_uuid, output_uuid])?;
         }
         Ok(())
     }

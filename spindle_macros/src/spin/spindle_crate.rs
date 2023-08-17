@@ -2,7 +2,7 @@ use std::io::Write;
 
 use crate::file_strings::{CARGO_TOML, CONFIG_TOML, RUST_TOOLCHAIN_TOML};
 
-use super::{SpindleCrate, error::Error};
+use super::{error::Error, SpindleCrate};
 
 impl SpindleCrate {
     pub fn exists(&self) -> bool {
@@ -53,7 +53,7 @@ impl SpindleCrate {
     pub(crate) fn write_lib_rs(&self) -> Result<(), Error> {
         let kernel_rs: proc_macro2::TokenStream = self.lib_rs();
         let kernel_rs_path = self.home.join("src").join("lib.rs");
-        let mut file = std::fs::File::create(&kernel_rs_path)?;
+        let mut file = std::fs::File::create(kernel_rs_path)?;
         file.write_all(kernel_rs.to_string().as_bytes())?;
         Ok(())
     }
@@ -61,14 +61,14 @@ impl SpindleCrate {
     pub(crate) fn write_device_rs(&self) -> Result<(), Error> {
         let device_rs: proc_macro2::TokenStream = self.device_rs();
         let device_rs_path = self.home.join("src").join("device.rs");
-        let mut file = std::fs::File::create(&device_rs_path)?;
+        let mut file = std::fs::File::create(device_rs_path)?;
         file.write_all(device_rs.to_string().as_bytes())?;
         Ok(())
     }
 
     pub(crate) fn write_cargo_toml(&self) -> Result<(), Error> {
         let toml_path = self.home.join("Cargo.toml");
-        let mut file = std::fs::File::create(&toml_path)?;
+        let mut file = std::fs::File::create(toml_path)?;
         file.write_all(CARGO_TOML.as_bytes())?;
         Ok(())
     }
@@ -77,14 +77,14 @@ impl SpindleCrate {
         let dot_cargo_path = self.home.join(".cargo");
         std::fs::create_dir_all(&dot_cargo_path)?;
         let config_toml_path = dot_cargo_path.join("config.toml");
-        let mut file = std::fs::File::create(&config_toml_path)?;
+        let mut file = std::fs::File::create(config_toml_path)?;
         file.write_all(CONFIG_TOML.as_bytes())?;
         Ok(())
     }
 
     pub(crate) fn write_rust_toolchain_toml(&self) -> Result<(), Error> {
         let rust_toolchain_toml_path = self.home.join("rust-toolchain.toml");
-        let mut file = std::fs::File::create(&rust_toolchain_toml_path)?;
+        let mut file = std::fs::File::create(rust_toolchain_toml_path)?;
         file.write_all(RUST_TOOLCHAIN_TOML.as_bytes())?;
         Ok(())
     }
@@ -96,7 +96,7 @@ impl SpindleCrate {
 
     pub(crate) fn create_src(&self) -> Result<(), Error> {
         let src_path = self.home.join("src");
-        std::fs::create_dir_all(&src_path)?;
+        std::fs::create_dir_all(src_path)?;
         Ok(())
     }
 }

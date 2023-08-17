@@ -1,4 +1,4 @@
-use proc_macro2::{TokenStream, Ident};
+use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 
 use crate::{case::UpperCamelIdent, map::MapFn, snake_to_camel};
@@ -18,24 +18,24 @@ impl MapTokens for MapFn {
     fn trait_ident(&self) -> Ident {
         Ident::new(
             format!("__{}", snake_to_camel(&self.item_fn.sig.ident.to_string())).as_str(),
-            self.item_fn.sig.ident.span()
+            self.item_fn.sig.ident.span(),
         )
     }
-    
+
     fn mod_ident(&self) -> Ident {
         Ident::new(
             format!("__{}", self.item_fn.sig.ident).as_str(),
-            self.item_fn.sig.ident.span()
+            self.item_fn.sig.ident.span(),
         )
     }
 
     fn kernel_ident(&self) -> Ident {
         Ident::new(
             format!("{}_kernel", self.item_fn.sig.ident).as_str(),
-            self.item_fn.sig.ident.span()
+            self.item_fn.sig.ident.span(),
         )
     }
-    
+
     fn map_trait(&self) -> TokenStream {
         let dunder_mod_ident = self.mod_ident();
         let dunder_camel_trait_ident = self.trait_ident();
@@ -104,7 +104,10 @@ impl MapTokens for MapFn {
     fn ptx_crate_kernel(&self, u: &UpperCamelIdent) -> TokenStream {
         let u = &u.0;
         let map_ident = &self.item_fn.sig.ident;
-        let map_kernel_ident = Ident::new(format!("{}_kernel", map_ident).as_str(), self.item_fn.sig.ident.span());
+        let map_kernel_ident = Ident::new(
+            format!("{}_kernel", map_ident).as_str(),
+            self.item_fn.sig.ident.span(),
+        );
         quote::quote! {
             #[no_mangle]
             pub unsafe extern "ptx-kernel" fn #map_kernel_ident(slice: *mut #u, size: i32) {
@@ -113,7 +116,7 @@ impl MapTokens for MapFn {
                 let block_id: i32 = _block_idx_x();
                 let block_dim: i32 = _block_dim_x();
                 let grid_dim: i32 = _grid_dim_x();
-                
+
                 let n_threads: i32 = block_dim * grid_dim;
                 let thread_index: i32 =  thread_id + block_id * block_dim;
 

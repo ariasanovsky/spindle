@@ -1,4 +1,4 @@
-use proc_macro2::{TokenStream, Ident, Span};
+use proc_macro2::{Ident, Span, TokenStream};
 use spindle_db::union::DbUnion;
 
 pub(crate) trait UnionTokens {
@@ -10,7 +10,11 @@ pub(crate) trait UnionTokens {
 
 impl UnionTokens for DbUnion {
     fn declaration(&self) -> TokenStream {
-        let DbUnion { uuid: _uuid, ident, fields } = self;
+        let DbUnion {
+            uuid: _uuid,
+            ident,
+            fields,
+        } = self;
         let fields = fields.iter().enumerate().map(|(i, field)| {
             // e.g., _0: f32, _1: u64, ...
             let field: Ident = Ident::new(&field.ident, Span::call_site());
@@ -28,7 +32,11 @@ impl UnionTokens for DbUnion {
     }
 
     fn impl_uuid(&self) -> TokenStream {
-        let DbUnion { uuid, ident, fields: _fields } = self;
+        let DbUnion {
+            uuid,
+            ident,
+            fields: _fields,
+        } = self;
         let ident: Ident = Ident::new(ident, Span::call_site());
         quote::quote! {
             unsafe impl spindle::__db::DbUuid for #ident {
@@ -38,7 +46,11 @@ impl UnionTokens for DbUnion {
     }
 
     fn impl_device_repr(&self) -> TokenStream {
-        let DbUnion { uuid: _uuid, ident, fields: _fields } = self;
+        let DbUnion {
+            uuid: _uuid,
+            ident,
+            fields: _fields,
+        } = self;
         let ident: Ident = Ident::new(ident, Span::call_site());
         quote::quote! {
             unsafe impl spindle::__cudarc::DeviceRepr for #ident {}
@@ -46,13 +58,20 @@ impl UnionTokens for DbUnion {
     }
 
     fn impl_raw_converts(&self) -> Vec<TokenStream> {
-        let DbUnion { uuid: _uuid, ident, fields } = self;
+        let DbUnion {
+            uuid: _uuid,
+            ident,
+            fields,
+        } = self;
         let ident: Ident = Ident::new(ident, Span::call_site());
-        fields.iter().map(|field| {
-            let field: Ident = Ident::new(&field.ident, Span::call_site());
-            quote::quote! {
-                unsafe impl spindle::__union::RawConvert<#field> for #ident {}
-            }
-        }).collect()
+        fields
+            .iter()
+            .map(|field| {
+                let field: Ident = Ident::new(&field.ident, Span::call_site());
+                quote::quote! {
+                    unsafe impl spindle::__union::RawConvert<#field> for #ident {}
+                }
+            })
+            .collect()
     }
 }

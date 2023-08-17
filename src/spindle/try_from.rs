@@ -1,7 +1,11 @@
 use std::sync::Arc;
 
-use crate::{error::Error, __union::RawConvert, __cudarc::{CudaSlice, DeviceRepr, CudaDevice}};
 use super::{DevSlice, HostSlice};
+use crate::{
+    __cudarc::{CudaDevice, CudaSlice, DeviceRepr},
+    __union::RawConvert,
+    error::Error,
+};
 
 impl<U, X> From<DevSlice<U, X>> for CudaSlice<U>
 where

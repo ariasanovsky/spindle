@@ -1,4 +1,4 @@
-use crate::{DbResult, TypeDb, _TAGS, _MAP_TAGS};
+use crate::{DbResult, TypeDb, _MAP_TAGS, _TAGS};
 
 impl TypeDb {
     fn new_maps_test_db(test_name: &str) -> DbResult<TypeDb> {
@@ -66,22 +66,38 @@ fn maps_are_inserted_uniquely() {
     let db = TypeDb::new_maps_test_db("maps_are_added_uniquely").unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![]);
     let m: crate::map::DbMap = db
-        .get_or_insert_map(&("foo", "pub fn foo(x: f32) -> f32 { x + 1.0 }", vec![(Some("f32"), Some("f32"))]), &tags)
+        .get_or_insert_map(
+            &(
+                "foo",
+                "pub fn foo(x: f32) -> f32 { x + 1.0 }",
+                vec![(Some("f32"), Some("f32"))],
+            ),
+            &tags,
+        )
         .unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
     let n = db
-        .get_or_insert_map(&("foo", "pub fn foo(x: f32) -> f32 { x + 1.0 }", vec![(Some("f32"), Some("f32"))]), &tags)
+        .get_or_insert_map(
+            &(
+                "foo",
+                "pub fn foo(x: f32) -> f32 { x + 1.0 }",
+                vec![(Some("f32"), Some("f32"))],
+            ),
+            &tags,
+        )
         .unwrap();
     assert_eq!(db.get_maps().unwrap(), vec![m.clone()]);
     assert_eq!(m, n);
     let o = db
-        .get_or_insert_map(&(
-            "bar",
-            "unsafe fn bar(x: f32) -> f32 { x * x }",
-            vec![(Some("f32"), Some("f32"))]
-        ),
-        &tags,
-    ).unwrap();
+        .get_or_insert_map(
+            &(
+                "bar",
+                "unsafe fn bar(x: f32) -> f32 { x * x }",
+                vec![(Some("f32"), Some("f32"))],
+            ),
+            &tags,
+        )
+        .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 2);
     assert_ne!(m, o);
     let p = db
@@ -92,11 +108,19 @@ fn maps_are_inserted_uniquely() {
                 vec![(Some("f32"), Some("f32")), (Some("u64"), Some("u64"))],
             ),
             /* &tags <- this correctly panics */ &other_tags,
-        ).unwrap();
+        )
+        .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 3);
     // insert a previous element
     let q = db
-        .get_or_insert_map(&("foo", "pub fn foo(x: f32) -> f32 { x + 1.0 }", vec![(Some("f32"), Some("f32"))]), &tags)
+        .get_or_insert_map(
+            &(
+                "foo",
+                "pub fn foo(x: f32) -> f32 { x + 1.0 }",
+                vec![(Some("f32"), Some("f32"))],
+            ),
+            &tags,
+        )
         .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 3);
     // and make sure to test `None` examples, too
@@ -108,7 +132,8 @@ fn maps_are_inserted_uniquely() {
                 vec![(Some("f32"), Some("f32")), (None, Some("u64"))],
             ),
             /* &tags <- this correctly panics */ &other_tags,
-        ).unwrap();
+        )
+        .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 4);
     assert_ne!(m, r);
     // let's look up the map with the `None` value
@@ -120,6 +145,7 @@ fn maps_are_inserted_uniquely() {
                 vec![(Some("f32"), Some("f32")), (None, Some("u64"))],
             ),
             /* &tags &other_tags <- these correctly panic */ &vec!["other_other"],
-        ).unwrap();
+        )
+        .unwrap();
     assert_eq!(db.get_maps().unwrap().len(), 4);
 }

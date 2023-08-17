@@ -1,9 +1,12 @@
-use proc_macro2::{TokenStream, Ident, Span};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::ToTokens;
-use spindle_db::{TypeDb, map::DbMap};
+use spindle_db::{map::DbMap, TypeDb};
 use syn::parse_quote;
 
-use crate::{map::{MapFn, tokens::MapTokens}, case::UpperCamelIdent};
+use crate::{
+    case::UpperCamelIdent,
+    map::{tokens::MapTokens, MapFn},
+};
 
 use super::MapAttrs;
 
@@ -15,7 +18,14 @@ fn example_01_map() {
     };
     let attrs: MapAttrs = parse_quote!(#map_attr_input);
     let expected_tags = vec!["example_01"];
-    assert_eq!(attrs._tags.iter().map(|attr| attr.0.0.to_string()).collect::<Vec<_>>(), expected_tags);
+    assert_eq!(
+        attrs
+            ._tags
+            .iter()
+            .map(|attr| attr.0 .0.to_string())
+            .collect::<Vec<_>>(),
+        expected_tags
+    );
 
     let map_fn_input = quote::quote! {
         fn i32_to_f64(x: i32) -> f64 {
@@ -63,7 +73,10 @@ fn example_01_map() {
         }
         pub use __i32_to_f64::__I32ToF64;
     };
-    assert_eq!(map_host_crate_tokens.to_string(), expected_map_host_crate_tokens.to_string());
+    assert_eq!(
+        map_host_crate_tokens.to_string(),
+        expected_map_host_crate_tokens.to_string()
+    );
 
     // now we verify that the MapFn will write the correct tokens to the ptx crate
 }
@@ -76,7 +89,7 @@ fn add_univariate_pure_function_to_db() {
     const DB_NAME: &str = "add_univariate_pure_function_to_db";
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
-    
+
     // first, let's show all `DbMap`s in the db
     let maps = db.map_iter().unwrap();
     maps.for_each(|map| {
@@ -106,7 +119,7 @@ fn emit_tokens_from_new_map() {
     const DB_NAME: &str = "emit_tokens_from_new_map";
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
-    
+
     // parse a map & insert it into the db
     let map: TokenStream = quote::quote! {
         fn foo(x: i32) -> f64 {
@@ -193,7 +206,7 @@ fn emit_tokens_from_new_map() {
             let block_id: i32 = _block_idx_x();
             let block_dim: i32 = _block_dim_x();
             let grid_dim: i32 = _grid_dim_x();
-            
+
             let n_threads: i32 = block_dim * grid_dim;
             let thread_index: i32 =  thread_id + block_id * block_dim;
 
@@ -231,8 +244,8 @@ fn parse_tags_from_map_macro_attrs() {
     };
     let output: MapAttrs = parse_quote! { #input };
     let example = output._tags.get(0).unwrap();
-    assert_eq!(example.0.0.to_string(), "example");
+    assert_eq!(example.0 .0.to_string(), "example");
     let other = output._tags.get(1).unwrap();
-    assert_eq!(other.0.0.to_string(), "other");
+    assert_eq!(other.0 .0.to_string(), "other");
     assert!(output._tags.get(2).is_none());
 }

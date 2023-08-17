@@ -1,5 +1,5 @@
 use basic_range::emit_range_kernel;
-use map::{MapFn, MapAttrs};
+use map::{MapAttrs, MapFn};
 use proc_macro2::TokenStream;
 use serde::{Deserialize, Serialize};
 use spin::SpinInputs;
@@ -44,7 +44,9 @@ struct RangeSpindle {
 #[proc_macro]
 pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let inputs: SpinInputs = syn::parse_macro_input!(input as SpinInputs);
-    spin::spin(inputs, "types").unwrap_or_else(syn::Error::into_compile_error).into()
+    spin::spin(inputs, "types")
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }
 
 #[proc_macro_attribute]
@@ -65,7 +67,9 @@ pub fn map(
 ) -> proc_macro::TokenStream {
     let attr = parse_macro_input!(attr as MapAttrs);
     let map_fn = parse_macro_input!(item as MapFn);
-    map::map(attr, map_fn, "types").unwrap_or_else(syn::Error::into_compile_error).into()
+    map::map(attr, map_fn, "types")
+        .unwrap_or_else(syn::Error::into_compile_error)
+        .into()
 }
 
 fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {

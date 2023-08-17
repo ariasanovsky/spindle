@@ -108,7 +108,7 @@ const _CREATE_MAP_TAGS: &str = "
     FOREIGN KEY (map_uuid) REFERENCES maps (uuid),
     FOREIGN KEY (tag) REFERENCES tags (tag),
     PRIMARY KEY (map_uuid, tag)
-)"; 
+)";
 
 // caconst DROP: &str = "DROP TABLE IF EXISTS ?";
 const DROP_PRIMITIVES: &str = "DROP TABLE IF EXISTS primitives";

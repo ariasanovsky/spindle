@@ -1,10 +1,14 @@
-use crate::{TypeDb, DbResult, map::DbMap};
+use crate::{map::DbMap, DbResult, TypeDb};
 
 impl TypeDb {
     pub fn get_maps_from_tag<T: AsDbTag>(&self, tag: &T) -> DbResult<Vec<DbMap>> {
-        let mut stmt = self.conn.prepare("SELECT map_uuid FROM map_tags WHERE tag = ?")?;
+        let mut stmt = self
+            .conn
+            .prepare("SELECT map_uuid FROM map_tags WHERE tag = ?")?;
         let uuids = stmt.query_map([tag.db_tag()], |row| row.get(0))?;
-        uuids.map(|uuid| self.get_map_from_uuid(uuid?)).collect::<DbResult<_>>()
+        uuids
+            .map(|uuid| self.get_map_from_uuid(uuid?))
+            .collect::<DbResult<_>>()
     }
 
     pub(crate) fn tag_map<T: AsDbTag>(&self, map: &DbMap, tags: &[T]) -> DbResult<()> {
@@ -20,7 +24,7 @@ impl TypeDb {
                     // if there are no maps with this tag and ident, we insert a new map
                     let mut stmt = self.conn.prepare(INSERT)?;
                     let _: usize = stmt.execute([map.uuid.clone(), tag.db_tag()])?;
-                },
+                }
                 [old_map] => {
                     // if the uuid does not match, the data is inconsistent, fatal error
                     assert_eq!(
@@ -32,7 +36,7 @@ impl TypeDb {
                         map,
                         old_map,
                     );
-                },
+                }
                 _ => {
                     // if there are multiple maps with this tag and ident, the data is inconsistent, fatal error
                     // todo! handle this case
@@ -42,7 +46,7 @@ impl TypeDb {
                         map.ident,
                         maps
                     );
-                },
+                }
             }
         }
         Ok(())
@@ -50,7 +54,9 @@ impl TypeDb {
 
     pub(crate) fn insert_or_ignore_tag<T: AsDbTag>(&self, tag: &T) -> DbResult<()> {
         // insert the tag if it does not exist
-        let mut stmt = self.conn.prepare("INSERT OR IGNORE INTO tags (tag) VALUES (?)")?;
+        let mut stmt = self
+            .conn
+            .prepare("INSERT OR IGNORE INTO tags (tag) VALUES (?)")?;
         let _: usize = stmt.execute([tag.db_tag()])?;
         Ok(())
     }
@@ -58,7 +64,7 @@ impl TypeDb {
     pub fn get_tags(&self) -> DbResult<Vec<String>> {
         let mut stmt = self.conn.prepare("SELECT tag FROM tags")?;
         let tags = stmt.query_map([], |row| row.get(0))?;
-        tags.map(|tag| tag).collect::<DbResult<_>>()
+        tags.collect::<DbResult<_>>()
     }
 }
 

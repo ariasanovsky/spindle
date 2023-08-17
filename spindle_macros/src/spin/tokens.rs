@@ -1,4 +1,4 @@
-use proc_macro2::{Span, Ident};
+use proc_macro2::{Ident, Span};
 use quote::ToTokens;
 use spindle_db::map::DbMap;
 
@@ -26,10 +26,7 @@ impl ToTokens for SpindleCrate {
         maps.iter().for_each(|map| {
             // for 1 union, impl on the DevSlice
             // for 2+ unions, impl on the tuple of DevSlices
-            let mod_name = syn::Ident::new(
-                &format!("__{}", map.ident),
-                Span::call_site(),
-            );
+            let mod_name = syn::Ident::new(&format!("__{}", map.ident), Span::call_site());
             // the trait is __UpperCamelCase
             use heck::ToUpperCamelCase;
             let trait_name = syn::Ident::new(
@@ -46,13 +43,15 @@ impl ToTokens for SpindleCrate {
                 &in_out.output.as_ref().unwrap().ident.to_string(),
                 Span::call_site(),
             );
-            let path = format!("target/spindle/crates/{tag}/target/nvptx64-nvidia-cuda/release/kernel.ptx");
+            let path = format!(
+                "target/spindle/crates/{tag}/target/nvptx64-nvidia-cuda/release/kernel.ptx"
+            );
             let map_impl = quote::quote_spanned! { Span::mixed_site() =>
                 unsafe impl #mod_name::#trait_name for spindle::DevSlice<#u_ident, #input_ident> {
                     type U = #u_ident;
                     type Return = spindle::DevSlice<#u_ident, #output_ident>;
                     const PTX_PATH: &'static str = #path;
-                    
+
                 }
             };
             tokens.extend(map_impl);
@@ -66,10 +65,7 @@ impl ToTokens for UnionInput {
             UnionInput::New(ident, fields) => {
                 let ident = &ident.0;
                 let field_entries = fields.iter().enumerate().map(|(i, field)| {
-                    let underscore_number = syn::Ident::new(
-                        &format!("_{i}"),
-                        Span::call_site(),
-                    );
+                    let underscore_number = syn::Ident::new(&format!("_{i}"), Span::call_site());
                     let field_ident = &field.0;
                     quote::quote! {
                         #underscore_number: #field_ident,
@@ -82,14 +78,14 @@ impl ToTokens for UnionInput {
                     }
                     unsafe impl spindle::__cudarc::DeviceRepr for #ident {}
                 });
-                fields.into_iter().for_each(|field| {
+                fields.iter().for_each(|field| {
                     let field = &field.0;
                     tokens.extend(quote::quote! {
                         unsafe impl spindle::__union::RawConvert<#field> for #ident {}
                     })
                 })
-            },
-            UnionInput::InScope(_) => {},
+            }
+            UnionInput::InScope(_) => {}
         }
     }
 }
@@ -100,9 +96,9 @@ impl SpindleCrate {
             home: _,
             maps,
             tag: _,
-            unions,
+            unions: _,
         } = self;
-        
+
         let preamble = quote::quote! {
             #![no_std]
             #![feature(abi_ptx)]
@@ -126,7 +122,7 @@ impl SpindleCrate {
             crate::spin::UnionInput::New(ident, _) => &ident.0,
             crate::spin::UnionInput::InScope(ident) => &ident.0,
         };
-        
+
         let maps = maps.iter().map(|map| {
             let DbMap {
                 uuid: _,
@@ -189,10 +185,7 @@ impl SpindleCrate {
             map_fn
         });
         let methods = maps.iter().map(|map| {
-            let map_ident = syn::Ident::new(
-                &map.ident,
-                Span::call_site(),
-            );
+            let map_ident = syn::Ident::new(&map.ident, Span::call_site());
             quote::quote! {
                 pub(crate) unsafe fn #map_ident(&mut self) {
                     let input_ref = &*(self as *mut _ as *mut _);

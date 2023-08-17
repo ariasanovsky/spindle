@@ -1,4 +1,4 @@
-use crate::case::{Cased, Case};
+use crate::case::{Case, Cased};
 
 #[test]
 fn underscore_splits_correct_with_no_underscores() {

@@ -1,12 +1,15 @@
 use quote::ToTokens;
 use spindle_db::{
     map::{AsDbInOut, AsDbMap},
-    primitive::AsDbPrimitive, union::AsDbUnion,
+    primitive::AsDbPrimitive,
+    union::AsDbUnion,
 };
 
 use crate::{
+    case::PrimitiveIdent,
     map::{in_out::InOut, MapFn},
-    primitives::_Primitive, case::PrimitiveIdent, union::NewUnion,
+    primitives::_Primitive,
+    union::NewUnion,
 };
 
 impl AsDbPrimitive for _Primitive {
@@ -43,13 +46,12 @@ impl AsDbUnion for NewUnion {
     type Primitive = PrimitiveIdent;
 
     fn db_ident(&self) -> String {
-        self.0.0.to_string()
+        self.0 .0.to_string()
     }
 
     fn db_fields(&self) -> Vec<Self::Primitive> {
         self.1.clone()
     }
-    
 }
 
 impl AsDbPrimitive for PrimitiveIdent {

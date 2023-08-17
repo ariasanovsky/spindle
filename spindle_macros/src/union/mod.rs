@@ -1,10 +1,10 @@
 use proc_macro2::Ident;
 
-use crate::case::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent};
+use crate::case::{LowerSnakeIdent, PrimitiveIdent, UpperCamelIdent};
 
-mod tokens;
 #[cfg(test)]
 mod test;
+mod tokens;
 
 #[derive(Debug)]
 pub(crate) enum RawSpinInput {
@@ -25,9 +25,9 @@ pub(crate) struct MapFnInScope(pub LowerSnakeIdent);
 impl RawSpinInput {
     pub(crate) fn _ident(&self) -> &Ident {
         match self {
-            Self::UnionInScope(ident) => &ident.0.0,
-            Self::NewUnion(ident) => &ident.0.0,
-            Self::MapFnInScope(ident) => &ident.0.0,
+            Self::UnionInScope(ident) => &ident.0 .0,
+            Self::NewUnion(ident) => &ident.0 .0,
+            Self::MapFnInScope(ident) => &ident.0 .0,
         }
     }
 

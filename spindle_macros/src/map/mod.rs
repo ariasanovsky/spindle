@@ -11,12 +11,12 @@ use self::tokens::MapTokens;
 mod display;
 pub(crate) mod in_out;
 mod parse;
-mod tokens;
 #[cfg(test)]
 mod test;
+mod tokens;
 
 const MAP_PATH: &str = "target/spindle/db/";
-const DB_NAME: &str = "map";
+const _DB_NAME: &str = "map";
 
 #[derive(Clone)]
 pub struct MapFn {
@@ -32,14 +32,15 @@ pub struct MapAttrs {
 impl PartialEq for MapFn {
     fn eq(&self, other: &Self) -> bool {
         // todo! feels hacky
-        self.item_fn.to_token_stream().to_string()
-        == other.item_fn.to_token_stream().to_string()
+        self.item_fn.to_token_stream().to_string() == other.item_fn.to_token_stream().to_string()
     }
 }
 
-
-pub(crate) fn map(attrs: MapAttrs, map_fn: MapFn, db_name: &str)
--> syn::Result<proc_macro2::TokenStream> {
+pub(crate) fn map(
+    attrs: MapAttrs,
+    map_fn: MapFn,
+    db_name: &str,
+) -> syn::Result<proc_macro2::TokenStream> {
     // add map to database
     // tag in database with #example_01
     // emit map & map trait

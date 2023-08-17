@@ -2,7 +2,7 @@ use syn::parse::Parse;
 
 use crate::camel_word;
 
-use super::{UpperCamelIdent, PrimitiveIdent, LowerSnakeIdent};
+use super::{LowerSnakeIdent, PrimitiveIdent, UpperCamelIdent};
 
 impl Parse for UpperCamelIdent {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
@@ -28,8 +28,8 @@ impl Parse for PrimitiveIdent {
         // then we check that it's lower_snake_case
         let s: String = ident.to_string();
         const PRIMITIVES: &[&str] = &[
-            "bool", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "str", "u8",
-            "u16", "u32", "u64", "u128", // "usize" , "isize", "char",
+            "bool", "f32", "f64", "i8", "i16", "i32", "i64", "i128", "str", "u8", "u16", "u32",
+            "u64", "u128", // "usize" , "isize", "char",
         ];
         if !PRIMITIVES.contains(&s.as_str()) {
             return Err(syn::Error::new_spanned(

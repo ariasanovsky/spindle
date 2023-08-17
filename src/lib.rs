@@ -1,7 +1,7 @@
 pub use spindle_macros::{basic_range, map, spin};
 
-pub mod __union;
 pub mod __cudarc;
+pub mod __union;
 
 pub mod error;
 pub mod spindle;

@@ -75,8 +75,8 @@ fn main() -> spindle::Result<()> {
     let spindle: spindle::DevSlice<U, i32> = nums.try_into()?;
     let spindle: spindle::DevSlice<U, f64> = spindle.i32_to_f64(10)?;
     let spindle: spindle::HostSlice<U, f64> = spindle.try_to_host()?;
-    assert!(spindle.iter().enumerate().all(|(i, x)| {
-        *x == i32_to_f64(i as i32)
-    }));
+    spindle.iter().enumerate().for_each(|(i, x)| { 
+        assert_eq!(*x, i32_to_f64(i as i32));
+    });
     Ok(())
 }

@@ -1,12 +1,16 @@
 use proc_macro2::Span;
 use quote::ToTokens;
-use spindle_db::{TypeDb, map::DbMap};
+use spindle_db::{map::DbMap, TypeDb};
 
-use crate::{union::{RawSpinInput, UnionInScope, NewUnion, MapFnInScope}, tag::CrateTag, case::{UpperCamelIdent, PrimitiveIdent}};
+use crate::{
+    case::{PrimitiveIdent, UpperCamelIdent},
+    tag::CrateTag,
+    union::{MapFnInScope, NewUnion, RawSpinInput, UnionInScope},
+};
 
-mod spindle_crate;
 mod error;
 mod parse;
+mod spindle_crate;
 #[cfg(test)]
 mod test;
 mod tokens;
@@ -33,15 +37,20 @@ pub struct SpindleCrate {
 
 pub fn spin(inputs: SpinInputs, db_name: &str) -> syn::Result<proc_macro2::TokenStream> {
     // map any conversion errors to the call site
-    let spindle_crate: SpindleCrate = (inputs, db_name).try_into().map_err(|err| syn::Error::new(
-        Span::call_site(),
-        format!("{err:#?}"),
-    ))?;
+    let spindle_crate: SpindleCrate = (inputs, db_name)
+        .try_into()
+        .map_err(|err| syn::Error::new(Span::call_site(), format!("{err:#?}")))?;
     if !spindle_crate.exists() {
-        let _: () = spindle_crate.populate()?;
+        spindle_crate.populate()?;
         let output: std::process::Output = spindle_crate.compile()?;
-        println!("{}", String::from_utf8_lossy(&output.stdout));
-        println!("{}", String::from_utf8_lossy(&output.stderr));
+        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+        if !stdout.is_empty() {
+            println!("{stdout}");
+        }
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        if !stderr.is_empty() {
+            println!("{stderr}");
+        }
     }
     // let _: () = spindle_crate.write_toml_files().map_err(|err| syn::Error::new(
     //     Span::call_site(),
@@ -62,10 +71,7 @@ impl TryFrom<(SpinInputs, &str)> for SpindleCrate {
     type Error = spindle_db::Error;
 
     fn try_from((inputs, db_name): (SpinInputs, &str)) -> Result<Self, Self::Error> {
-        let SpinInputs {
-            tag,
-            unions,
-        } = inputs;
+        let SpinInputs { tag, unions } = inputs;
         let db = TypeDb::open_or_create(db_name, "target/spindle/db/")?;
         let maps = db.get_maps_from_tag(&tag)?;
         let home = std::path::PathBuf::from("target/spindle/crates/").join(tag.to_string());

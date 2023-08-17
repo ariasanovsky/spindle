@@ -18,8 +18,10 @@ fn example_01_spin() {
     };
     let map_fn: MapFn = parse_quote! { #map_input };
     let db = spindle_db::TypeDb::new("test_example_01_spin", "target/spindle/db").unwrap();
-    let db_map = db.get_or_insert_map(&map_fn, &vec!["test_example_01_spin"]).unwrap();
-    
+    let _db_map = db
+        .get_or_insert_map(&map_fn, &vec!["test_example_01_spin"])
+        .unwrap();
+
     // now we parse the spin input
     let pound = syn::token::Pound::default();
     let spin_input = quote::quote! {
@@ -31,8 +33,9 @@ fn example_01_spin() {
         home,
         maps,
         tag,
-        unions,
+        unions: _,
     } = &spindle_crate;
+    assert_eq!(tag.to_string(), "test_example_01_spin");
     // test the home directory
     let expected_home: PathBuf = "target/spindle/crates/test_example_01_spin".into();
     assert_eq!(home, &expected_home);
@@ -51,7 +54,7 @@ fn example_01_spin() {
     let in_out = in_outs.get(0).unwrap();
     assert_eq!(in_out.input.as_ref().unwrap().ident.as_str(), "i32");
     assert_eq!(in_out.output.as_ref().unwrap().ident.as_str(), "f64");
-    
+
     let kernel_rs: proc_macro2::TokenStream = spindle_crate.lib_rs();
     let expected_kernel = quote::quote! {
         #![no_std]
@@ -76,7 +79,7 @@ fn example_01_spin() {
             let block_id: i32 = _block_idx_x();
             let block_dim: i32 = _block_dim_x();
             let grid_dim: i32 = _grid_dim_x();
-            
+
             let n_threads: i32 = block_dim * grid_dim;
             let thread_index: i32 =  thread_id + block_id * block_dim;
 
@@ -128,5 +131,8 @@ fn example_01_spin() {
             const PTX_PATH: &'static str = "target/spindle/crates/test_example_01_spin/target/nvptx64-nvidia-cuda/release/kernel.ptx";
         }
     };
-    assert_eq!(user_crate_tokens.to_string(), expected_user_crate_tokens.to_string());
+    assert_eq!(
+        user_crate_tokens.to_string(),
+        expected_user_crate_tokens.to_string()
+    );
 }
