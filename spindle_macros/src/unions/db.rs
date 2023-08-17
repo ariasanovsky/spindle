@@ -46,7 +46,7 @@ impl TypeDb {
                 }).collect::<Vec<_>>().join(" ");
                 todo!()
             },
-            None => todo!(),
+            None => todo!("b"),
         }
     }
 

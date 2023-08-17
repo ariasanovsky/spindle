@@ -51,7 +51,6 @@ fn insert_a_new_union_to_the_db() {
     let spin_input: RawSpinInput = parse_quote!(#input);
     let spin_input = spin_input._new_union().unwrap();
     let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
-    dbg!(&db_union);
 }
 
 #[test]
@@ -81,8 +80,6 @@ fn get_an_old_union_from_the_db() {
     //     const __UUID: &'static str = "asdf";
     // }
 
-    // dbg!(&db_union);
-
     // // parse the same union & get it from the db
     // let input = quote::quote! { U };
     // let spin_input: RawSpinInput = parse_quote!(#input);
@@ -107,7 +104,6 @@ fn get_an_old_union_from_the_db() {
     // exists in scope
     // */
     // // let uuid: String = db_union.uuid.clone(); // U::__UUID.to_string()
-    // // dbg!(&uuid);
     // // let db_uuid_2 = db.get_union_from_uuid_and_ident(uuid, spin_input.ident().to_string()).unwrap();
     // // assert_eq!(db_union, db_uuid_2);
     // todo!()
@@ -128,7 +124,6 @@ fn emit_tokens_from_new_union() {
     let spin_input: RawSpinInput = parse_quote!(#input);
     let spin_input = spin_input._new_union().unwrap();
     let db_union: DbUnion = db.get_or_insert_union(spin_input).unwrap();
-    dbg!(&db_union);
     let decl = db_union.declaration();
     let decl_2 = quote::quote! {
         #[repr(C)]

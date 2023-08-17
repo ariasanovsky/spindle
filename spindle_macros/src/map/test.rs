@@ -76,15 +76,12 @@ fn add_univariate_pure_function_to_db() {
     const DB_NAME: &str = "add_univariate_pure_function_to_db";
     const DB_PATH: &str = "target/spindle/db/";
     let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
-    dbg!(&db);
-
+    
     // first, let's show all `DbMap`s in the db
     let maps = db.map_iter().unwrap();
     maps.for_each(|map| {
         let map = map;
-        dbg!(&map);
     });
-    dbg!();
 
     // add map to database
     let map: TokenStream = quote::quote! {
@@ -92,18 +89,14 @@ fn add_univariate_pure_function_to_db() {
             x as f64
         }
     };
-    dbg!(&map);
     let map: MapFn = parse_quote!(#map);
-    dbg!(&map);
     let tags: Vec<&str> = Vec::new();
     let map = db.get_or_insert_map(&map, &tags).unwrap();
 
     let maps = db.map_iter().unwrap();
     maps.for_each(|map| {
         let map = map;
-        dbg!(&map);
     });
-    dbg!();
 }
 
 #[test]
@@ -125,7 +118,6 @@ fn emit_tokens_from_new_map() {
 
     let map: MapFn = parse_quote!(#map);
     let db_map: DbMap = db.get_or_insert_map(&map, &tags).unwrap();
-    dbg!(&db_map);
     let map_2: MapFn = syn::parse_str::<MapFn>(&db_map.content).unwrap();
     assert_eq!(map, map_2);
 
@@ -237,7 +229,6 @@ fn parse_tags_from_map_macro_attrs() {
     let input = quote::quote! {
         #pound example, #pound other
     };
-    dbg!(input.to_string());
     let output: MapAttrs = parse_quote! { #input };
     let example = output._tags.get(0).unwrap();
     assert_eq!(example.0.0.to_string(), "example");

@@ -38,9 +38,7 @@ impl MapTokens for MapFn {
     
     fn map_trait(&self) -> TokenStream {
         let dunder_mod_ident = self.mod_ident();
-        dbg!(&dunder_mod_ident);
         let dunder_camel_trait_ident = self.trait_ident();
-        dbg!(&dunder_camel_trait_ident);
         let method_ident = &self.item_fn.sig.ident;
         let kernel_name_string = self.kernel_ident().to_string();
         quote::quote! {

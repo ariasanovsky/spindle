@@ -137,7 +137,6 @@ impl TypeDb {
     }
 
     pub(crate) fn drop_tables(&self) -> DbResult<()> {
-        // dbg!();
         // todo! ?tables in the right order
         const DROP_TABLES: &[&str] = &[
             DROP_MAP_TAGS,
@@ -175,14 +174,12 @@ impl TypeDb {
 
 impl TypeDb {
     pub(crate) fn create_new_primitive_table(&self) -> DbResult<()> {
-        // dbg!();
         self.drop_primitive_table()?;
         let _: usize = self.conn.execute(CREATE_PRIMITIVES, [])?;
         Ok(())
     }
 
     pub(crate) fn drop_primitive_table(&self) -> DbResult<()> {
-        // dbg!();
         let _: usize = self.conn.execute(DROP_PRIMITIVES, [])?;
         Ok(())
     }

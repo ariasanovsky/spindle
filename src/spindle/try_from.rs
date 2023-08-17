@@ -90,7 +90,6 @@ mod test_conversions {
         unsafe impl DeviceRepr for MyUnion {}
 
         let host: Vec<f64> = vec![1.0, 2.0, 3.0];
-        dbg!(&host);
         let spindle: DevSlice<MyUnion, f64> = host.try_into().unwrap();
         println!("spindle");
         let host: HostSlice<MyUnion, f64> = spindle.try_into().unwrap();
@@ -98,13 +97,7 @@ mod test_conversions {
         for u in host.0.iter() {
             println!("u: {:?}", unsafe { u.f64 });
         }
-        host.iter().for_each(|x| {
-            dbg!(x);
-        });
         let host: Vec<&f64> = host.iter().collect();
-
-        dbg!(&host);
-
         assert_eq!(host, vec![&1.0, &2.0, &3.0]);
 
         // let host: Vec<f64> = vec![1.0, 2.0, 3.0];

@@ -40,13 +40,9 @@ impl Parse for MapAttrs {
             return Ok(Self { _tags: tags });
         }
         loop {
-            dbg!(input.to_string());
             let _ = input.parse::<syn::Token![#]>()?;
-            dbg!(input.to_string());
             let ident: LowerSnakeIdent = input.parse()?;
-            dbg!(input.to_string());
             tags.push(CrateTag(ident));
-            dbg!(input.to_string());
             // if the input is noempty, we expect a comma
             if !input.is_empty() {
                 let _ = input.parse::<syn::Token![,]>()?;
@@ -137,7 +133,6 @@ impl Parse for MapFn {
                 output: Some(output),
             }],
         })
-        // todo!()
     }
 }
 
@@ -146,81 +141,3 @@ impl ToTokens for MapFn {
         self.item_fn.to_tokens(tokens);
     }
 }
-
-// finally, we assert that the input & return types are primitives
-// todo!()
-// if !map_fn.attrs.is_empty() {
-//     return Err(input.error(UNEXPECTED_ATTRIBUTES));
-// }
-// if !map_fn.sig.generics.params.is_empty() {
-//     return Err(input.error(UNEXPECTED_GENERICS));
-// }
-// if map_fn.sig.generics.where_clause.is_some() {
-//     return Err(input.error(UNEXPECTED_WHERE_CLAUSE));
-// }
-// if map_fn.sig.inputs.is_empty() {
-//     return Err(input.error(EXPECTED_INPUT_ONE));
-// }
-// let mut inputs = map_fn.sig.inputs.iter();
-// let arg = inputs.next();
-// let arg = match (arg, inputs.next()) {
-//     (None, _) | (Some(_), Some(_)) => return Err(input.error(EXPECTED_INPUT_ONE)),
-//     (Some(arg), None) => arg,
-// };
-// let arg = match arg {
-//     syn::FnArg::Receiver(_) => return Err(input.error(UNEXPECTED_SELF)),
-//     syn::FnArg::Typed(arg) => arg,
-// };
-// if !arg.attrs.is_empty() {
-//     return Err(input.error(UNEXPECTED_ATTRIBUTES));
-// }
-// let int_type = match arg.ty.as_ref() {
-//     syn::Type::Path(path) => path,
-//     _ => return Err(input.error(EXPECTED_ONE_INPUT_PRIMITIVE)),
-// };
-// if int_type.qself.is_some() {
-//     return Err(input.error(EXPECTED_ONE_INPUT_PRIMITIVE));
-// }
-// let int_type = match int_type.path.segments.len() {
-//     1 => &int_type.path.segments[0],
-//     _ => return Err(input.error(EXPECTED_ONE_INPUT_PRIMITIVE)),
-// };
-// if !int_type.arguments.is_empty() {
-//     return Err(input.error(EXPECTED_ONE_INPUT_PRIMITIVE));
-// }
-// let int_type = int_type.ident.to_string();
-// if ![
-//     "isize", "usize", "f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
-// ]
-// .contains(&int_type.as_str())
-// {
-//     return Err(input.error(EXPECTED_ONE_INPUT_PRIMITIVE));
-// }
-// let output = match &map_fn.sig.output {
-//     syn::ReturnType::Default => return Err(input.error(ONLY_PRIMITIVE_INPUTS)),
-//     syn::ReturnType::Type(_, output) => *output.clone(),
-// };
-// let output = match output {
-//     syn::Type::Path(path) => path,
-//     _ => return Err(input.error(ONLY_PRIMITIVE_RETURNS)),
-// };
-// if output.qself.is_some() {
-//     return Err(input.error(ONLY_PRIMITIVE_RETURNS));
-// }
-// let output_type = match output.path.segments.len() {
-//     1 => &output.path.segments[0],
-//     _ => return Err(input.error(ONLY_PRIMITIVE_RETURNS)),
-// };
-// if !output_type.arguments.is_empty() {
-//     return Err(input.error(ONLY_PRIMITIVE_RETURNS));
-// }
-// let output_type = output_type.ident.to_string();
-// if ![
-//     "isize", "usize", "f32", "f64", "i8", "u8", "i16", "u16", "i32", "u32", "i64", "u64",
-// ]
-// .contains(&output_type.as_str())
-// {
-//     return Err(input.error(ONLY_PRIMITIVE_RETURNS));
-// }
-
-// Ok(Self(map_fn))

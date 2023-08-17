@@ -86,7 +86,6 @@ impl Parse for RawSpinInput {
             Case::Unknown => return Err(syn::Error::new_spanned(ident, "expected a union (`U`), map (`foo`), or primitive (`f32`)")),
         };
         let ident = UpperCamelIdent(u);
-        // dbg!(&ident);
         // todo! check that `ident` is not a reserved word
         // peek the next token to see if it is an `=`
         let is_new_union = input.peek(syn::Token![=]);
@@ -111,7 +110,6 @@ impl Parse for RawSpinInput {
             // we have parsed `V` and expect nothing more
             RawSpinInput::UnionInScope(UnionInScope(ident))
         })
-        // todo!()
     }
 }
 

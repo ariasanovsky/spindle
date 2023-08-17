@@ -43,9 +43,7 @@ pub(crate) fn map(attrs: MapAttrs, map_fn: MapFn, db_name: &str)
     // add map to database
     // tag in database with #example_01
     // emit map & map trait
-    dbg!(&map_fn);
     let db = TypeDb::open_or_create(db_name, MAP_PATH).unwrap();
-    dbg!(db.table_names().unwrap());
     let _map = db.get_or_insert_map(&map_fn, &attrs._tags).unwrap();
     let map_trait = map_fn.map_trait();
     Ok(quote::quote_spanned! { Span::mixed_site() =>

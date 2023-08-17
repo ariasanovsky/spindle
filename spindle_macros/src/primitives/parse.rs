@@ -12,7 +12,7 @@ impl Parse for _Primitive {
         // let lower_ident = LowerSnakeIdent::try_from(ident).map_err(|_| {
         //     syn::Error::new(input.span(), "expected lower_snake_case")
         // })?;
-        todo!()
+        todo!("d")
         // then, update the database
         // let db = crate::db::TypeDb::connect().map_err(|err| {
         //     syn::Error::new(input.span(), err)

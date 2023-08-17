@@ -7,14 +7,9 @@ impl TypeDb {
         db.create_new_primitive_table()?;
         db.create_new_union_tables()?;
         db.create_new_map_tables()?;
-        dbg!(db.table_names()?);
         db.create_new_crate_tables()?;
         db.create_new_tag_table()?;
-        dbg!(db.table_names()?);
         db.create_new_map_tag_table()?;
-        dbg!(db.table_names()?);
-        // db.create_new_union_tag_table()?;
-        // dbg!(db.table_names()?);
         Ok(db)
     }
 }

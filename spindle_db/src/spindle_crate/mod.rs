@@ -171,7 +171,6 @@ impl TypeDb {
     }
 
     fn get_lift_from_uuid(&self, uuid: String) -> DbResult<Option<DbLiftGivenUnions>> {
-        dbg!();
         // first we get the associated map
         let mut statement = self.conn.prepare(
             "
@@ -230,7 +229,6 @@ impl TypeDb {
     ) -> DbResult<DbCrate> {
         // create a new crate
         let db_crate = DbCrate::new(unions, lifts);
-        dbg!();
         // insert crate, then join with unions and lifts
         let mut statement = self.conn.prepare(
             "
@@ -238,7 +236,6 @@ impl TypeDb {
         ",
         )?;
         let _: usize = statement.execute([&db_crate.uuid])?;
-        dbg!();
         // insert unions
         let mut statement = self.conn.prepare(
             "
@@ -255,7 +252,6 @@ impl TypeDb {
                 let res: DbResult<()> = Ok(());
                 res
             })?;
-        dbg!();
         // insert lifts
         let mut statement = self.conn.prepare(
             "
@@ -272,7 +268,6 @@ impl TypeDb {
                 let res: DbResult<()> = Ok(());
                 res
             })?;
-        dbg!();
         // return the crate
         Ok(db_crate)
     }
@@ -414,7 +409,6 @@ impl TypeDb {
             .enumerate()
             .try_for_each::<_, DbResult<()>>(|(pos, ((in_pos, out_pos), union))| {
                 let union_uuid = &union.uuid;
-                // dbg!(&pos, &in_pos, &out_pos, &union_uuid);
                 // add (lift_uuid, pos, union_uuid, in_pos, out_pos) to the table
                 let mut statement = self.conn.prepare("
                     INSERT INTO lift_entries (lift_uuid, pos, union_uuid, in_pos, out_pos) VALUES (?, ?, ?, ?, ?)

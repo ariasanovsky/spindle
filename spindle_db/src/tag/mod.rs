@@ -32,7 +32,6 @@ impl TypeDb {
                         map,
                         old_map,
                     );
-                    // dbg!(tag.db_tag(), &map, &old_map);
                 },
                 _ => {
                     // if there are multiple maps with this tag and ident, the data is inconsistent, fatal error

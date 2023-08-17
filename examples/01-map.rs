@@ -47,7 +47,7 @@ fn i32_to_f64(x: i32) -> f64 {
 // add fn as a [i32,] -> [f64,] to database
 // tag in database with #example_01
 
-// spindle::spin!(#example_01, U = i32 | f64);
+spindle::spin!(#example_01, U = i32 | f64);
 
 // write new union to examples/01-map.rs
 #[repr(C)]
@@ -73,10 +73,10 @@ unsafe impl __i32_to_f64::__I32ToF64 for spindle::DevSlice<U, i32> {
 fn main() -> spindle::Result<()> {
     let nums: Vec<i32> = (0..10).collect();
     let spindle: spindle::DevSlice<U, i32> = nums.try_into()?;
-    let spindle: spindle::DevSlice<U, f64> = unsafe { spindle.i32_to_f64(10) }?;
+    let spindle: spindle::DevSlice<U, f64> = spindle.i32_to_f64(10)?;
     let spindle: spindle::HostSlice<U, f64> = spindle.try_to_host()?;
     assert!(spindle.iter().enumerate().all(|(i, x)| {
-        *x == i as f64
+        *x == i32_to_f64(i as i32)
     }));
     Ok(())
 }

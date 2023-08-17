@@ -15,7 +15,7 @@ pub struct _Union {
 
 impl _Union {
     pub fn new(ident: Ident, fields: Vec<Ident>) -> Result<Self, crate::case::Error> {
-        todo!()
+        todo!("a")
     }
 
     pub fn ident(&self) -> &Ident {
