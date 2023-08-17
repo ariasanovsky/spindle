@@ -50,25 +50,25 @@ fn i32_to_f64(x: i32) -> f64 {
 spindle::spin!(#example_01, U = i32 | f64);
 
 // write new union to examples/01-map.rs
-#[repr(C)]
-union U {
-    _0: i32,
-    _1: f64,
-}
+// #[repr(C)]
+// union U {
+//     _0: i32,
+//     _1: f64,
+// }
 
 // write new union impls to examples/01-map.rs
-unsafe impl spindle::__cudarc::DeviceRepr for U {}
-unsafe impl spindle::__union::RawConvert<i32> for U {}
-unsafe impl spindle::__union::RawConvert<f64> for U {}
+// unsafe impl spindle::__cudarc::DeviceRepr for U {}
+// unsafe impl spindle::__union::RawConvert<i32> for U {}
+// unsafe impl spindle::__union::RawConvert<f64> for U {}
 
 // get the only #example_01 map from the database
 // assemble the example_01 crate
 // and implement the method on spindle::DevSlice<U, i32>
-unsafe impl __i32_to_f64::__I32ToF64 for spindle::DevSlice<U, i32> {
-    type U = U;
-    type Return = spindle::DevSlice<U, f64>;
-    const PTX_PATH: &'static str = "target/spindle/crates/example_01/target/nvptx64-nvidia-cuda/target/release/kernel.ptx";
-}
+// unsafe impl __i32_to_f64::__I32ToF64 for spindle::DevSlice<U, i32> {
+//     type U = U;
+//     type Return = spindle::DevSlice<U, f64>;
+//     const PTX_PATH: &'static str = "target/spindle/crates/example_01/target/nvptx64-nvidia-cuda/target/release/kernel.ptx";
+// }
 
 fn main() -> spindle::Result<()> {
     let nums: Vec<i32> = (0..10).collect();

@@ -1,20 +1,96 @@
-use proc_macro2::Span;
+use proc_macro2::{Span, Ident};
 use quote::ToTokens;
 use spindle_db::map::DbMap;
 
 use crate::map::MapFn;
 
-use super::SpindleCrate;
+use super::{SpindleCrate, UnionInput};
 
 impl ToTokens for SpindleCrate {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
         let Self {
             home: _,
             maps,
-            tag: _,
+            tag,
             unions,
         } = self;
-        todo!("e")
+        let union_defs = unions.iter().map(|u| u.to_token_stream());
+        tokens.extend(quote::quote_spanned! { Span::mixed_site() =>
+            #(#union_defs)*
+        });
+        assert_eq!(self.unions.len(), 1, "high-degree maps not yet supported");
+        let u_ident = match unions.get(0).unwrap() {
+            UnionInput::New(ident, _) => &ident.0,
+            UnionInput::InScope(ident) => &ident.0,
+        };
+        maps.iter().for_each(|map| {
+            // for 1 union, impl on the DevSlice
+            // for 2+ unions, impl on the tuple of DevSlices
+            let mod_name = syn::Ident::new(
+                &format!("__{}", map.ident),
+                Span::call_site(),
+            );
+            // the trait is __UpperCamelCase
+            use heck::ToUpperCamelCase;
+            let trait_name = syn::Ident::new(
+                &format!("__{}", map.ident.to_upper_camel_case()),
+                Span::call_site(),
+            );
+            assert_eq!(map.in_outs.len(), 1, "high-degree maps not yet supported");
+            let in_out = map.in_outs.get(0).unwrap();
+            let input_ident: Ident = Ident::new(
+                &in_out.input.as_ref().unwrap().ident.to_string(),
+                Span::call_site(),
+            );
+            let output_ident: Ident = Ident::new(
+                &in_out.output.as_ref().unwrap().ident.to_string(),
+                Span::call_site(),
+            );
+            let path = format!("target/spindle/crates/{tag}/target/nvptx64-nvidia-cuda/release/kernel.ptx");
+            let map_impl = quote::quote_spanned! { Span::mixed_site() =>
+                unsafe impl #mod_name::#trait_name for spindle::DevSlice<#u_ident, #input_ident> {
+                    type U = #u_ident;
+                    type Return = spindle::DevSlice<#u_ident, #output_ident>;
+                    const PTX_PATH: &'static str = #path;
+                    
+                }
+            };
+            tokens.extend(map_impl);
+        });
+    }
+}
+
+impl ToTokens for UnionInput {
+    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
+        match self {
+            UnionInput::New(ident, fields) => {
+                let ident = &ident.0;
+                let field_entries = fields.iter().enumerate().map(|(i, field)| {
+                    let underscore_number = syn::Ident::new(
+                        &format!("_{i}"),
+                        Span::call_site(),
+                    );
+                    let field_ident = &field.0;
+                    quote::quote! {
+                        #underscore_number: #field_ident,
+                    }
+                });
+                tokens.extend(quote::quote! {
+                    #[repr(C)]
+                    pub union #ident {
+                        #(#field_entries)*
+                    }
+                    unsafe impl spindle::__cudarc::DeviceRepr for #ident {}
+                });
+                fields.into_iter().for_each(|field| {
+                    let field = &field.0;
+                    tokens.extend(quote::quote! {
+                        unsafe impl spindle::__union::RawConvert<#field> for #ident {}
+                    })
+                })
+            },
+            UnionInput::InScope(_) => {},
+        }
     }
 }
 

@@ -111,4 +111,22 @@ fn example_01_spin() {
     assert_eq!(device.to_string(), expected_device.to_string());
     let _: () = spindle_crate.populate().unwrap();
     let out: std::process::Output = spindle_crate.compile().unwrap();
+    assert!(out.status.success());
+    let user_crate_tokens = spindle_crate.to_token_stream();
+    let expected_user_crate_tokens = quote::quote! {
+        #[repr(C)]
+        pub union U {
+            _0: i32,
+            _1: f64,
+        }
+        unsafe impl spindle::__cudarc::DeviceRepr for U {}
+        unsafe impl spindle::__union::RawConvert<i32> for U {}
+        unsafe impl spindle::__union::RawConvert<f64> for U {}
+        unsafe impl __i32_to_f64::__I32ToF64 for spindle::DevSlice<U, i32> {
+            type U = U;
+            type Return = spindle::DevSlice<U, f64>;
+            const PTX_PATH: &'static str = "target/spindle/crates/test_example_01_spin/target/nvptx64-nvidia-cuda/release/kernel.ptx";
+        }
+    };
+    assert_eq!(user_crate_tokens.to_string(), expected_user_crate_tokens.to_string());
 }
