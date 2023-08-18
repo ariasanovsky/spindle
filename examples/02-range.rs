@@ -1,15 +1,19 @@
-// #[spindle::basic_range]
-// fn square_over_two(x: i32) -> i32 {
+// use spindle::{DevSlice, HostSlice};
+// use spindle::U64; // pub type U64 = u64;
+// use spindle::Any; // pub struct Any;
+// #[spindle::map(#example_02)]
+// fn square_over_two(x: Any, i: U64) -> u64 {
 //     (x * x) / 2
 // }
 
-fn main() -> Result<(), spindle::range::Error> {
-    // let foo = square_over_two(5);
-    // assert_eq!(foo, 12);
-    // let bar = unsafe { 10.square_over_two() }?;
-    // assert_eq!(bar, [0, 0, 2, 4, 8, 12, 18, 24, 32, 40]);
-    // let baz: Box<[i32; 10]> = unsafe { _square_over_two() }?;
-    // assert_eq!(baz, Box::new([0, 0, 2, 4, 8, 12, 18, 24, 32, 40]));
+// spindle::spin!(#example_02, U = u64);
+
+fn main() -> spindle::Result<()> {
+    todo!("implement range maps");
+    // let nums: DevSlice<U, u64> = (0..100_000).square_over_two()?;
+    // let nums: HostSlice<U, u64> = nums.try_to_host()?;
+    // nums.iter().enumerate().for_each(|(i, x)| {
+    //     assert_eq!(x, square_over_two(i as u64));
+    // });
     // Ok(())
-    todo!("TODO: reimplement basic_range")
 }
