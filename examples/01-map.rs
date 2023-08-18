@@ -53,7 +53,7 @@ spindle::spin!(#example_01, U = i32 | f64);
 
 // write new union to examples/01-map.rs
 // #[repr(C)]
-// union U {
+// pub union U {
 //     _0: i32,
 //     _1: f64,
 // }
