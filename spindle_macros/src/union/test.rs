@@ -40,8 +40,9 @@ fn insert_a_new_union_to_the_db() {
     // connect to database
     // add function to database
     const DB_NAME: &str = "insert_a_new_union_to_the_db";
-    const DB_PATH: &str = "target/spindle/db/";
-    let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
+    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let db_path = format!("{target}/spindle/db/");
+    let db = TypeDb::new(DB_NAME, db_path).unwrap();
 
     // parse a union & insert it into the db
     let input = quote::quote! {
@@ -57,8 +58,9 @@ fn emit_tokens_from_new_union() {
     // connect to database
     // add function to database
     const DB_NAME: &str = "emit_tokens_from_new_union";
-    const DB_PATH: &str = "target/spindle/db/";
-    let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
+    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let db_path = format!("{target}/spindle/db/");
+    let db = TypeDb::new(DB_NAME, db_path).unwrap();
 
     let input = quote::quote! {
         U = f32 | u64

@@ -86,9 +86,10 @@ fn example_01_map() {
 fn add_univariate_pure_function_to_db() {
     // connect to database
     // add function to database
+    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
     const DB_NAME: &str = "add_univariate_pure_function_to_db";
-    const DB_PATH: &str = "target/spindle/db/";
-    let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
+    let db_path: String = format!("{target}/spindle/db/");
+    let db = TypeDb::new(DB_NAME, db_path).unwrap();
 
     // first, let's show all `DbMap`s in the db
     let maps = db.map_iter().unwrap();
@@ -117,8 +118,9 @@ fn emit_tokens_from_new_map() {
     // connect to database
     // add function to database
     const DB_NAME: &str = "emit_tokens_from_new_map";
-    const DB_PATH: &str = "target/spindle/db/";
-    let db = TypeDb::new(DB_NAME, DB_PATH).unwrap();
+    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let db_path = format!("{target}/spindle/db/");
+    let db = TypeDb::new(DB_NAME, db_path).unwrap();
 
     // parse a map & insert it into the db
     let map: TokenStream = quote::quote! {

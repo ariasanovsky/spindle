@@ -23,10 +23,15 @@ static RANGE_FILES: &[(&str, &str, &str)] = &[
     ("kernel.ptx", "target/nvptx64-nvidia-cuda/release", ""),
 ];
 
+// todo! let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+
 impl RangeSpindle {
     fn generate(name: &str, device: &BasicRangeFn) -> Result<Self, TokenStream> {
-        let spindle = PathBuf::from(KERNELS).join(name).with_extension("json");
+        let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+        let spindle = PathBuf::from(target).join("spindle").join(name).with_extension("json");
         let new_device = device.clone().into_token_stream().to_string();
+        let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+        let kernels = PathBuf::from(target).join("spindle");
         let spindle = if spindle.exists() {
             let spindle =
                 std::fs::read_to_string(spindle).map_err(NaivelyTokenize::naively_tokenize)?;
@@ -36,7 +41,7 @@ impl RangeSpindle {
             spindle
         } else {
             Self {
-                home: String::from(KERNELS),
+                home: kernels.to_string_lossy().into(),
                 name: name.into(),
                 populated: false,
                 compiled: false,
@@ -45,7 +50,7 @@ impl RangeSpindle {
                 kernel: None,
             }
         };
-        let path = PathBuf::from(KERNELS).join(name);
+        let path = PathBuf::from(kernels).join(name);
         std::fs::create_dir_all(&path).map_err(NaivelyTokenize::naively_tokenize)?;
         std::fs::create_dir_all(path.join(".cargo")).map_err(NaivelyTokenize::naively_tokenize)?;
         std::fs::create_dir_all(path.join("src")).map_err(NaivelyTokenize::naively_tokenize)?;
@@ -182,7 +187,6 @@ impl RangeSpindle {
     }
 }
 
-static KERNELS: &str = "target/spindle/";
 // static RANGE_KERNEL: &'static str = include_str!("range/src/lib.rs");
 // static RANGE_CARGO_TOML: &'static str = include_str!("range/Cargo.toml");
 
@@ -244,9 +248,10 @@ pub(crate) fn emit_range_kernel(_attr: BasicRangeAttrs, item: BasicRangeFn) -> T
         }
     };
 
+    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
     let ptx_path = syn::LitStr::new(
         &format!(
-            "target/spindle/{}/target/nvptx64-nvidia-cuda/release/kernel.ptx",
+            "{target}/spindle/{}/target/nvptx64-nvidia-cuda/release/kernel.ptx",
             name
         ),
         name.span(),

@@ -17,7 +17,9 @@ fn example_01_spin() {
         }
     };
     let map_fn: MapFn = parse_quote! { #map_input };
-    let db = spindle_db::TypeDb::new("test_example_01_spin", "target/spindle/db").unwrap();
+    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let db_path: String = format!("{target}/spindle/db/");
+    let db = spindle_db::TypeDb::new("test_example_01_spin", db_path).unwrap();
     let _db_map = db
         .get_or_insert_map(&map_fn, &vec!["test_example_01_spin"])
         .unwrap();
@@ -37,7 +39,8 @@ fn example_01_spin() {
     } = &spindle_crate;
     assert_eq!(tag.to_string(), "test_example_01_spin");
     // test the home directory
-    let expected_home: PathBuf = "target/spindle/crates/test_example_01_spin".into();
+    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+    let expected_home: PathBuf = PathBuf::from(target).join("spindle/crates/test_example_01_spin");
     assert_eq!(home, &expected_home);
     // test the map
     assert_eq!(maps.len(), 1);
@@ -132,6 +135,7 @@ fn example_01_spin() {
         unsafe impl __i32_to_f64::__I32ToF64 for spindle::DevSlice<U, i32> {
             type U = U;
             type Return = spindle::DevSlice<U, f64>;
+            // todo! let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
             const PTX_PATH: &'static str = "target/spindle/crates/test_example_01_spin/target/nvptx64-nvidia-cuda/release/kernel.ptx";
         }
     };

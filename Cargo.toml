@@ -6,6 +6,10 @@ license = "Apache-2.0 OR MIT"
 description = "Ergonomic GPGPU data parallel in Rust."
 repository = "https://github.com/ariasanovsky/spindle"
 
+[[bin]]
+name = "clean"
+path = "bin/clean.rs"
+
 [dependencies]
 cudarc = "0.9.12"
 spindle_macros = { workspace = true }

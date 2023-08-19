@@ -60,9 +60,12 @@ impl TryFrom<(SpinInputs, &str)> for SpindleCrate {
 
     fn try_from((inputs, db_name): (SpinInputs, &str)) -> Result<Self, Self::Error> {
         let SpinInputs { tag, unions } = inputs;
-        let db = TypeDb::open_or_create(db_name, "target/spindle/db/")?;
+        let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+        let db = format!("{target}/spindle/db/");
+        let db = TypeDb::open_or_create(db_name, db)?;
         let maps = db.get_maps_from_tag(&tag)?;
-        let home = std::path::PathBuf::from("target/spindle/crates/").join(tag.to_string());
+        let home = format!("{target}/spindle/crates/");
+        let home = std::path::PathBuf::from(home).join(tag.to_string());
         Ok(Self {
             home,
             maps,

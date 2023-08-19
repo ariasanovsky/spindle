@@ -10,7 +10,6 @@ pub mod tables;
 pub mod tag;
 pub mod union;
 
-pub(crate) const _DEFAULT_HOME: &str = "target/spindle/db/";
 pub(crate) const _TEST: &str = "tests";
 pub(crate) const DB: &str = "db";
 pub(crate) const _IN_OUTS: &str = "in_outs";
@@ -91,7 +90,8 @@ impl TypeDb {
 
 impl TypeDb {
     pub(crate) fn _new_test_db(test_name: &str) -> DbResult<Self> {
-        let path = PathBuf::from(_DEFAULT_HOME).join(_TEST);
+        let db_home = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+        let path = PathBuf::from(db_home).join(_TEST);
         TypeDb::open_or_create(test_name, path)
     }
 }
