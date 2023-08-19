@@ -40,7 +40,7 @@ fn example_01_spin() {
     assert_eq!(tag.to_string(), "test_example_01_spin");
     // test the home directory
     let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
-    let expected_home: PathBuf = PathBuf::from(target).join("spindle/crates/test_example_01_spin");
+    let expected_home: PathBuf = PathBuf::from(target).join("spindle/map/test_example_01_spin");
     assert_eq!(home, &expected_home);
     // test the map
     assert_eq!(maps.len(), 1);
@@ -136,7 +136,7 @@ fn example_01_spin() {
             type U = U;
             type Return = spindle::DevSlice<U, f64>;
             // todo! let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
-            const PTX_PATH: &'static str = "target/spindle/crates/test_example_01_spin/target/nvptx64-nvidia-cuda/release/kernel.ptx";
+            const PTX_PATH: &'static str = "target/spindle/map/test_example_01_spin/target/nvptx64-nvidia-cuda/release/kernel.ptx";
         }
     };
     assert_eq!(

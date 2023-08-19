@@ -45,7 +45,7 @@ impl ToTokens for SpindleCrate {
             );
             let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
             let path = format!(
-                "{target}/spindle/crates/{tag}/target/nvptx64-nvidia-cuda/release/kernel.ptx"
+                "{target}/spindle/map/{tag}/target/nvptx64-nvidia-cuda/release/kernel.ptx"
             );
             let map_impl = quote::quote_spanned! { Span::mixed_site() =>
                 unsafe impl #mod_name::#trait_name for spindle::DevSlice<#u_ident, #input_ident> {

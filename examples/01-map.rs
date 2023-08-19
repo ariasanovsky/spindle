@@ -69,7 +69,7 @@ spindle::spin!(#example_01, U = i32 | f64);
 // unsafe impl __i32_to_f64::__I32ToF64 for spindle::DevSlice<U, i32> {
 //     type U = U;
 //     type Return = spindle::DevSlice<U, f64>;
-//     const PTX_PATH: &'static str = "target/spindle/crates/example_01/target/nvptx64-nvidia-cuda/target/release/kernel.ptx";
+//     const PTX_PATH: &'static str = "target/spindle/map/example_01/target/nvptx64-nvidia-cuda/target/release/kernel.ptx";
 // }
 
 fn main() -> spindle::Result<()> {

@@ -64,7 +64,7 @@ impl TryFrom<(SpinInputs, &str)> for SpindleCrate {
         let db = format!("{target}/spindle/db/");
         let db = TypeDb::open_or_create(db_name, db)?;
         let maps = db.get_maps_from_tag(&tag)?;
-        let home = format!("{target}/spindle/crates/");
+        let home = format!("{target}/spindle/map/");
         let home = std::path::PathBuf::from(home).join(tag.to_string());
         Ok(Self {
             home,

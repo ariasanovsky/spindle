@@ -92,8 +92,8 @@ fn add_univariate_pure_function_to_db() {
     let db = TypeDb::new(DB_NAME, db_path).unwrap();
 
     // first, let's show all `DbMap`s in the db
-    let maps = db.map_iter().unwrap();
-    maps.for_each(|map| {
+    let maps = db.get_maps().unwrap();
+    maps.into_iter().for_each(|map| {
         let map = map;
     });
 
@@ -107,8 +107,8 @@ fn add_univariate_pure_function_to_db() {
     let tags: Vec<&str> = Vec::new();
     let map = db.get_or_insert_map(&map, &tags).unwrap();
 
-    let maps = db.map_iter().unwrap();
-    maps.for_each(|map| {
+    let maps = db.get_maps().unwrap();
+    maps.into_iter().for_each(|map| {
         let map = map;
     });
 }

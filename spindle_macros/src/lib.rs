@@ -17,10 +17,7 @@ pub(crate) mod spin;
 pub(crate) mod tag;
 
 pub(crate) mod union;
-// pub(crate) mod unions;
 pub(crate) mod primitives;
-// pub(crate) mod maps;
-// pub(crate) mod spindles;
 
 type TokenResult = Result<TokenStream, TokenStream>;
 

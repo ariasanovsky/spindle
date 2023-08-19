@@ -4,8 +4,6 @@ use crate::{
     DbResult, TypeDb,
 };
 
-pub mod iter;
-
 #[cfg(test)]
 mod test;
 
