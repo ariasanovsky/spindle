@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{io::Write, process::{Output, Command}};
 
 use crate::file_strings::{CARGO_TOML, CONFIG_TOML, RUST_TOOLCHAIN_TOML};
 
@@ -18,8 +18,8 @@ impl SpindleCrate {
         Ok(())
     }
 
-    pub fn compile(&self) -> Result<std::process::Output, Error> {
-        let mut cmd = std::process::Command::new("cargo");
+    pub fn format(&self) -> Result<Output, Error> {
+        let mut cmd = Command::new("cargo");
         cmd.args([
             "+nightly",
             "-Z",
@@ -28,21 +28,10 @@ impl SpindleCrate {
             &self.home.to_string_lossy(),
             "fmt",
         ]);
-        let _ = cmd.output()?;
-        let mut cmd = std::process::Command::new("cargo");
-        cmd.args([
-            "+nightly",
-            "-Z",
-            "unstable-options",
-            "-C",
-            &self.home.to_string_lossy(),
-            "build",
-            "--release",
-        ]);
         let output = cmd.output()?;
         Ok(output)
     }
-
+    
     pub(crate) fn write_toml_files(&self) -> Result<(), Error> {
         self.write_cargo_toml()?;
         self.write_config_toml()?;

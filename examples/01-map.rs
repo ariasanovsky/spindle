@@ -2,6 +2,7 @@ use spindle::{DevSlice, HostSlice};
 
 #[spindle::map(#example_01)]
 fn i32_to_f64(x: i32) -> f64 {
+    println!();
     x as f64
 }
 

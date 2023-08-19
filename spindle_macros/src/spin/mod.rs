@@ -5,9 +5,10 @@ use spindle_db::{map::DbMap, TypeDb};
 use crate::{
     case::{PrimitiveIdent, UpperCamelIdent},
     tag::CrateTag,
-    union::{MapFnInScope, NewUnion, RawSpinInput, UnionInScope},
+    union::{MapFnInScope, NewUnion, RawSpinInput, UnionInScope}, spin::compile::CompilationStatus,
 };
 
+mod compile;
 mod error;
 mod parse;
 mod spindle_crate;
@@ -40,31 +41,18 @@ pub fn spin(inputs: SpinInputs, db_name: &str) -> syn::Result<proc_macro2::Token
     let spindle_crate: SpindleCrate = (inputs, db_name)
         .try_into()
         .map_err(|err| syn::Error::new(Span::call_site(), format!("{err:#?}")))?;
-    if !spindle_crate.exists() {
-        spindle_crate.populate()?;
-        let output: std::process::Output = spindle_crate.compile()?;
-        let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if !stdout.is_empty() {
-            println!("{stdout}");
-        }
-        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-        if !stderr.is_empty() {
-            println!("{stderr}");
-        }
+    let status: CompilationStatus = spindle_crate.status()?;
+    status.print_colorful_output();
+    match status {
+        CompilationStatus::Failed { colorless_output, .. } => {
+            // return the error
+            Err(syn::Error::new(Span::call_site(), colorless_output))
+        },
+        CompilationStatus::Succeeded { .. } => {
+            // return the crate as a token stream
+            Ok(spindle_crate.into_token_stream())
+        },
     }
-    // let _: () = spindle_crate.write_toml_files().map_err(|err| syn::Error::new(
-    //     Span::call_site(),
-    //     format!("{err:#?}"),
-    // ))?;
-    // let _: () = spindle_crate.write_lib_rs().map_err(|err| syn::Error::new(
-    //     Span::call_site(),
-    //     format!("{err:#?}"),
-    // ))?;
-    // let _: () = spindle_crate.write_device_rs().map_err(|err| syn::Error::new(
-    //     Span::call_site(),
-    //     format!("{err:#?}"),
-    // ))?;
-    Ok(spindle_crate.to_token_stream())
 }
 
 impl TryFrom<(SpinInputs, &str)> for SpindleCrate {

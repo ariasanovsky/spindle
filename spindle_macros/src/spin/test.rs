@@ -4,7 +4,7 @@ use quote::ToTokens;
 use spindle_db::map::DbMap;
 use syn::parse_quote;
 
-use crate::map::MapFn;
+use crate::{map::MapFn, spin::CompilationStatus};
 
 use super::{SpinInputs, SpindleCrate};
 
@@ -113,8 +113,12 @@ fn example_01_spin() {
     };
     assert_eq!(device.to_string(), expected_device.to_string());
     let _: () = spindle_crate.populate().unwrap();
-    let out: std::process::Output = spindle_crate.compile().unwrap();
-    assert!(out.status.success());
+    let status: CompilationStatus = spindle_crate.status().unwrap();
+    status.print_colorful_output();
+    match status {
+        CompilationStatus::Failed { .. } => panic!("this should have compiled:\n{status:?}"),
+        CompilationStatus::Succeeded { .. } => {}
+    }
     let user_crate_tokens = spindle_crate.to_token_stream();
     let expected_user_crate_tokens = quote::quote! {
         #[repr(C)]
