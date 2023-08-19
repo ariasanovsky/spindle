@@ -1,6 +1,6 @@
 [package]
 name = "spindle_macros"
-version = "0.1.11"
+version = "0.1.12"
 edition = "2021"
 license = "Apache-2.0 OR MIT"
 description = "A macro backend for `spindle`: ergonomic GPGPU data parallel computing in Rust."
@@ -15,5 +15,5 @@ proc-macro2 = "1.0.64"
 quote = "1.0.29"
 serde = { version = "1.0.176", features = ["derive"] }
 serde_json = "1.0.104"
-spindle_db = { version = "0.1.4", path = "../spindle_db" } # todo! this doesn't feel correct
+spindle_db = { version = "0.1.5", path = "../spindle_db" } # todo! this doesn't feel correct
 syn = { version = "2.0.25", features = ["full"] }
