@@ -7,7 +7,7 @@
 // spindle::spin!(#example_02, U = u64);
 
 fn main() -> spindle::Result<()> {
-    todo!("implement range maps");
+    todo!("implement range/init maps");
     // let nums: DevSlice<U, u64> = (100_000..200_000).square_over_two()?;
     // let nums: HostSlice<U, u64> = nums.try_to_host()?;
     // nums.iter().enumerate().for_each(|(i, x)| {

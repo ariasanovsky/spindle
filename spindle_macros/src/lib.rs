@@ -1,6 +1,7 @@
 use basic_range::emit_range_kernel;
-use map::{MapAttrs, MapFn};
+// use map::{MapAttrs, MapFn};
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 use spin::SpinInputs;
 // use spin::SpinInput;
@@ -9,24 +10,41 @@ use syn::parse_macro_input;
 mod basic_range;
 pub(crate) mod case;
 pub(crate) mod db;
-mod error;
+// todo! ?deprecate
+pub(crate) mod error;
+pub(crate) mod init;
 pub(crate) mod file_strings;
 pub(crate) mod map;
+pub(crate) mod primitives;
 pub(crate) mod regulate;
 pub(crate) mod spin;
 pub(crate) mod tag;
-
 pub(crate) mod union;
-pub(crate) mod primitives;
 
+// todo! deprecate
 type TokenResult = Result<TokenStream, TokenStream>;
 
+// todo! deprecate
 #[derive(Clone)]
 struct BasicRangeAttrs;
 
+// todo! deprecate
 #[derive(Clone)]
 struct BasicRangeFn(syn::ItemFn);
 
+#[proc_macro_attribute]
+pub fn init(
+    attr: proc_macro::TokenStream,
+    init_map: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
+    use init::{Attrs, InputInitFn, OutputInitFn};
+    let attrs: Attrs = parse_macro_input!(attr as Attrs);
+    let init_map: InputInitFn = parse_macro_input!(init_map as InputInitFn);
+    let result: OutputInitFn = init::init(attrs, init_map);
+    result.to_token_stream().into()
+}
+
+// todo! deprecate
 #[derive(Debug, Serialize, Deserialize)]
 struct RangeSpindle {
     home: String,
@@ -46,6 +64,7 @@ pub fn spin(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
         .into()
 }
 
+// todo! deprecate
 #[proc_macro_attribute]
 pub fn basic_range(
     attr: proc_macro::TokenStream,
@@ -62,6 +81,7 @@ pub fn map(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
+    use map::{MapAttrs, MapFn};
     let attr = parse_macro_input!(attr as MapAttrs);
     let map_fn = parse_macro_input!(item as MapFn);
     map::map(attr, map_fn, "types")
@@ -69,6 +89,7 @@ pub fn map(
         .into()
 }
 
+// todo! deprecate
 fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
     match result {
         Ok(result) | Err(result) => result,
@@ -76,6 +97,7 @@ fn into_token_stream(result: TokenResult) -> proc_macro::TokenStream {
     .into()
 }
 
+// todo! deprecate
 // todo! write a test for this
 pub(crate) fn camel_word(s: &str) -> String {
     let mut chars = s.chars();
@@ -90,6 +112,7 @@ pub(crate) fn camel_word(s: &str) -> String {
     camel
 }
 
+// todo! deprecate
 // todo! write a test for this
 pub(crate) fn snake_to_camel(s: &str) -> String {
     let s = s.split('_').map(camel_word).collect::<Vec<_>>();

@@ -1,4 +1,4 @@
-pub use spindle_macros::{basic_range, map, spin};
+pub use spindle_macros::{basic_range, init, map, spin};
 
 pub mod __cudarc;
 pub mod __union;
