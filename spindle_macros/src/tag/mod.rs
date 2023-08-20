@@ -7,6 +7,12 @@ use crate::case::LowerSnakeIdent;
 #[derive(Clone, Debug)]
 pub struct CrateTag(pub LowerSnakeIdent);
 
+impl PartialEq for CrateTag {
+    fn eq(&self, other: &Self) -> bool {
+        self.0.0.to_string() == other.0.0.to_string()
+    }
+}
+
 impl AsDbTag for CrateTag {
     fn db_tag(&self) -> String {
         self.0 .0.to_string()
