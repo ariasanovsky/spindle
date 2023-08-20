@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use quote::ToTokens;
 use syn::ItemFn;
 
-use crate::{tag::CrateTag, primitives::_Primitive};
+use crate::{tag::CrateTag, case::PrimitiveIdent};
 
 mod parse;
 #[cfg(test)]
@@ -17,8 +17,8 @@ pub struct Attrs {
 
 pub struct InputInitFn {
     pub item_fn: ItemFn,
-    pub input_type: _Primitive,
-    pub output_type: _Primitive,
+    pub input_type: PrimitiveIdent,
+    pub output_type: PrimitiveIdent,
 }
 
 impl Debug for InputInitFn {

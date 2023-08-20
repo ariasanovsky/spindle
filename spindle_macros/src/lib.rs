@@ -15,7 +15,6 @@ pub(crate) mod error;
 pub(crate) mod init;
 pub(crate) mod file_strings;
 pub(crate) mod map;
-pub(crate) mod primitives;
 pub(crate) mod regulate;
 pub(crate) mod spin;
 pub(crate) mod tag;

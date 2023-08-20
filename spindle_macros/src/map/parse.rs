@@ -6,9 +6,8 @@ use syn::{
 };
 
 use crate::{
-    case::LowerSnakeIdent,
+    case::{LowerSnakeIdent, PrimitiveIdent},
     map::in_out::InOut,
-    primitives::_Primitive,
     regulate::{
         item_fn::RegulateItemFn, pat_type::RegulatePatTypes, return_type::RegulateReturnType,
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
@@ -115,12 +114,8 @@ impl Parse for MapFn {
         }
 
         // todo! hacks abound, ugh
-        let input = _Primitive {
-            ident: LowerSnakeIdent(input_ident),
-        };
-        let output = _Primitive {
-            ident: LowerSnakeIdent(return_ident),
-        };
+        let input = PrimitiveIdent(input_ident);
+        let output = PrimitiveIdent(return_ident);
 
         // let input_ident = Self::_parse_ident_as_primitive(input_idents)
         //     .map_err(|e| input.error(e))?;

@@ -8,18 +8,17 @@ use spindle_db::{
 use crate::{
     case::PrimitiveIdent,
     map::{in_out::InOut, MapFn},
-    primitives::_Primitive,
     union::NewUnion,
 };
 
-impl AsDbPrimitive for _Primitive {
-    fn db_ident(&self) -> String {
-        self.ident.0.to_string()
-    }
-}
+// impl AsDbPrimitive for _Primitive {
+//     fn db_ident(&self) -> String {
+//         self.ident.0.to_string()
+//     }
+// }
 
 impl AsDbInOut for InOut {
-    type Primitive = _Primitive;
+    type Primitive = PrimitiveIdent;
 
     fn db_inout(&self) -> (Option<Self::Primitive>, Option<Self::Primitive>) {
         (self.input.clone(), self.output.clone())
@@ -46,7 +45,7 @@ impl AsDbUnion for NewUnion {
     type Primitive = PrimitiveIdent;
 
     fn db_ident(&self) -> String {
-        self.0 .0.to_string()
+        self.0.0.to_string()
     }
 
     fn db_fields(&self) -> Vec<Self::Primitive> {

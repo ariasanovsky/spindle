@@ -1,8 +1,7 @@
-use crate::primitives::_Primitive;
+use crate::case::PrimitiveIdent;
 
-// todo! ?refactor to use `PrimitiveIdent` instead of this useless struct
 #[derive(Debug, Clone)]
 pub struct InOut {
-    pub input: Option<_Primitive>,
-    pub output: Option<_Primitive>,
+    pub input: Option<PrimitiveIdent>,
+    pub output: Option<PrimitiveIdent>,
 }

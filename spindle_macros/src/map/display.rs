@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display};
 
 use quote::ToTokens;
 
-use crate::primitives::_Primitive;
+use crate::case::PrimitiveIdent;
 
 use super::{in_out::InOut, MapFn};
 
@@ -46,10 +46,10 @@ impl Display for InOut {
     }
 }
 
-impl Display for _Primitive {
+impl Display for PrimitiveIdent {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("_Primitive")
-            .field("ident", &self.ident.0.to_string())
+            .field("ident", &self.0.to_string())
             .finish()
     }
 }
