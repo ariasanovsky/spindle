@@ -130,8 +130,10 @@ impl SpindleCrate {
                 ident,
                 content: _,
                 in_outs,
+                range_type,
             } = map;
             assert_eq!(in_outs.len(), 1, "high-degree maps not yet supported");
+            assert!(range_type.is_none(), "range types not yet supported");
             let map_ident = syn::Ident::new(
                 ident,
                 Span::call_site(),

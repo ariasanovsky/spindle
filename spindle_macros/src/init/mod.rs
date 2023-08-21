@@ -5,6 +5,7 @@ use syn::ItemFn;
 
 use crate::{tag::CrateTag, case::PrimitiveIdent};
 
+mod db;
 mod parse;
 #[cfg(test)]
 mod test;

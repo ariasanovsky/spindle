@@ -38,6 +38,10 @@ impl<'a> AsDbMap for (&'a str, &'a str, Vec<(Option<&'a str>, Option<&'a str>)>)
     fn db_inouts(&self) -> Vec<Self::InOut> {
         self.2.iter().map(|(i, o)| (i.clone(), o.clone())).collect()
     }
+
+    fn range_type(&self) -> Option<String> {
+        None
+    }
 }
 
 #[test]

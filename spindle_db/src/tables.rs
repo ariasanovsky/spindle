@@ -4,7 +4,8 @@ const CREATE_MAPS: &str = "
     CREATE TABLE maps (
     uuid TEXT PRIMARY KEY,
     ident TEXT NOT NULL,        -- not a unique identifier
-    content TEXT NOT NULL       -- todo! ?what uniqueness do we want here
+    content TEXT NOT NULL,       -- todo! ?what uniqueness do we want here
+    range_uuid TEXT
 )";
 
 const CREATE_IN_OUTS: &str = "

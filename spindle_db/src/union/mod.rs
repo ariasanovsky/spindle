@@ -137,7 +137,7 @@ impl TypeDb {
             .map(|(i, row)| {
                 let (pos, field_uuid) = row?;
                 // todo! get_primitive_from_uuid be infallible
-                let field = self.get_primitive_from_uuid(field_uuid)?.unwrap();
+                let field = self.get_primitive_from_uuid(field_uuid)?;
                 assert_eq!(pos, i, "malformed db: union_fields.pos is not sorted");
                 Ok(field)
             })

@@ -31,23 +31,32 @@ fn primitives_new_db_has_correct_table_names() {
 fn primitives_are_added_uniquely() {
     let db = TypeDb::new_primitives_test_db("primitives_are_added_uniquely").unwrap();
     assert_eq!(db._get_primitives().unwrap(), vec![]);
+    dbg!();
     let p = db.get_or_insert_primitive(&"f32").unwrap();
+    dbg!(&p);
     assert_eq!(
         db._get_primitives().unwrap(),
         vec![DbPrimitive::new("f32".to_string())]
     );
-    let q = db.get_primitive_from_uuid(p.uuid).unwrap().unwrap();
+    dbg!();
+    let q = db.get_primitive_from_uuid(p.uuid).unwrap();
+    dbg!(&q);
     assert_eq!(
         db._get_primitives().unwrap(),
         vec![DbPrimitive::new("f32".to_string())]
     );
+    dbg!();
     let r = db.get_or_insert_primitive(&"f32").unwrap();
+    dbg!(&r);
     assert_eq!(
         db._get_primitives().unwrap(),
         vec![DbPrimitive::new("f32".to_string())]
     );
+    dbg!();
     assert_eq!(q.uuid, r.uuid);
+    dbg!();
     let s = db.get_or_insert_primitive(&"f64").unwrap();
+    dbg!(&s);
     assert_eq!(
         db._get_primitives().unwrap(),
         vec![
@@ -55,5 +64,7 @@ fn primitives_are_added_uniquely() {
             DbPrimitive::new("f64".to_string())
         ]
     );
+    dbg!();
     assert_ne!(q.uuid, s.uuid);
+    dbg!();
 }

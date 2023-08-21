@@ -10,6 +10,7 @@ use syn::parse_macro_input;
 mod basic_range;
 pub(crate) mod case;
 pub(crate) mod db;
+pub(crate) mod device_tokens;
 // todo! ?deprecate
 pub(crate) mod error;
 pub(crate) mod init;

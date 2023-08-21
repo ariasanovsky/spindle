@@ -13,6 +13,7 @@ pub struct DbMap {
     pub ident: String,
     pub content: String,
     pub in_outs: Vec<DbInOut>,
+    pub range_type: Option<DbPrimitive>,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -28,12 +29,18 @@ impl PartialEq for DbMap {
 }
 
 impl DbMap {
-    pub(crate) fn new(ident: String, content: String, in_outs: Vec<DbInOut>) -> Self {
+    pub(crate) fn new(
+        ident: String,
+        content: String,
+        in_outs: Vec<DbInOut>,
+        range_type: Option<DbPrimitive>,
+    ) -> Self {
         Self {
             uuid: uuid::Uuid::new_v4().to_string(),
             ident,
             content,
             in_outs,
+            range_type,
         }
     }
 }
@@ -48,6 +55,7 @@ pub trait AsDbMap {
     fn db_ident(&self) -> String;
     fn db_content(&self) -> String;
     fn db_inouts(&self) -> Vec<Self::InOut>;
+    fn range_type(&self) -> Option<String>;
 }
 
 impl TypeDb {
@@ -66,11 +74,14 @@ impl TypeDb {
     pub(crate) fn get_map_from_uuid(&self, uuid: String) -> DbResult<DbMap> {
         let mut stmt = self
             .conn
-            .prepare("SELECT ident, content FROM maps WHERE uuid = ?")?;
-        let (ident, content): (String, String) = stmt.query_row([&uuid], |row| {
-            let ident: String = row.get(0)?;
-            let content: String = row.get(1)?;
-            Ok((ident, content))
+            .prepare("SELECT ident, content, range_uuid FROM maps WHERE uuid = ?")?;
+        let (ident, content, range_type): (String, String, Option<DbPrimitive>) =
+            stmt.query_row([&uuid], |row| {
+                let ident: String = row.get(0)?;
+                let content: String = row.get(1)?;
+                let range_uuid: Option<String> = row.get(2)?;
+                let range_type = range_uuid.map(|range_uuid| self.get_primitive_from_uuid(range_uuid)).transpose()?;
+                Ok((ident, content, range_type))
         })?;
         let in_outs = self.get_in_outs_from_uuid(&uuid)?;
         Ok(DbMap {
@@ -78,6 +89,7 @@ impl TypeDb {
             ident,
             content,
             in_outs,
+            range_type,
         })
     }
 
@@ -106,12 +118,10 @@ impl TypeDb {
                 // todo! ?should get_*_from_uuid be infallible
                 let input = input_uuid
                     .map(|uuid| self.get_primitive_from_uuid(uuid))
-                    .transpose()?
-                    .flatten();
+                    .transpose()?;
                 let output = output_uuid
                     .map(|uuid| self.get_primitive_from_uuid(uuid))
-                    .transpose()?
-                    .flatten();
+                    .transpose()?;
                 Ok((input, output))
             })
             .collect::<DbResult<Vec<_>>>()?;
@@ -170,7 +180,13 @@ impl TypeDb {
                 Ok(DbInOut { input, output })
             })
             .collect::<DbResult<_>>()?;
-        let map = DbMap::new(map.db_ident(), map.db_content(), in_outs);
+        let range_type = map.range_type().map(|range_type| self.get_or_insert_primitive(&range_type)).transpose()?;
+        let map = DbMap::new(
+            map.db_ident(),
+            map.db_content(),
+            in_outs,
+            range_type,
+        );
         self.insert_db_map(&map)?;
         Ok(map)
     }
@@ -178,17 +194,25 @@ impl TypeDb {
     fn insert_db_map(&self, map: &DbMap) -> DbResult<()> {
         let mut statement = self
             .conn
-            .prepare("INSERT INTO maps (uuid, ident, content) VALUES (?, ?, ?)")?;
+            .prepare("INSERT INTO maps (uuid, ident, content, range_uuid) VALUES (?, ?, ?, ?)")?;
+        let DbMap {
+            uuid,
+            ident,
+            content,
+            in_outs,
+            range_type,
+        } = &map;
+        let range_uuid = range_type.as_ref().map(|x| &x.uuid);
         let _: usize =
-            statement.execute([map.uuid.clone(), map.ident.clone(), map.content.clone()])?;
+            statement.execute(rusqlite::params![uuid, ident, content, range_uuid])?;
         let mut statement = self.conn.prepare(
             "INSERT INTO in_outs (map_uuid, pos, input_uuid, output_uuid) VALUES (?, ?, ?, ?)",
         )?;
-        for (i, in_out) in map.in_outs.iter().enumerate() {
+        for (i, in_out) in in_outs.iter().enumerate() {
             let input_uuid = in_out.input.as_ref().map(|x| &x.uuid);
             let output_uuid = in_out.output.as_ref().map(|x| &x.uuid);
             let _: usize =
-                statement.execute(rusqlite::params![&map.uuid, i, input_uuid, output_uuid])?;
+                statement.execute(rusqlite::params![uuid, i, input_uuid, output_uuid])?;
         }
         Ok(())
     }

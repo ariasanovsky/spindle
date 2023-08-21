@@ -39,6 +39,10 @@ impl AsDbMap for MapFn {
     fn db_inouts(&self) -> Vec<Self::InOut> {
         self.in_outs.clone()
     }
+
+    fn range_type(&self) -> Option<String> {
+        None
+    }
 }
 
 impl AsDbUnion for NewUnion {

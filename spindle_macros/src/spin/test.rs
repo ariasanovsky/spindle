@@ -50,7 +50,9 @@ fn example_01_spin() {
         ident,
         content,
         in_outs,
+        range_type,
     } = map;
+    assert!(range_type.is_none());
     assert_eq!(ident.to_string(), "i32_to_f64");
     assert_eq!(content, &map_fn.item_fn.into_token_stream().to_string());
     assert_eq!(in_outs.len(), 1);
