@@ -1,6 +1,8 @@
+use quote::ToTokens;
+use spindle_db::TypeDb;
 use syn::{Token, parse_quote};
 
-use crate::init::{Attrs, InputInitFn};
+use crate::init::{Attrs, DevInitFn};
 
 #[test]
 fn example_02_range_init() {
@@ -9,7 +11,6 @@ fn example_02_range_init() {
     let attr = quote::quote! {
         #pound example_02_test
     };
-    dbg!(attr.to_string());
     let attrs: Attrs = parse_quote! {
         #attr
     };
@@ -22,35 +23,30 @@ fn example_02_range_init() {
     assert_eq!(attrs, expected_attrs);
 
     // test the function parsing
-    let item = quote::quote! {
+    let init_fn: DevInitFn = parse_quote! {
         fn square_over_two(x: u64) -> f32 {
             ((x * x) / 2) as f32
         }
     };
-    let input_item: InputInitFn = parse_quote! {
-        #item
+    let tokens = init_fn.to_token_stream();
+    let expected_tokens = quote::quote! {
+        fn square_over_two(x: u64) -> f32 {
+            ((x * x) / 2) as f32
+        }
     };
-    let InputInitFn {
-        item_fn: _,
-        input_type,
-        output_type,
-    } = &input_item;
-    let expected_input_type = "u64";
-    // todo! refactor input_type to_string
-    assert!(input_type.to_string().contains(expected_input_type));
-    let expected_output_type = "f32";
-    assert!(output_type.to_string().contains(expected_output_type));
+    assert_eq!(tokens.to_string(), expected_tokens.to_string());
     // add to db
-    let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
-    let db_path: String = format!("{target}/spindle/db/");
-    let db = spindle_db::TypeDb::new("test_example_02_range", db_path).unwrap();
-    let tags: Vec<&str> = vec!["example_02_test"];
-    let db_map = db.get_or_insert_map(&input_item, &tags).unwrap();
-    // we'll add it to `maps` but include an Option<DbPrimitive> for the integer range
-    // for example, this is a [Any,] (u64) -> [f32,] map
-    // test the db struct
-    // define `square_over_two` as a method on ranges, e.g., (..10u64).square_over_two();
-    // test spin! input
-    // test spin! output
-    todo!("what else to test???")
+    let db = TypeDb::open_empty_db_in_memory().unwrap();
+    db.create_new_item_fn_table().unwrap();
+    db.create_new_tag_table().unwrap();
+    db.create_new_tagged_item_fn_table().unwrap();
+    let tags: Vec<&str> = vec!["example_02_range_init"];
+    let db_init_fn = db.get_or_insert_item_fn(&init_fn, &tags).unwrap();
+    let db_init_fn: DevInitFn = db_init_fn.try_into().unwrap();
+    assert_eq!(db_init_fn.to_token_stream().to_string(), init_fn.to_token_stream().to_string());
+    
+    todo!("test lib.rs tokens");
+    // todo!("test device.rs tokens");
+    // todo!("test trait tokens");
+    // todo!("test impl tokens");
 }

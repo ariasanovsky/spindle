@@ -1,30 +1,28 @@
-use spindle_db::map::AsDbMap;
+use quote::ToTokens;
+use spindle_db::item_fn::{AsDbItemFn, DbItemFn};
 
-use crate::map::in_out::InOut;
+use crate::dev_item_fn::DevFnIdent;
 
-use super::InputInitFn;
+use super::{DevInitFn, DevInitSignature};
 
-impl AsDbMap for InputInitFn {
-    type InOut = InOut;
-
-    fn db_ident(&self) -> String {
-        let Self {
-            item_fn,
-            input_type,
-            output_type,
-        } = self;
-        todo!()
+impl AsDbItemFn for DevInitFn {
+    fn db_item_ident(&self) -> String {
+        let Self { vis: _, sig, block: _ } = self;
+        let DevInitSignature { fn_token: _, ident, paren_token: _, input: _, comma: _, output: _ } = sig;
+        let DevFnIdent(ident) = ident;
+        ident.to_string()
     }
 
-    fn db_content(&self) -> String {
-        todo!()
+    fn db_item_content(&self) -> String {
+        self.to_token_stream().to_string()
     }
+}
 
-    fn db_inouts(&self) -> Vec<Self::InOut> {
-        todo!()
-    }
+impl TryFrom<DbItemFn> for DevInitFn {
+    type Error = syn::Error;
 
-    fn range_type(&self) -> Option<String> {
-        todo!()
+    fn try_from(value: DbItemFn) -> Result<Self, Self::Error> {
+        let DbItemFn { uuid: _, ident: _, content } = value;
+        syn::parse_str(&content)
     }
 }

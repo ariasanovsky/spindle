@@ -10,7 +10,7 @@ use syn::parse_macro_input;
 mod basic_range;
 pub(crate) mod case;
 pub(crate) mod db;
-pub(crate) mod device_tokens;
+pub(crate) mod dev_item_fn;
 // todo! ?deprecate
 pub(crate) mod error;
 pub(crate) mod init;
@@ -37,9 +37,9 @@ pub fn init(
     attr: proc_macro::TokenStream,
     init_map: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    use init::{Attrs, InputInitFn, OutputInitFn};
+    use init::{Attrs, DevInitFn, OutputInitFn};
     let attrs: Attrs = parse_macro_input!(attr as Attrs);
-    let init_map: InputInitFn = parse_macro_input!(init_map as InputInitFn);
+    let init_map: DevInitFn = parse_macro_input!(init_map as DevInitFn);
     let result: OutputInitFn = init::init(attrs, init_map);
     result.to_token_stream().into()
 }

@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use rusqlite::{Connection, Result};
 
 pub mod display;
+pub mod item_fn;
 pub mod map;
 pub mod primitive;
 pub mod spindle_crate;
@@ -42,6 +43,10 @@ impl TypeDb {
         Self::open(name, &home).unwrap_or_else(|| Self::create(&home, name))
     }
 
+    pub fn open_empty_db_in_memory() -> DbResult<Self> {
+        Connection::open_in_memory().map(|conn| Self { conn })
+    }
+    
     pub fn new<P: std::convert::AsRef<std::ffi::OsStr>>(name: &str, home: P) -> DbResult<Self> {
         let db = Self::open(name, &home).transpose()?;
         if let Some(db) = db {

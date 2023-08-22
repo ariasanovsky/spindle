@@ -1,10 +1,15 @@
 use crate::{DbResult, TypeDb};
 
+const CREATE_TAGS: &str = "
+    CREATE TABLE tags (
+    tag TEXT NOT NULL PRIMARY KEY
+)";
+
 const CREATE_MAPS: &str = "
     CREATE TABLE maps (
     uuid TEXT PRIMARY KEY,
     ident TEXT NOT NULL,        -- not a unique identifier
-    content TEXT NOT NULL,       -- todo! ?what uniqueness do we want here
+    content TEXT NOT NULL,      -- todo! ?what uniqueness do we want here
     range_uuid TEXT
 )";
 
@@ -84,11 +89,6 @@ const CREATE_CRATE_UNIONS: &str = "
     FOREIGN KEY (crate_uuid) REFERENCES crates (uuid),
     FOREIGN KEY (union_uuid) REFERENCES unions (uuid),
     PRIMARY KEY (crate_uuid, pos)    -- each crate has at most one associated union
-)";
-
-const _CREATE_TAGS: &str = "
-    CREATE TABLE tags (
-    tag TEXT NOT NULL PRIMARY KEY
 )";
 
 // const CREATE_UNION_TAGS: &str = "
@@ -218,9 +218,9 @@ impl TypeDb {
 }
 
 impl TypeDb {
-    pub(crate) fn create_new_tag_table(&self) -> DbResult<()> {
+    pub fn create_new_tag_table(&self) -> DbResult<()> {
         self._drop_tag_table()?;
-        let _: usize = self.conn.execute(_CREATE_TAGS, [])?;
+        let _: usize = self.conn.execute(CREATE_TAGS, [])?;
         Ok(())
     }
 
