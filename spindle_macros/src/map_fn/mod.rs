@@ -8,6 +8,7 @@ use in_out::InOut;
 
 use self::tokens::MapTokens;
 
+#[cfg(test)]
 mod display;
 pub(crate) mod in_out;
 mod parse;
