@@ -4,7 +4,7 @@ use quote::ToTokens;
 use spindle_db::map::DbMap;
 use syn::parse_quote;
 
-use crate::{map::MapFn, spin::CompilationStatus};
+use crate::{map_fn::MapFn, spin::CompilationStatus};
 
 use super::{SpinInputs, SpindleCrate};
 

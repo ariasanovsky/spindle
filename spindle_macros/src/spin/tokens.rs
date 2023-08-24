@@ -2,7 +2,7 @@ use proc_macro2::{Ident, Span};
 use quote::ToTokens;
 use spindle_db::map::DbMap;
 
-use crate::map::MapFn;
+use crate::map_fn::MapFn;
 
 use super::{SpindleCrate, UnionInput};
 

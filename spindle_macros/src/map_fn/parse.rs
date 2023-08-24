@@ -7,7 +7,7 @@ use syn::{
 
 use crate::{
     case::{LowerSnakeIdent, PrimitiveIdent},
-    map::in_out::InOut,
+    map_fn::in_out::InOut,
     regulate::{
         item_fn::RegulateItemFn, pat_type::RegulatePatTypes, return_type::RegulateReturnType,
         signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,

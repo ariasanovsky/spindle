@@ -7,7 +7,7 @@ use spindle_db::{
 
 use crate::{
     case::PrimitiveIdent,
-    map::{in_out::InOut, MapFn},
+    map_fn::{in_out::InOut, MapFn},
     union::NewUnion,
 };
 

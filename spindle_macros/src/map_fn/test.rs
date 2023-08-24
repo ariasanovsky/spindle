@@ -5,7 +5,7 @@ use syn::parse_quote;
 
 use crate::{
     case::UpperCamelIdent,
-    map::{tokens::MapTokens, MapFn},
+    map_fn::{tokens::MapTokens, MapFn},
 };
 
 use super::MapAttrs;
@@ -33,7 +33,7 @@ fn example_01_map() {
         }
     };
     let map: MapFn = parse_quote!(#map_fn_input);
-    let map_host_crate_tokens = crate::map::map(attrs, map, "example_01_map_test").unwrap();
+    let map_host_crate_tokens = crate::map_fn::map(attrs, map, "example_01_map_test").unwrap();
     let expected_map_host_crate_tokens = quote::quote! {
         fn i32_to_f64(x: i32) -> f64 {
             x as f64

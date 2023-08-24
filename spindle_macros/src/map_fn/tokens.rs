@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 
-use crate::{case::UpperCamelIdent, map::MapFn, snake_to_camel};
+use crate::{case::UpperCamelIdent, map_fn::MapFn, snake_to_camel};
 
 pub(crate) trait MapTokens {
     fn trait_ident(&self) -> Ident;
