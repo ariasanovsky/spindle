@@ -2,15 +2,15 @@ use crate::{DbResult, TypeDb, _MAP_TAGS, _TAGS};
 
 impl TypeDb {
     fn new_crates_test_db(test_name: &str) -> DbResult<TypeDb> {
-        let db = Self::_new_test_db(test_name)?;
-        db.drop_tables()?;
-        db.create_new_primitive_table()?;
-        db.create_new_union_tables()?;
-        db.create_new_map_tables()?;
-        db.create_new_crate_tables()?;
-        db.create_new_tag_table()?;
-        db.create_new_map_tag_table()?;
-        Ok(db)
+        let db = Self::open_empty_db_in_memory()?;
+        db.create_primitives_table()?;
+        todo!("z")
+        // db.create_new_union_tables()?;
+        // db.create_new_map_tables()?;
+        // db.create_new_crate_tables()?;
+        // db.create_new_tag_table()?;
+        // db.create_new_map_tag_table()?;
+        // Ok(db)
     }
 }
 

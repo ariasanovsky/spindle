@@ -20,9 +20,7 @@ impl AsDbItemFn for DummyItemFn {
 #[test]
 fn get_or_insert_a_single_item_fn() {
     let db = TypeDb::open_empty_db_in_memory().unwrap();
-    db.create_new_item_fn_table().unwrap();
-    db.create_new_tag_table().unwrap();
-    db.create_new_tagged_item_fn_table().unwrap();
+    db.create_or_ignore_tables_for_tagged_item_fns().unwrap();
     let tags = vec!["fizz", "buzz"];
     let foo = DummyItemFn {
         ident: "foo".to_string(),

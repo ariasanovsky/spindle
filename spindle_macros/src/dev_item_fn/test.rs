@@ -114,9 +114,7 @@ fn parse_univariate_pure_dev_item_fn_and_compare_with_db_item_fn() {
     };
     assert_eq!(device_item_fn.to_token_stream().to_string(), expected_token_stream.to_string());
     let db = TypeDb::open_empty_db_in_memory().unwrap();
-    db.create_new_item_fn_table().unwrap();
-    db.create_new_tag_table().unwrap();
-    db.create_new_tagged_item_fn_table().unwrap();
+    db.create_or_ignore_tables_for_tagged_item_fns().unwrap();
     let tags = vec!["fizz", "buzz"];
     let db_item_fn = db.get_or_insert_item_fn(&device_item_fn, &tags).unwrap();
     let db_dev_item_fn: DevItemFn = db_item_fn.try_into().unwrap();

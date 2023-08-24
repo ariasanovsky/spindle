@@ -1,8 +1,15 @@
 use std::fmt::Debug;
 
-use crate::{tag::CrateTag, dev_item_fn::{DevFnIdent, DevFnArg, DevReturnType}};
+use proc_macro2::{Ident, Span};
+use quote::ToTokens;
+use spindle_db::TypeDb;
+
+use crate::{tag::CrateTag, dev_item_fn::{DevFnIdent, DevFnArg, DevReturnType, DevArgType}};
 
 mod db;
+mod device;
+mod kernel;
+mod launch;
 mod parse;
 #[cfg(test)]
 mod test;
@@ -20,6 +27,28 @@ pub struct DevInitFn {
     pub block: syn::Block,
 }
 
+impl DevInitFn {
+    pub fn ident(&self) -> &Ident {
+        let Self { vis: _, sig, block: _ } = self;
+        let DevInitSignature { fn_token: _, ident, paren_token: _, input: _, comma: _, output: _ } = sig;
+        let DevFnIdent(ident) = ident;
+        ident
+    }
+
+    pub fn input_type(&self) -> &DevArgType {
+        let Self { vis: _, sig, block: _ } = self;
+        let DevInitSignature { fn_token: _, ident: _, paren_token: _, input, comma: _, output: _ } = sig;
+        let DevFnArg { pat: _, colon_token: _, ty } = input;
+        ty
+    }
+
+    pub fn output(&self) -> &DevReturnType {
+        let Self { vis: _, sig, block: _ } = self;
+        let DevInitSignature { fn_token: _, ident: _, paren_token: _, input: _, comma: _, output } = sig;
+        output
+    }
+}
+
 pub struct DevInitSignature {
     // pub constness: Option<Const>,
     // pub asyncness: Option<Async>,
@@ -35,30 +64,17 @@ pub struct DevInitSignature {
     pub output: DevReturnType,
 }
 
-impl Debug for DevInitFn {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
-        // f.debug_struct("InputInitFn")
-        // .field("item_fn", &self.item_fn.to_token_stream().to_string())
-        // .field("input_type", &self.input_type)
-        // .field("output_type", &self.output_type)
-        // .finish()
+pub fn init(attrs: Attrs, init_fn: DevInitFn) -> proc_macro2::TokenStream {
+    let Attrs { tags } = attrs;
+    dbg!(&tags);
+    dbg!(&init_fn.to_token_stream().to_string());
+    // todo! unwraps
+    let db = TypeDb::open_or_create_default().unwrap();
+    db.create_or_ignore_tables_for_tagged_item_fns().unwrap();
+    let _db_item_fn = db.get_or_insert_item_fn(&init_fn, &tags).unwrap();
+    let trait_tokens = init_fn.launch_trait();
+    quote::quote_spanned! { Span::mixed_site() => 
+        #init_fn
+        #trait_tokens
     }
-}
-
-impl PartialEq for DevInitFn {
-    fn eq(&self, other: &Self) -> bool {
-        todo!()
-        // let Self { item_fn, input_type, output_type } = self;
-        // let Self { item_fn: other_item_fn, input_type: other_input_type, output_type: other_output_type } = other;
-        // item_fn.into_token_stream().to_string() == other_item_fn.into_token_stream().to_string()
-        // && input_type == other_input_type && output_type == other_output_type
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct OutputInitFn;
-
-pub fn init(attrs: Attrs, init_map: DevInitFn) -> OutputInitFn {
-    todo!()
 }

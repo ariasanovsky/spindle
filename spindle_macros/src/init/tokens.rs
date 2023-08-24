@@ -3,13 +3,7 @@ use quote::ToTokens;
 
 use crate::dev_item_fn::{DevReturnType, DevTypeTuple};
 
-use super::{OutputInitFn, DevInitFn, DevInitSignature};
-
-impl ToTokens for OutputInitFn {
-    fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        todo!()
-    }
-}
+use super::{DevInitFn, DevInitSignature};
 
 impl ToTokens for DevInitFn {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
@@ -52,6 +46,6 @@ impl ToTokens for DevReturnType {
 
 impl ToTokens for DevTypeTuple {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        todo!()
+        todo!("asdfasf")
     }
 }

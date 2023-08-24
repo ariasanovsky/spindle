@@ -1,12 +1,12 @@
 use basic_range::emit_range_kernel;
 // use map::{MapAttrs, MapFn};
 use proc_macro2::TokenStream;
-use quote::ToTokens;
 use serde::{Deserialize, Serialize};
 use spin::SpinInputs;
 // use spin::SpinInput;
 use syn::parse_macro_input;
 
+// todo! deprecate
 mod basic_range;
 pub(crate) mod case;
 pub(crate) mod db;
@@ -37,11 +37,11 @@ pub fn init(
     attr: proc_macro::TokenStream,
     init_map: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    use init::{Attrs, DevInitFn, OutputInitFn};
+    use init::{Attrs, DevInitFn};
     let attrs: Attrs = parse_macro_input!(attr as Attrs);
     let init_map: DevInitFn = parse_macro_input!(init_map as DevInitFn);
-    let result: OutputInitFn = init::init(attrs, init_map);
-    result.to_token_stream().into()
+    let result: proc_macro2::TokenStream = init::init(attrs, init_map);
+    result.into()
 }
 
 // todo! deprecate

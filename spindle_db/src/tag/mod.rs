@@ -1,5 +1,7 @@
 use crate::{map::DbMap, DbResult, TypeDb};
 
+pub(crate) mod tables;
+
 impl TypeDb {
     pub fn get_maps_from_tag<T: AsDbTag>(&self, tag: &T) -> DbResult<Vec<DbMap>> {
         let mut stmt = self

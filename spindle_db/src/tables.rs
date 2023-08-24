@@ -1,10 +1,5 @@
 use crate::{DbResult, TypeDb};
 
-const CREATE_TAGS: &str = "
-    CREATE TABLE tags (
-    tag TEXT NOT NULL PRIMARY KEY
-)";
-
 const CREATE_MAPS: &str = "
     CREATE TABLE maps (
     uuid TEXT PRIMARY KEY,
@@ -127,16 +122,30 @@ const DROP_TAGS: &str = "DROP TABLE IF EXISTS tags";
 const DROP_MAP_TAGS: &str = "DROP TABLE IF EXISTS map_tags";
 
 impl TypeDb {
-    pub(crate) fn create_tables(&self) -> DbResult<()> {
-        self.create_new_map_tables()?;
-        self.create_new_union_tables()?;
-        self.create_new_primitive_table()?;
-        self.create_new_crate_tables()?;
-        self.create_new_tag_table()?;
-        self.create_new_map_tag_table()?;
+    pub(crate) fn contains_table(&self, name: &str) -> DbResult<bool> {
+        // todo! use IF EXISTS
+        self.table_names().map(|names| names.contains(&name.into()))
+    }
+
+    // todo! move to primitives/
+    pub(crate) fn create_primitives_table(&self) -> DbResult<()> {
+        let _: usize = self.conn.execute(CREATE_PRIMITIVES, [])?;
         Ok(())
     }
 
+    // todo! deprecate
+    pub(crate) fn create_tables(&self) -> DbResult<()> {
+        // self.create_new_map_tables()?;
+        // self.create_new_union_tables()?;
+        // self.create_new_primitive_table()?;
+        // self.create_new_crate_tables()?;
+        // self.create_new_tags_table()?;
+        // self.create_new_map_tag_table()?;
+        // Ok(())
+        todo!("w")
+    }
+
+    // todo! refactor
     pub(crate) fn drop_tables(&self) -> DbResult<()> {
         // todo! ?tables in the right order
         const DROP_TABLES: &[&str] = &[
@@ -218,12 +227,6 @@ impl TypeDb {
 }
 
 impl TypeDb {
-    pub fn create_new_tag_table(&self) -> DbResult<()> {
-        self._drop_tag_table()?;
-        let _: usize = self.conn.execute(CREATE_TAGS, [])?;
-        Ok(())
-    }
-
     pub(crate) fn _drop_tag_table(&self) -> DbResult<()> {
         let _: usize = self.conn.execute(DROP_TAGS, [])?;
         Ok(())

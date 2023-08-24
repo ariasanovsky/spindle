@@ -43,6 +43,19 @@ impl TypeDb {
         Self::open(name, &home).unwrap_or_else(|| Self::create(&home, name))
     }
 
+    pub fn default_db_home() -> String {
+        let target_dir = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+        format!("{target_dir}/spindle/db/")
+    }
+
+    pub const fn default_db_name() -> &'static str {
+        "types"
+    }
+
+    pub fn open_or_create_default() -> DbResult<Self> {
+        Self::open_or_create(Self::default_db_name(), Self::default_db_home())
+    }
+
     pub fn open_empty_db_in_memory() -> DbResult<Self> {
         Connection::open_in_memory().map(|conn| Self { conn })
     }
