@@ -4,24 +4,25 @@ use quote::ToTokens;
 
 use crate::case::PrimitiveIdent;
 
-use super::{in_out::InOut, MapFn};
+use super::{in_out::InOut, DevMapFn};
 
-impl Debug for MapFn {
+impl Debug for DevMapFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MapFn")
-            .field(
-                "item_fn",
-                &self.item_fn.clone().to_token_stream().to_string(),
-            )
-            .field(
-                "in_outs",
-                &self
-                    .in_outs
-                    .iter()
-                    .map(|in_out| in_out.to_string())
-                    .collect::<Vec<_>>(),
-            )
-            .finish()
+        todo!("MapFn::Debug")
+        // f.debug_struct("MapFn")
+        //     .field(
+        //         "item_fn",
+        //         &self.item_fn.clone().to_token_stream().to_string(),
+        //     )
+        //     .field(
+        //         "in_outs",
+        //         &self
+        //             .in_outs
+        //             .iter()
+        //             .map(|in_out| in_out.to_string())
+        //             .collect::<Vec<_>>(),
+        //     )
+        //     .finish()
     }
 }
 

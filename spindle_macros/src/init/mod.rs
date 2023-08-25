@@ -66,13 +66,12 @@ pub struct DevInitSignature {
 
 pub fn init(attrs: Attrs, init_fn: DevInitFn) -> proc_macro2::TokenStream {
     let Attrs { tags } = attrs;
-    dbg!(&tags);
-    dbg!(&init_fn.to_token_stream().to_string());
     // todo! unwraps
     let db = TypeDb::open_or_create_default().unwrap();
     db.create_or_ignore_tables_for_tagged_item_fns().unwrap();
     let _db_item_fn = db.get_or_insert_item_fn(&init_fn, &tags).unwrap();
     let trait_tokens = init_fn.launch_trait();
+    todo!("init::init: write crate, compile");
     quote::quote_spanned! { Span::mixed_site() => 
         #init_fn
         #trait_tokens

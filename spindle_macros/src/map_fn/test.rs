@@ -5,7 +5,7 @@ use syn::parse_quote;
 
 use crate::{
     case::UpperCamelIdent,
-    map_fn::{tokens::MapTokens, MapFn},
+    map_fn::{tokens::MapTokens, DevMapFn},
 };
 
 use super::MapAttrs;
@@ -20,7 +20,7 @@ fn example_01_map() {
     let expected_tags = vec!["example_01"];
     assert_eq!(
         attrs
-            ._tags
+            .tags
             .iter()
             .map(|attr| attr.0 .0.to_string())
             .collect::<Vec<_>>(),
@@ -32,7 +32,7 @@ fn example_01_map() {
             x as f64
         }
     };
-    let map: MapFn = parse_quote!(#map_fn_input);
+    let map: DevMapFn = parse_quote!(#map_fn_input);
     let map_host_crate_tokens = crate::map_fn::map(attrs, map, "example_01_map_test").unwrap();
     let expected_map_host_crate_tokens = quote::quote! {
         fn i32_to_f64(x: i32) -> f64 {
@@ -103,14 +103,15 @@ fn add_univariate_pure_function_to_db() {
             x as f64
         }
     };
-    let map: MapFn = parse_quote!(#map);
+    let map: DevMapFn = parse_quote!(#map);
     let tags: Vec<&str> = Vec::new();
-    let map = db.get_or_insert_map(&map, &tags).unwrap();
+    todo!("refactor tests");
+    // let map = db.get_or_insert_map(&map, &tags).unwrap();
 
-    let maps = db.get_maps().unwrap();
-    maps.into_iter().for_each(|map| {
-        let map = map;
-    });
+    // let maps = db.get_maps().unwrap();
+    // maps.into_iter().for_each(|map| {
+    //     let map = map;
+    // });
 }
 
 #[test]
@@ -131,9 +132,11 @@ fn emit_tokens_from_new_map() {
 
     let tags: Vec<&str> = vec![];
 
-    let map: MapFn = parse_quote!(#map);
-    let db_map: DbMap = db.get_or_insert_map(&map, &tags).unwrap();
-    let map_2: MapFn = syn::parse_str::<MapFn>(&db_map.content).unwrap();
+    let map: DevMapFn = parse_quote!(#map);
+    todo!("refactor tests");
+    
+    let db_map: DbMap = todo!(); //db.get_or_insert_map(&map, &tags).unwrap();
+    let map_2: DevMapFn = syn::parse_str::<DevMapFn>(&db_map.content).unwrap();
     assert_eq!(map, map_2);
 
     let decl = map_2.to_token_stream();
@@ -245,9 +248,9 @@ fn parse_tags_from_map_macro_attrs() {
         #pound example, #pound other
     };
     let output: MapAttrs = parse_quote! { #input };
-    let example = output._tags.get(0).unwrap();
+    let example = output.tags.get(0).unwrap();
     assert_eq!(example.0 .0.to_string(), "example");
-    let other = output._tags.get(1).unwrap();
+    let other = output.tags.get(1).unwrap();
     assert_eq!(other.0 .0.to_string(), "other");
-    assert!(output._tags.get(2).is_none());
+    assert!(output.tags.get(2).is_none());
 }

@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 
-use crate::{case::UpperCamelIdent, map_fn::MapFn, snake_to_camel};
+use crate::{case::UpperCamelIdent, map_fn::DevMapFn, snake_to_camel, dev_item_fn::DevSignature};
 
 pub(crate) trait MapTokens {
     fn trait_ident(&self) -> Ident;
@@ -14,35 +14,38 @@ pub(crate) trait MapTokens {
 }
 
 // todo! actually, let's convert the DbMap back into a MapFn outside
-impl MapTokens for MapFn {
+impl MapTokens for DevMapFn {
     fn trait_ident(&self) -> Ident {
+        let ident = self.ident();
         Ident::new(
-            format!("__{}", snake_to_camel(&self.item_fn.sig.ident.to_string())).as_str(),
-            self.item_fn.sig.ident.span(),
+            format!("__{}", snake_to_camel(&ident.to_string())).as_str(),
+            ident.span(),
         )
     }
 
     fn mod_ident(&self) -> Ident {
+        let ident = self.ident();
         Ident::new(
-            format!("__{}", self.item_fn.sig.ident).as_str(),
-            self.item_fn.sig.ident.span(),
+            format!("__{}", ident).as_str(),
+            ident.span(),
         )
     }
 
     fn kernel_ident(&self) -> Ident {
+        let ident = self.ident();
         Ident::new(
-            format!("{}_kernel", self.item_fn.sig.ident).as_str(),
-            self.item_fn.sig.ident.span(),
+            format!("{}_kernel", ident).as_str(),
+            ident.span(),
         )
     }
 
     fn map_trait(&self) -> TokenStream {
-        let dunder_mod_ident = self.mod_ident();
-        let dunder_camel_trait_ident = self.trait_ident();
-        let method_ident = &self.item_fn.sig.ident;
+        let mod_ident = self.mod_ident();
+        let trait_ident = self.trait_ident();
+        let method_ident = self.ident();
         let kernel_name_string = self.kernel_ident().to_string();
         quote::quote! {
-            mod #dunder_mod_ident {
+            mod #mod_ident {
                 use spindle::__cudarc::{
                     CudaDevice as __CudaDevice,
                     CudaFunction as __CudaFunction,
@@ -52,14 +55,14 @@ impl MapTokens for MapFn {
                     LaunchConfig as __LaunchConfig,
                     Ptx as __Ptx,
                 };
-                pub unsafe trait #dunder_camel_trait_ident
+                pub unsafe trait #trait_ident
                 where
-                    <Self as #dunder_camel_trait_ident>::U:
+                    <Self as #trait_ident>::U:
                         __DeviceRepr,
                     Self:
-                        Into<__CudaSlice<<Self as #dunder_camel_trait_ident>::U>>,
-                    __CudaSlice<<Self as #dunder_camel_trait_ident>::U>:
-                        Into<<Self as #dunder_camel_trait_ident>::Return>,
+                        Into<__CudaSlice<<Self as #trait_ident>::U>>,
+                    __CudaSlice<<Self as #trait_ident>::U>:
+                        Into<<Self as #trait_ident>::Return>,
                 {
                     type U;
                     type Return;
@@ -78,13 +81,13 @@ impl MapTokens for MapFn {
                     }
                 }
             }
-            pub use #dunder_mod_ident::#dunder_camel_trait_ident;
+            pub use #mod_ident::#trait_ident;
         }
     }
 
     fn ptx_crate_method(&self, u: &UpperCamelIdent) -> TokenStream {
         let u = &u.0;
-        let map_ident = &self.item_fn.sig.ident;
+        let map_ident = self.ident();
         quote::quote! {
             impl #u {
                 pub(crate) unsafe fn #map_ident(&mut self) {
@@ -103,10 +106,10 @@ impl MapTokens for MapFn {
 
     fn ptx_crate_kernel(&self, u: &UpperCamelIdent) -> TokenStream {
         let u = &u.0;
-        let map_ident = &self.item_fn.sig.ident;
+        let map_ident = self.ident();
         let map_kernel_ident = Ident::new(
             format!("{}_kernel", map_ident).as_str(),
-            self.item_fn.sig.ident.span(),
+            map_ident.span(),
         );
         quote::quote! {
             #[no_mangle]

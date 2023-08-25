@@ -2,7 +2,7 @@ use proc_macro2::{Ident, Span};
 use quote::ToTokens;
 use spindle_db::map::DbMap;
 
-use crate::map_fn::MapFn;
+use crate::map_fn::DevMapFn;
 
 use super::{SpindleCrate, UnionInput};
 
@@ -184,7 +184,7 @@ impl SpindleCrate {
         };
         let pound: syn::Token![#] = Default::default();
         let device_maps = maps.iter().map(|map| {
-            let map_fn: MapFn = syn::parse_str(&map.content).unwrap();
+            let map_fn: DevMapFn = syn::parse_str(&map.content).unwrap();
             map_fn
         });
         let methods = maps.iter().map(|map| {

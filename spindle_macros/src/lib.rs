@@ -78,9 +78,9 @@ pub fn map(
     attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    use map_fn::{MapAttrs, MapFn};
+    use map_fn::{MapAttrs, DevMapFn};
     let attr = parse_macro_input!(attr as MapAttrs);
-    let map_fn = parse_macro_input!(item as MapFn);
+    let map_fn = parse_macro_input!(item as DevMapFn);
     map_fn::map(attr, map_fn, "types")
         .unwrap_or_else(syn::Error::into_compile_error)
         .into()

@@ -4,7 +4,7 @@ use quote::ToTokens;
 use spindle_db::map::DbMap;
 use syn::parse_quote;
 
-use crate::{map_fn::MapFn, spin::CompilationStatus};
+use crate::{map_fn::DevMapFn, spin::CompilationStatus};
 
 use super::{SpinInputs, SpindleCrate};
 
@@ -16,13 +16,14 @@ fn example_01_spin() {
             x as f64
         }
     };
-    let map_fn: MapFn = parse_quote! { #map_input };
+    let map_fn: DevMapFn = parse_quote! { #map_input };
     let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
     let db_path: String = format!("{target}/spindle/db/");
     let db = spindle_db::TypeDb::new("test_example_01_spin", db_path).unwrap();
-    let _db_map = db
-        .get_or_insert_map(&map_fn, &vec!["test_example_01_spin"])
-        .unwrap();
+    let _db_map = todo!("refactor test");
+        // db
+        // .get_or_insert_map(&map_fn, &vec!["test_example_01_spin"])
+        // .unwrap();
 
     // now we parse the spin input
     let pound = syn::token::Pound::default();
@@ -54,7 +55,8 @@ fn example_01_spin() {
     } = map;
     assert!(range_type.is_none());
     assert_eq!(ident.to_string(), "i32_to_f64");
-    assert_eq!(content, &map_fn.item_fn.into_token_stream().to_string());
+    todo!("refactor test");
+    // assert_eq!(content, &map_fn.item_fn.into_token_stream().to_string());
     assert_eq!(in_outs.len(), 1);
     let in_out = in_outs.get(0).unwrap();
     assert_eq!(in_out.input.as_ref().unwrap().ident.as_str(), "i32");

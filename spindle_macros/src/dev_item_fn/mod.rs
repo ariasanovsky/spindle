@@ -13,7 +13,6 @@ pub struct DevItemFn {
     pub block: syn::Block,
 }
 
-
 pub struct DevSignature {
     // pub constness: Option<Const>,
     // pub asyncness: Option<Async>,
