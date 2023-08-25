@@ -118,7 +118,7 @@ impl Parse for RawSpinInput {
                 fields.push(field);
             }
             // now we have parsed `U = p | q | ... r` and did not find another `|`
-            RawSpinInput::NewUnion(NewUnion(ident, fields))
+            RawSpinInput::NewUnion(NewUnion { ident, primitives: fields })
         } else {
             // we have parsed `V` and expect nothing more
             RawSpinInput::UnionInScope(UnionInScope(ident))

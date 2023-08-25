@@ -17,7 +17,10 @@ pub(crate) enum RawSpinInput {
 pub struct UnionInScope(pub UpperCamelIdent);
 
 #[derive(Debug)]
-pub struct NewUnion(pub UpperCamelIdent, pub Vec<PrimitiveIdent>);
+pub struct NewUnion {
+    pub ident: UpperCamelIdent,
+    pub primitives: Vec<PrimitiveIdent>
+}
 
 #[derive(Debug)]
 pub(crate) struct MapFnInScope(pub LowerSnakeIdent);
@@ -25,8 +28,16 @@ pub(crate) struct MapFnInScope(pub LowerSnakeIdent);
 impl RawSpinInput {
     pub(crate) fn _ident(&self) -> &Ident {
         match self {
-            Self::UnionInScope(ident) => &ident.0 .0,
-            Self::NewUnion(ident) => &ident.0 .0,
+            Self::UnionInScope(ident) => {
+                let UnionInScope(ident) = ident;
+                let UpperCamelIdent(ident) = ident;
+                ident
+            }
+            Self::NewUnion(ident) => {
+                let NewUnion { ident, primitives } = ident;
+                let UpperCamelIdent(ident) = ident;
+                ident
+            }
             Self::MapFnInScope(ident) => &ident.0 .0,
         }
     }

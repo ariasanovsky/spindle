@@ -1,10 +1,7 @@
 use proc_macro2::Span;
-use quote::ToTokens;
 use spindle_db::TypeDb;
 
 use crate::{tag::CrateTag, dev_item_fn::{DevSignature, DevFnIdent}};
-
-use in_out::InOut;
 
 use self::tokens::MapTokens;
 

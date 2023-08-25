@@ -2,7 +2,7 @@ use quote::ToTokens;
 // use spindle_db::TypeDb;
 use syn::parse_quote;
 
-use crate::union::RawSpinInput;
+use crate::{union::{RawSpinInput, NewUnion}, case::{UpperCamelIdent, PrimitiveIdent}};
 
 #[test]
 fn parse_a_new_union_of_primitives() {
@@ -10,19 +10,15 @@ fn parse_a_new_union_of_primitives() {
         U = f32 | u64
     };
     let spin_input: RawSpinInput = parse_quote!(#input);
-    let spin_input = if let RawSpinInput::NewUnion(spin_input) = spin_input {
-        spin_input
-    } else {
-        panic!("expected a new union");
-    };
-    let ident = spin_input.0 .0;
+    let new_union = spin_input._new_union().unwrap();
+    let NewUnion { ident, primitives } = new_union;
+    let UpperCamelIdent(ident) = ident;
     assert_eq!(ident.to_string(), "U");
-    let fields: Vec<String> = spin_input
-        .1
-        .iter()
-        .map(|field| field.0.to_string())
-        .collect();
-    assert_eq!(fields, vec!["f32", "u64"]);
+    let primitives = primitives.iter().map(|primitive| {
+        let PrimitiveIdent(primitive) = primitive;
+        primitive.to_string()
+    }).collect::<Vec<_>>();
+    assert_eq!(primitives, vec!["f32", "u64"]);
 }
 
 #[test]
@@ -46,7 +42,7 @@ fn emit_tokens_from_new_union() {
     let new_union = spin_input._new_union().unwrap();
     let expected_tokens = quote::quote! {
         #[repr(C)]
-        union U {
+        pub union U {
             _0: f32,
             _1: u64,
         }

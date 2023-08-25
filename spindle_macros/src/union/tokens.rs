@@ -1,5 +1,7 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream, Span};
 use quote::ToTokens;
+
+use crate::case::{PrimitiveIdent, UpperCamelIdent};
 
 use super::NewUnion;
 
@@ -12,7 +14,22 @@ pub(crate) trait UnionTokens {
 
 impl ToTokens for NewUnion {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        todo!()
+        let NewUnion { ident, primitives } = self;
+        let UpperCamelIdent(ident) = ident;
+        let fields = primitives.iter().enumerate().map(|(i, primitive)| {
+            let PrimitiveIdent(primitive) = primitive;
+            let underscored_number = syn::Ident::new(&format!("_{}", i), Span::call_site());
+            quote::quote! {
+                #underscored_number: #primitive,
+            }
+        });
+        let new_tokens = quote::quote_spanned! { Span::mixed_site() => 
+            #[repr(C)]
+            pub union #ident {
+                #(#fields)*
+            }
+        };
+        tokens.extend(new_tokens);
     }
 }
 
