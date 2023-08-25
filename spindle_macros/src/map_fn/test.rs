@@ -210,13 +210,6 @@ fn emit_tokens_from_new_map() {
 
 #[test]
 fn parse_tags_from_map_macro_attrs() {
-    /* we want the user to be able to write
-        #[spindle::map(#example, #other)]
-        fn foo(x: i32) -> f64 {
-            x as f64
-        }
-    and associate the tags to the MapFn
-    */
     let pound = syn::token::Pound::default();
     let input = quote::quote! {
         #pound example, #pound other
