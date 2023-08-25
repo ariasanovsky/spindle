@@ -1,6 +1,6 @@
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
-use spindle_db::map::DbMap;
+use spindle_db::item_fn::DbItemFn;
 
 use crate::map_fn::DevMapFn;
 
@@ -14,49 +14,50 @@ impl ToTokens for SpindleCrate {
             tag,
             unions,
         } = self;
-        let union_defs = unions.iter().map(|u| u.to_token_stream());
-        tokens.extend(quote::quote_spanned! { Span::mixed_site() =>
-            #(#union_defs)*
-        });
-        assert_eq!(self.unions.len(), 1, "high-degree maps not yet supported");
-        let u_ident = match unions.get(0).unwrap() {
-            UnionInput::New(ident, _) => &ident.0,
-            UnionInput::InScope(ident) => &ident.0,
-        };
-        maps.iter().for_each(|map| {
-            // for 1 union, impl on the DevSlice
-            // for 2+ unions, impl on the tuple of DevSlices
-            let mod_name = syn::Ident::new(&format!("__{}", map.ident), Span::call_site());
-            // the trait is __UpperCamelCase
-            use heck::ToUpperCamelCase;
-            let trait_name = syn::Ident::new(
-                &format!("__{}", map.ident.to_upper_camel_case()),
-                Span::call_site(),
-            );
-            assert_eq!(map.in_outs.len(), 1, "high-degree maps not yet supported");
-            let in_out = map.in_outs.get(0).unwrap();
-            let input_ident: Ident = Ident::new(
-                &in_out.input.as_ref().unwrap().ident.to_string(),
-                Span::call_site(),
-            );
-            let output_ident: Ident = Ident::new(
-                &in_out.output.as_ref().unwrap().ident.to_string(),
-                Span::call_site(),
-            );
-            let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
-            let path = format!(
-                "{target}/spindle/map/{tag}/target/nvptx64-nvidia-cuda/release/kernel.ptx"
-            );
-            let map_impl = quote::quote_spanned! { Span::mixed_site() =>
-                unsafe impl #mod_name::#trait_name for spindle::DevSlice<#u_ident, #input_ident> {
-                    type U = #u_ident;
-                    type Return = spindle::DevSlice<#u_ident, #output_ident>;
-                    const PTX_PATH: &'static str = #path;
+        todo!();
+        // let union_defs = unions.iter().map(|u| u.to_token_stream());
+        // tokens.extend(quote::quote_spanned! { Span::mixed_site() =>
+        //     #(#union_defs)*
+        // });
+        // assert_eq!(self.unions.len(), 1, "high-degree maps not yet supported");
+        // let u_ident = match unions.get(0).unwrap() {
+        //     UnionInput::New(ident, _) => &ident.0,
+        //     UnionInput::InScope(ident) => &ident.0,
+        // };
+        // maps.iter().for_each(|map| {
+        //     // for 1 union, impl on the DevSlice
+        //     // for 2+ unions, impl on the tuple of DevSlices
+        //     let mod_name = syn::Ident::new(&format!("__{}", map.ident), Span::call_site());
+        //     // the trait is __UpperCamelCase
+        //     use heck::ToUpperCamelCase;
+        //     let trait_name = syn::Ident::new(
+        //         &format!("__{}", map.ident.to_upper_camel_case()),
+        //         Span::call_site(),
+        //     );
+        //     assert_eq!(map.in_outs.len(), 1, "high-degree maps not yet supported");
+        //     let in_out = map.in_outs.get(0).unwrap();
+        //     let input_ident: Ident = Ident::new(
+        //         &in_out.input.as_ref().unwrap().ident.to_string(),
+        //         Span::call_site(),
+        //     );
+        //     let output_ident: Ident = Ident::new(
+        //         &in_out.output.as_ref().unwrap().ident.to_string(),
+        //         Span::call_site(),
+        //     );
+        //     let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
+        //     let path = format!(
+        //         "{target}/spindle/map/{tag}/target/nvptx64-nvidia-cuda/release/kernel.ptx"
+        //     );
+        //     let map_impl = quote::quote_spanned! { Span::mixed_site() =>
+        //         unsafe impl #mod_name::#trait_name for spindle::DevSlice<#u_ident, #input_ident> {
+        //             type U = #u_ident;
+        //             type Return = spindle::DevSlice<#u_ident, #output_ident>;
+        //             const PTX_PATH: &'static str = #path;
 
-                }
-            };
-            tokens.extend(map_impl);
-        });
+        //         }
+        //     };
+        //     tokens.extend(map_impl);
+        // });
     }
 }
 
@@ -124,49 +125,50 @@ impl SpindleCrate {
             crate::spin::UnionInput::InScope(ident) => &ident.0,
         };
 
-        let maps = maps.iter().map(|map| {
-            let DbMap {
-                uuid: _,
-                ident,
-                content: _,
-                in_outs,
-                range_type,
-            } = map;
-            assert_eq!(in_outs.len(), 1, "high-degree maps not yet supported");
-            assert!(range_type.is_none(), "range types not yet supported");
-            let map_ident = syn::Ident::new(
-                ident,
-                Span::call_site(),
-            );
-            let kernel_ident = syn::Ident::new(
-                &format!("{}_kernel", ident),
-                Span::call_site(),
-            );
-            quote::quote! {
-                #[no_mangle]
-                pub unsafe extern "ptx-kernel" fn #kernel_ident(slice: *mut #union_ident, size: i32) {
-                    // todo! try other thread geometry
-                    let thread_id: i32 = _thread_idx_x();
-                    let block_id: i32 = _block_idx_x();
-                    let block_dim: i32 = _block_dim_x();
-                    let grid_dim: i32 = _grid_dim_x();
+        todo!();
+        // let maps = maps.iter().map(|map| {
+        //     let DbMap {
+        //         uuid: _,
+        //         ident,
+        //         content: _,
+        //         in_outs,
+        //         range_type,
+        //     } = map;
+        //     assert_eq!(in_outs.len(), 1, "high-degree maps not yet supported");
+        //     assert!(range_type.is_none(), "range types not yet supported");
+        //     let map_ident = syn::Ident::new(
+        //         ident,
+        //         Span::call_site(),
+        //     );
+        //     let kernel_ident = syn::Ident::new(
+        //         &format!("{}_kernel", ident),
+        //         Span::call_site(),
+        //     );
+        //     quote::quote! {
+        //         #[no_mangle]
+        //         pub unsafe extern "ptx-kernel" fn #kernel_ident(slice: *mut #union_ident, size: i32) {
+        //             // todo! try other thread geometry
+        //             let thread_id: i32 = _thread_idx_x();
+        //             let block_id: i32 = _block_idx_x();
+        //             let block_dim: i32 = _block_dim_x();
+        //             let grid_dim: i32 = _grid_dim_x();
                     
-                    let n_threads: i32 = block_dim * grid_dim;
-                    let thread_index: i32 =  thread_id + block_id * block_dim;
+        //             let n_threads: i32 = block_dim * grid_dim;
+        //             let thread_index: i32 =  thread_id + block_id * block_dim;
 
-                    let mut i: i32 = thread_index;
-                    while i < size {
-                        let u: &mut #union_ident = &mut *slice.offset(i as isize);
-                        u.#map_ident();
-                        i = i.wrapping_add(n_threads);
-                    }
-                }
-            }
-        });
-        quote::quote_spanned! { Span::mixed_site() =>
-            #preamble
-            #(#maps)*
-        }
+        //             let mut i: i32 = thread_index;
+        //             while i < size {
+        //                 let u: &mut #union_ident = &mut *slice.offset(i as isize);
+        //                 u.#map_ident();
+        //                 i = i.wrapping_add(n_threads);
+        //             }
+        //         }
+        //     }
+        // });
+        // quote::quote_spanned! { Span::mixed_site() =>
+        //     #preamble
+        //     #(#maps)*
+        // }
     }
 
     pub(crate) fn device_rs(&self) -> proc_macro2::TokenStream {

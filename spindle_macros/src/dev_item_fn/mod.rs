@@ -34,6 +34,7 @@ pub struct DevFnArg {
     pub colon_token: syn::token::Colon,
     pub ty: DevArgType,
 }
+
 pub enum DevReturnType {
     Default,
     Type(syn::token::RArrow, DevType),

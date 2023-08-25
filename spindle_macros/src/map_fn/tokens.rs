@@ -1,8 +1,17 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 
-use crate::{case::UpperCamelIdent, map_fn::DevMapFn, snake_to_camel, dev_item_fn::DevSignature};
+// todo! refactor to use heck
+use crate::{case::UpperCamelIdent, map_fn::DevMapFn, snake_to_camel};
 
+impl ToTokens for DevMapFn {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let Self { vis, sig, block } = self;
+        vis.to_tokens(tokens);
+        sig.to_tokens(tokens);
+        block.to_tokens(tokens);
+    }
+}
 pub(crate) trait MapTokens {
     fn trait_ident(&self) -> Ident;
     fn mod_ident(&self) -> Ident;

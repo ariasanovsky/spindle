@@ -21,17 +21,17 @@ impl PartialEq for PrimitiveIdent {
     }
 }
 
-impl PrimitiveIdent {
-    pub fn is_integer(&self) -> bool {
-        let Self(ident) = self;
-        const INTEGERS: &[&str] = &[
-            "i8", "i16", "i32", "i64", "i128",
-            "u8", "u16", "u32", "u64", "u128",
-            "isize", "usize",
-        ];
-        INTEGERS.contains(&ident.to_string().as_str())
-    }
-}
+// impl PrimitiveIdent {
+//     pub fn is_integer(&self) -> bool {
+//         let Self(ident) = self;
+//         const INTEGERS: &[&str] = &[
+//             "i8", "i16", "i32", "i64", "i128",
+//             "u8", "u16", "u32", "u64", "u128",
+//             "isize", "usize",
+//         ];
+//         INTEGERS.contains(&ident.to_string().as_str())
+//     }
+// }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Case {

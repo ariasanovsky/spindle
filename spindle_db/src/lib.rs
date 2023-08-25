@@ -4,12 +4,12 @@ use rusqlite::{Connection, Result};
 
 pub mod display;
 pub mod item_fn;
-pub mod map;
+// pub mod map;
 pub mod primitive;
-pub mod spindle_crate;
+// pub mod spindle_crate;
 pub mod tables;
 pub mod tag;
-pub mod union;
+// pub mod union;
 
 pub(crate) const _TEST: &str = "tests";
 pub(crate) const DB: &str = "db";

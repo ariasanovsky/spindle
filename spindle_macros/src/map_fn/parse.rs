@@ -1,18 +1,8 @@
-use proc_macro2::{Ident, TokenStream};
-use quote::ToTokens;
-use syn::{
-    parse::{Parse, ParseStream},
-    ItemFn, PatType, Result, Signature,
-};
+use syn::{parse::{Parse, ParseStream}, Result};
 
 use crate::{
-    case::{LowerSnakeIdent, PrimitiveIdent},
-    map_fn::in_out::InOut,
-    regulate::{
-        item_fn::RegulateItemFn, pat_type::RegulatePatTypes, return_type::RegulateReturnType,
-        signature::RegulateSignature, EXPECTED_INPUT_ONE, EXPECTED_ONE_INPUT_PRIMITIVE,
-        EXPECTED_RETURN_PRIMITIVE,
-    }, dev_item_fn::DevItemFn,
+    case::LowerSnakeIdent,
+    dev_item_fn::DevItemFn,
 };
 
 use super::{CrateTag, MapAttrs, DevMapFn};
@@ -54,40 +44,40 @@ impl Parse for MapAttrs {
 }
 
 // todo! bleh, custom error types? better spans?
-impl DevMapFn {
-    fn _parse_item_fn(item_fn: ItemFn) -> std::result::Result<ItemFn, &'static str> {
-        item_fn.no_attributes()?.no_generics()?.no_where_clause()
-    }
+// impl DevMapFn {
+//     fn parse_item_fn(item_fn: ItemFn) -> std::result::Result<ItemFn, &'static str> {
+//         item_fn.no_attributes()?.no_generics()?.no_where_clause()
+//     }
 
-    fn _parse_signature(
-        sig: Signature,
-    ) -> std::result::Result<(Vec<PatType>, Ident), &'static str> {
-        let sig = sig
-            .no_const()?
-            .no_async()?
-            .no_abi()?
-            .no_generics()?
-            .no_variadic()?;
-        let typed_inputs: Vec<_> = sig
-            .only_typed_inputs()
-            .map(|inputs| inputs.into_iter().cloned().collect())?;
-        let return_type = sig.output.ident_return()?;
-        Ok((typed_inputs, return_type))
-    }
+//     fn _parse_signature(
+//         sig: Signature,
+//     ) -> std::result::Result<(Vec<PatType>, Ident), &'static str> {
+//         let sig = sig
+//             .no_const()?
+//             .no_async()?
+//             .no_abi()?
+//             .no_generics()?
+//             .no_variadic()?;
+//         let typed_inputs: Vec<_> = sig
+//             .only_typed_inputs()
+//             .map(|inputs| inputs.into_iter().cloned().collect())?;
+//         let return_type = sig.output.ident_return()?;
+//         Ok((typed_inputs, return_type))
+//     }
 
-    fn _parse_pat_types(pat_types: Vec<PatType>) -> std::result::Result<Ident, &'static str> {
-        pat_types
-            .only_ident_inputs()?
-            .first()
-            .cloned()
-            .ok_or(EXPECTED_INPUT_ONE)
-    }
-}
+//     fn _parse_pat_types(pat_types: Vec<PatType>) -> std::result::Result<Ident, &'static str> {
+//         pat_types
+//             .only_ident_inputs()?
+//             .first()
+//             .cloned()
+//             .ok_or(EXPECTED_INPUT_ONE)
+//     }
+// }
 
 impl Parse for DevMapFn {
     fn parse(input: ParseStream) -> Result<Self> {
         let item_fn: DevItemFn = input.parse()?;
-        todo!("MapFn::parse")
+        item_fn.try_into()
         // let item_fn: ItemFn = input.parse()?;
         // let ItemFn {
         //     attrs: _attrs,
@@ -130,14 +120,5 @@ impl Parse for DevMapFn {
         //         output: Some(output),
         //     }],
         // })
-    }
-}
-
-impl ToTokens for DevMapFn {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { vis, sig, block } = self;
-        vis.to_tokens(tokens);
-        sig.to_tokens(tokens);
-        block.to_tokens(tokens);
     }
 }

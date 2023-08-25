@@ -30,8 +30,8 @@ impl Debug for DevReturnType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Default => write!(f, "Default"),
-            Self::Type(arg0, arg1) => f.debug_tuple("Type").field(arg1).finish(),
-            Self::Tuple(arg0, arg1) => f.debug_tuple("Tuple").field(arg1).finish(),
+            Self::Type(_arg0, arg1) => f.debug_tuple("Type").field(arg1).finish(),
+            Self::Tuple(_arg0, arg1) => f.debug_tuple("Tuple").field(arg1).finish(),
         }
     }
 }
@@ -69,7 +69,7 @@ impl Debug for DevArgType {
         match self {
             Self::DeviceType(arg0) => f.debug_tuple("DeviceType").field(arg0).finish(),
             Self::SpindleAny(arg0) => f.debug_tuple("SpindleAny").field(arg0).finish(),
-            Self::SpindleAnyFullPath(arg0) => todo!("SpindleAnyFullPath"),
+            Self::SpindleAnyFullPath(_arg0) => todo!("SpindleAnyFullPath"),
                 // f.debug_tuple("SpindleAnyFullPath")
                 // .field(arg0)
                 // .finish(),

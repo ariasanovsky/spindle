@@ -1,5 +1,3 @@
-use proc_macro2::TokenStream;
-// use serde::{Deserialize, Serialize};
 use spin::SpinInputs;
 use syn::parse_macro_input;
 
@@ -8,8 +6,6 @@ use syn::parse_macro_input;
 pub(crate) mod case;
 pub(crate) mod db;
 pub(crate) mod dev_item_fn;
-// todo! ?deprecate
-pub(crate) mod error;
 pub(crate) mod init;
 pub(crate) mod file_strings;
 pub(crate) mod map_fn;
@@ -19,11 +15,11 @@ pub(crate) mod tag;
 pub(crate) mod union;
 
 // todo! deprecate
-type TokenResult = Result<TokenStream, TokenStream>;
+// type TokenResult = Result<TokenStream, TokenStream>;
 
 // todo! deprecate
-#[derive(Clone)]
-struct BasicRangeAttrs;
+// #[derive(Clone)]
+// struct BasicRangeAttrs;
 
 // todo! deprecate
 // #[derive(Clone)]

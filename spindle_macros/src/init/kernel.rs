@@ -60,7 +60,7 @@ impl DevInitFn {
             Default => unreachable!("DevInitFn::kernel should only be called on DevInitFn with a return type"),
             Type(_arrow, _output_type) => {
                 match union_idents {
-                    [u] => {
+                    [_] => {
                         let init_method_ident = Ident::new(&format!("{init_ident}_init"), Span::mixed_site());
                         Ok(quote::quote_spanned! { Span::mixed_site() =>
                             pub(crate) unsafe fn #init_method_ident(&mut self, i: #input_type) {

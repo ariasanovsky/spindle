@@ -1,6 +1,6 @@
 use proc_macro2::Span;
 use quote::ToTokens;
-use spindle_db::{map::DbMap, TypeDb};
+use spindle_db::{item_fn::DbItemFn, TypeDb};
 
 use crate::{
     case::{PrimitiveIdent, UpperCamelIdent},
@@ -31,7 +31,7 @@ pub enum UnionInput {
 #[derive(Debug)]
 pub struct SpindleCrate {
     pub home: std::path::PathBuf,
-    pub maps: Vec<DbMap>,
+    pub maps: Vec<DbItemFn>,
     pub tag: CrateTag,
     pub unions: Vec<UnionInput>,
 }
@@ -63,15 +63,16 @@ impl TryFrom<(SpinInputs, &str)> for SpindleCrate {
         let target = std::env::var("CARGO_TARGET_DIR").unwrap_or_else(|_| "target".to_string());
         let db = format!("{target}/spindle/db/");
         let db = TypeDb::open_or_create(db_name, db)?;
-        let maps = db.get_maps_from_tag(&tag)?;
+        let maps = db.get_item_fns_from_tag(&tag)?;
         let home = format!("{target}/spindle/map/");
         let home = std::path::PathBuf::from(home).join(tag.to_string());
-        Ok(Self {
-            home,
-            maps,
-            tag,
-            unions,
-        })
+        todo!();
+        // Ok(Self {
+        //     home,
+        //     maps,
+        //     tag,
+        //     unions,
+        // })
     }
 }
 

@@ -16,6 +16,7 @@ mod parse;
 #[cfg(test)]
 mod test;
 mod tokens;
+mod try_from;
 
 const _DB_NAME: &str = "map";
 
@@ -55,9 +56,9 @@ pub(crate) fn map(
     let MapAttrs { tags } = attrs;
     // todo! unwraps
     let db = TypeDb::open_or_create_default().unwrap();
+    db.create_or_ignore_tables_for_tagged_item_fns().unwrap();
     let _db_map = db.get_or_insert_item_fn(&map_fn, &tags).unwrap();
     let map_trait = map_fn.map_trait();
-    todo!("map::map: write crate, compile");
     Ok(quote::quote_spanned! { Span::mixed_site() =>
         #map_fn
         #map_trait
