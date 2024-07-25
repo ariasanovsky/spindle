@@ -1,4 +1,9 @@
-# Spindle
+# ARCHIVED
+
+I've archived this project and yanked all crates.
+I would love for Rust to have good GPGPU, but this isn't the way to get there 😂
+
+## Spindle
 
 Spindle is a Rust crate simplifies GPGPU multithreaded execution of embarrassingly parallel and data parallel tasks.
 
